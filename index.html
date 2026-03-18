@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#F2E8D9">
+<title>Portal de Inventarios — DIMSA</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #E8E8E6;
+    --surface: #FFFFFF;
+    --header-bg: #F2E8D9;
+    --accent: #8B1A4A;
+    --accent-hover: #6E1239;
+    --accent-light: #FAE8F0;
+    --green: #2D7A3A;
+    --amber: #92400E;
+    --text: #1C1614;
+    --muted: #6B5F5C;
+    --border: #DDD5D0;
+    --radius: 12px;
+    --shadow: 0 1px 4px rgba(0,0,0,.08);
+    --shadow-md: 0 4px 20px rgba(0,0,0,.12);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Outfit',sans-serif;background-color:var(--bg);color:var(--text);min-height:100vh}
+  body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+    background-size:200px 200px}
+
+  /* ── TOPBAR ── */
+  .topbar{background:var(--header-bg);border-bottom:3px solid var(--accent);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .topbar-left{display:flex;align-items:center;gap:16px}
+  .topbar-left img{height:32px;object-fit:contain}
+  .topbar-divider{width:1px;height:24px;background:var(--border)}
+  .topbar-title{font-size:14px;font-weight:600;color:var(--text);font-family:'IBM Plex Mono',monospace}
+  .topbar-title span{color:var(--accent)}
+  .topbar-nav{display:flex;align-items:center;gap:4px}
+  .topbar-nav a{font-size:12px;font-weight:600;padding:5px 12px;border-radius:6px;text-decoration:none;color:var(--muted);transition:all .15s}
+  .topbar-nav a:hover{background:var(--border);color:var(--text)}
+  .topbar-nav a.active{background:var(--accent);color:#fff}
+  .topbar-right{display:flex;align-items:center;gap:12px}
+  .live-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+  .clock-txt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+  /* ── CONTENT ── */
+  .content{max-width:1200px;margin:0 auto;padding:2rem 1.5rem;position:relative;z-index:1}
+
+  /* ── HERO ── */
+  .hero{margin-bottom:1.75rem}
+  .hero-greeting{font-size:13px;color:var(--muted);margin-bottom:4px}
+  .hero-title{font-size:26px;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:.25rem}
+  .hero-title span{color:var(--accent)}
+  .hero-sub{font-size:13px;color:var(--muted)}
+
+  /* ── STATS ROW ── */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.75rem}
+  .stat-card{background:var(--surface);border-radius:var(--radius);padding:1rem 1.25rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+  .stat-card.tarimas::after{background:#2D7A3A}
+  .stat-card.tintas::after{background:var(--accent)}
+  .stat-card.indirectos::after{background:#8B6914}
+  .stat-card.alerts::after{background:#DC2626}
+  .stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px}
+  .stat-val{font-size:30px;font-weight:700;font-family:'IBM Plex Mono',monospace;line-height:1}
+  .stat-val.green{color:var(--green)}
+  .stat-val.accent{color:var(--accent)}
+  .stat-val.blue{color:#8B6914}
+  .stat-val.red{color:#DC2626}
+  .stat-sub{font-size:11px;color:var(--muted);margin-top:5px}
+
+  /* ── INVENTORY CARDS ── */
+  .inv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:1.75rem}
+  .inv-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;text-decoration:none;color:var(--text);transition:all .2s;display:flex;flex-direction:column}
+  .inv-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+  .inv-card-header{padding:1.25rem 1.5rem;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .inv-card-header.tarimas{background:linear-gradient(135deg,#1A3D1F 0%,#2D7A3A 100%)}
+  .inv-card-header.tintas{background:linear-gradient(135deg,#4A0A28 0%,#8B1A4A 100%)}
+  .inv-card-header.indirectos{background:linear-gradient(135deg,#5C4209 0%,#C49A2A 100%)}
+  .inv-card-icon{font-size:32px}
+  .inv-card-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:3px}
+  .inv-card-desc{font-size:11px;color:rgba(255,255,255,.65)}
+  .inv-card-body{padding:1.25rem 1.5rem;flex:1}
+  .inv-stat-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .inv-stat-row:last-child{margin-bottom:0}
+  .inv-stat-label{font-size:12px;color:var(--muted)}
+  .inv-stat-val{font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+  .inv-card-footer{padding:.75rem 1.5rem;border-top:1px solid var(--bg);display:flex;align-items:center;justify-content:space-between}
+  .inv-card-link{font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
+  .inv-card-link.tarimas{color:var(--green)}
+  .inv-card-link.tintas{color:var(--accent)}
+  .inv-card-link.indirectos{color:#8B6914}
+  .alert-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+  .alert-pill.red{background:#FEE2E2;color:#991B1B}
+  .alert-pill.amber{background:#FEF3C7;color:#92400E}
+  .alert-pill.green{background:#DCFCE7;color:#166534}
+
+  /* ── BOTTOM PANELS ── */
+  .bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .panel{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .panel-header{padding:.875rem 1.25rem;border-bottom:1px solid var(--bg);display:flex;align-items:center;justify-content:space-between}
+  .panel-title{font-size:13px;font-weight:600}
+  .panel-sub{font-size:11px;color:var(--muted)}
+  .panel-body{padding:1rem 1.25rem}
+  .quick-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;margin-bottom:6px;text-decoration:none;color:var(--text);font-size:13px;font-weight:500;background:var(--bg);transition:all .15s}
+  .quick-btn:hover{background:var(--border)}
+  .quick-btn .qb-icon{font-size:18px}
+  .quick-btn .qb-arrow{margin-left:auto;color:var(--muted)}
+  .alert-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg);font-size:12px}
+  .alert-item:last-child{border-bottom:none}
+  .alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .alert-dot.red{background:#DC2626}
+  .alert-dot.amber{background:#CA8A04}
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:1024px){.stats-row{grid-template-columns:repeat(2,1fr)}.inv-grid{grid-template-columns:1fr 1fr}.bottom-grid{grid-template-columns:1fr}}
+  @media(max-width:640px){
+    .topbar{padding:0 1rem}
+    .topbar-nav{display:none}
+    .content{padding:1rem}
+    .stats-row{grid-template-columns:1fr 1fr;gap:8px}
+    .inv-grid{grid-template-columns:1fr}
+    .clock-txt{display:none}
+  }
+</style>
+</head>
+<body>
+
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-left">
+    <img src="https://www.dim-sa.com.mx/assets/img/LOGODIMSA.png" alt="DIMSA">
+    <div class="topbar-divider"></div>
+    <div class="topbar-title">Portal <span>DIMSA</span></div>
+  </div>
+  <nav class="topbar-nav">
+    <a href="index.html" class="active">Inicio</a>
+    <a href="tarimas.html">Tarimas</a>
+    <a href="tintas.html">Tintas</a>
+    <a href="indirectos.html">Indirectos</a>
+  </nav>
+  <div class="topbar-right">
+    <div class="live-badge"><div class="live-dot"></div><span>Sistema activo</span></div>
+    <span class="clock-txt" id="sb-clock">--:--</span>
+  </div>
+</header>
+
+<div class="content">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-greeting" id="greeting">Buenos días</div>
+    <div class="hero-title">Control de <span>inventarios</span></div>
+    <div class="hero-sub" id="sb-date">Planta DIMSA — visión general del sistema</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card tarimas">
+      <div class="stat-label">Tarimas en bodega</div>
+      <div class="stat-val green" id="st-tarimas">—</div>
+      <div class="stat-sub">piezas totales</div>
+    </div>
+    <div class="stat-card tintas">
+      <div class="stat-label">Stock tintas</div>
+      <div class="stat-val accent" id="st-tintas">—</div>
+      <div class="stat-sub">kg totales</div>
+    </div>
+    <div class="stat-card indirectos">
+      <div class="stat-label">Indirectos OK</div>
+      <div class="stat-val blue" id="st-indir">—</div>
+      <div class="stat-sub">productos sobre mínimo</div>
+    </div>
+    <div class="stat-card alerts">
+      <div class="stat-label">Alertas activas</div>
+      <div class="stat-val red" id="st-alerts">—</div>
+      <div class="stat-sub">productos bajo mínimo</div>
+    </div>
+  </div>
+
+  <!-- INVENTORY CARDS -->
+  <div class="inv-grid">
+    <a class="inv-card" href="tarimas.html">
+      <div class="inv-card-header tarimas">
+        <div>
+          <div class="inv-card-title">Tarimas</div>
+          <div class="inv-card-desc">Control de pallets en bodega y tapanco</div>
+        </div>
+        
+      </div>
+      <div class="inv-card-body">
+        <div class="inv-stat-row"><span class="inv-stat-label">Bodega 7</span><span class="inv-stat-val" id="ic-b7">—</span></div>
+        <div class="inv-stat-row"><span class="inv-stat-label">En Tapanco</span><span class="inv-stat-val" id="ic-tp">—</span></div>
+        <div class="inv-stat-row"><span class="inv-stat-label">Medidas distintas</span><span class="inv-stat-val" id="ic-tipos">—</span></div>
+      </div>
+      <div class="inv-card-footer">
+        <span class="inv-card-link tarimas">Ver inventario →</span>
+        <span class="alert-pill" id="ic-tar-alert"></span>
+      </div>
+    </a>
+
+    <a class="inv-card" href="tintas.html">
+      <div class="inv-card-header tintas">
+        <div>
+          <div class="inv-card-title">Tintas</div>
+          <div class="inv-card-desc">Tintas, adhesivos, barnices y aditivos</div>
+        </div>
+        
+      </div>
+      <div class="inv-card-body">
+        <div class="inv-stat-row"><span class="inv-stat-label">Total registros</span><span class="inv-stat-val" id="ic-tint-total">—</span></div>
+        <div class="inv-stat-row"><span class="inv-stat-label">Total kg</span><span class="inv-stat-val" id="ic-tint-kg">—</span></div>
+        <div class="inv-stat-row"><span class="inv-stat-label">Lotes en cero</span><span class="inv-stat-val" id="ic-tint-zero">—</span></div>
+      </div>
+      <div class="inv-card-footer">
+        <span class="inv-card-link tintas">Ver inventario →</span>
+        <span class="alert-pill" id="ic-tint-alert"></span>
+      </div>
+    </a>
+
+    <a class="inv-card" href="indirectos.html">
+      <div class="inv-card-header indirectos">
+        <div>
+          <div class="inv-card-title">Materiales Indirectos</div>
+          <div class="inv-card-desc">Empaques, químicos, flejes y consumibles</div>
+        </div>
+        
+      </div>
+      <div class="inv-card-body">
+        <div class="inv-stat-row"><span class="inv-stat-label">Total productos</span><span class="inv-stat-val" id="ic-ind-total">—</span></div>
+        <div class="inv-stat-row"><span class="inv-stat-label">Sobre el mínimo</span><span class="inv-stat-val" id="ic-ind-ok">—</span></div>
+        <div class="inv-stat-row"><span class="inv-stat-label">Bajo el mínimo</span><span class="inv-stat-val" id="ic-ind-low">—</span></div>
+      </div>
+      <div class="inv-card-footer">
+        <span class="inv-card-link indirectos">Ver inventario →</span>
+        <span class="alert-pill" id="ic-ind-alert"></span>
+      </div>
+    </a>
+  </div>
+
+  <!-- BOTTOM PANELS -->
+  <div class="bottom-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Acceso rápido</div>
+        <div class="panel-sub">Acciones frecuentes</div>
+      </div>
+      <div class="panel-body">
+        <a class="quick-btn" href="tarimas.html"><span>Registrar movimiento de tarimas</span><span class="qb-arrow">→</span></a>
+        <a class="quick-btn" href="tintas.html"><span>Registrar salida de tinta</span><span class="qb-arrow">→</span></a>
+        <a class="quick-btn" href="indirectos.html"><span>Ver materiales indirectos</span><span class="qb-arrow">→</span></a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Alertas de stock</div>
+        <div class="panel-sub">Productos bajo el mínimo</div>
+      </div>
+      <div class="panel-body" id="alerts-panel">
+        <div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:13px">Conectando...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDLMBZMpjY4vHIvPPm-sge_NRqAKk_rcTQ",
+  authDomain:        "inventario-tarimas---dimsa.firebaseapp.com",
+  projectId:         "inventario-tarimas---dimsa",
+  storageBucket:     "inventario-tarimas---dimsa.firebasestorage.app",
+  messagingSenderId: "585720335508",
+  appId:             "1:585720335508:web:4a5818ce201ccf9e263881"
+};
+
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);})}
+
+function tick(){
+  const n=new Date(),p=x=>String(x).padStart(2,'0');
+  document.getElementById('sb-clock').textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+  const days=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  document.getElementById('sb-date').textContent=`Planta DIMSA · ${days[n.getDay()]} ${n.getDate()} ${months[n.getMonth()]}`;
+  const h=n.getHours();
+  document.getElementById('greeting').textContent=h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches';
+}
+setInterval(tick,1000);tick();
+
+let allAlerts = [];
+function renderAlerts(){
+  const panel=document.getElementById('alerts-panel');
+  document.getElementById('st-alerts').textContent=allAlerts.length;
+  if(!allAlerts.length){panel.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:13px">✓ Sin alertas activas</div>';return;}
+  panel.innerHTML=allAlerts.slice(0,8).map(a=>`
+    <div class="alert-item">
+      <div class="alert-dot ${a.level}"></div>
+      <div style="flex:1"><div style="font-weight:500">${a.nombre}</div><div style="font-size:10px;color:var(--muted)">${a.detalle}</div></div>
+      <a href="${a.link}" style="font-size:11px;color:var(--accent);font-weight:600;text-decoration:none">Ver →</a>
+    </div>`).join('');
+}
+
+async function loadData(){
+  try{
+    await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+    await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js');
+    if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+    const db=firebase.firestore();
+
+    db.collection('inventario').onSnapshot(snap=>{
+      const inv=snap.docs.map(d=>d.data());
+      const total=inv.reduce((s,r)=>s+(r.qty||0),0);
+      const b7=inv.filter(r=>r.loc==='BODEGA 7').reduce((s,r)=>s+(r.qty||0),0);
+      const tp=inv.filter(r=>r.loc==='EN TAPANCO').reduce((s,r)=>s+(r.qty||0),0);
+      const tipos=[...new Set(inv.map(r=>r.medida))].length;
+      const zeros=inv.filter(r=>(r.qty||0)===0);
+      document.getElementById('st-tarimas').textContent=total;
+      document.getElementById('ic-b7').textContent=b7+' pz';
+      document.getElementById('ic-tp').textContent=tp+' pz';
+      document.getElementById('ic-tipos').textContent=tipos;
+      const tarAlerts=zeros.map(r=>({nombre:r.medida,detalle:'Tarima sin stock',level:'red',link:'tarimas.html'}));
+      allAlerts=allAlerts.filter(a=>a.link!=='tarimas.html').concat(tarAlerts);
+      document.getElementById('ic-tar-alert').textContent=zeros.length?zeros.length+' sin stock':'✓ OK';
+      document.getElementById('ic-tar-alert').className='alert-pill '+(zeros.length?'red':'green');
+      renderAlerts();
+    });
+
+    db.collection('tintas').onSnapshot(snap=>{
+      const inv=snap.docs.map(d=>d.data());
+      const kg=inv.filter(r=>r.unidad!=='ml').reduce((s,r)=>s+(r.qty||0),0);
+      const zeros=inv.filter(r=>(r.qty||0)===0);
+      document.getElementById('st-tintas').textContent=kg.toFixed(0);
+      document.getElementById('ic-tint-total').textContent=inv.length+' lotes';
+      document.getElementById('ic-tint-kg').textContent=kg.toFixed(1)+' kg';
+      document.getElementById('ic-tint-zero').textContent=zeros.length;
+      document.getElementById('ic-tint-alert').textContent=zeros.length>0?zeros.length+' en cero':'✓ OK';
+      document.getElementById('ic-tint-alert').className='alert-pill '+(zeros.length>10?'red':zeros.length>0?'amber':'green');
+      renderAlerts();
+    });
+
+    db.collection('indirectos').onSnapshot(snap=>{
+      const inv=snap.docs.map(d=>d.data());
+      const ok=inv.filter(r=>(r.qty||0)>=(r.min||0)).length;
+      const low=inv.filter(r=>(r.min||0)>0&&(r.qty||0)<(r.min||0));
+      document.getElementById('st-indir').textContent=ok;
+      document.getElementById('ic-ind-total').textContent=inv.length+' productos';
+      document.getElementById('ic-ind-ok').textContent=ok;
+      document.getElementById('ic-ind-low').textContent=low.length;
+      const indAlerts=low.map(r=>({nombre:r.nombre,detalle:`${r.qty} ${r.unidad} (mín. ${r.min})`,level:(r.qty||0)===0?'red':'amber',link:'indirectos.html'}));
+      allAlerts=allAlerts.filter(a=>a.link!=='indirectos.html').concat(indAlerts);
+      document.getElementById('ic-ind-alert').textContent=low.length?low.length+' bajo mínimo':'✓ OK';
+      document.getElementById('ic-ind-alert').className='alert-pill '+(low.length?'amber':'green');
+      renderAlerts();
+    });
+
+  }catch(e){
+    console.warn('Firebase no disponible:',e);
+    document.getElementById('alerts-panel').innerHTML='<div style="text-align:center;padding:1rem;color:var(--muted);font-size:12px">Configura Firebase para ver datos.</div>';
+  }
+}
+loadData();
+</script>
+</body>
+</html>
