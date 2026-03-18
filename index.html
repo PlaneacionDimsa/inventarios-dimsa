@@ -7,27 +7,30 @@
 <title>Portal de Inventarios — DIMSA</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #E8E8E6;
-    --surface: #FFFFFF;
-    --header-bg: #F2E8D9;
-    --accent: #8B1A4A;
-    --accent-hover: #6E1239;
-    --accent-light: #FAE8F0;
-    --green: #2D7A3A;
+    :root {
+    --bg: #f5f0e8;
+    --surface: #fdf8f2;
+    --surface2: #ede8de;
+    --header-bg: #fdf8f2;
+    --accent: #9e2a2b;
+    --accent-hover: #7b1d1e;
+    --accent-light: #f9eded;
+    --green: #4a7a5a;
+    --danger: #e53e3e;
     --amber: #92400E;
-    --text: #1C1614;
-    --muted: #6B5F5C;
-    --border: #DDD5D0;
-    --radius: 12px;
-    --shadow: 0 1px 4px rgba(0,0,0,.08);
-    --shadow-md: 0 4px 20px rgba(0,0,0,.12);
+    --text: #2c1f0f;
+    --muted: #8a7070;
+    --border: #d9cfc0;
+    --border-strong: #c4b090;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(44,31,15,.08);
+    --shadow-md: 0 4px 16px rgba(44,31,15,.14);
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Outfit',sans-serif;background-color:var(--bg);color:var(--text);min-height:100vh}
-  body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
-    background-size:200px 200px}
+    body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--bg); color: var(--text); min-height: 100vh;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4a882' fill-opacity='0.07'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+  
 
   /* ── TOPBAR ── */
   .topbar{background:var(--header-bg);border-bottom:3px solid var(--accent);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;box-shadow:0 2px 8px rgba(0,0,0,.06)}
@@ -60,16 +63,16 @@
   .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.75rem}
   .stat-card{background:var(--surface);border-radius:var(--radius);padding:1rem 1.25rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
   .stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
-  .stat-card.tarimas::after{background:#2D7A3A}
+  .stat-card.tarimas::after{background:var(--green)}
   .stat-card.tintas::after{background:var(--accent)}
   .stat-card.indirectos::after{background:#8B6914}
-  .stat-card.alerts::after{background:#DC2626}
+  .stat-card.alerts::after{background:var(--danger)}
   .stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px}
   .stat-val{font-size:30px;font-weight:700;font-family:'IBM Plex Mono',monospace;line-height:1}
   .stat-val.green{color:var(--green)}
   .stat-val.accent{color:var(--accent)}
   .stat-val.blue{color:#8B6914}
-  .stat-val.red{color:#DC2626}
+  .stat-val.red{color:var(--danger)}
   .stat-sub{font-size:11px;color:var(--muted);margin-top:5px}
 
   /* ── INVENTORY CARDS ── */
@@ -77,9 +80,9 @@
   .inv-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;text-decoration:none;color:var(--text);transition:all .2s;display:flex;flex-direction:column}
   .inv-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
   .inv-card-header{padding:1.25rem 1.5rem;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-  .inv-card-header.tarimas{background:linear-gradient(135deg,#1A3D1F 0%,#2D7A3A 100%)}
-  .inv-card-header.tintas{background:linear-gradient(135deg,#4A0A28 0%,#8B1A4A 100%)}
-  .inv-card-header.indirectos{background:linear-gradient(135deg,#5C4209 0%,#C49A2A 100%)}
+  .inv-card-header.tarimas{background:linear-gradient(135deg,#1e3a1e 0%,#4a7a5a 100%)}
+  .inv-card-header.tintas{background:linear-gradient(135deg,#4A0A28 0%,var(--accent) 100%)}
+  .inv-card-header.indirectos{background:linear-gradient(135deg,#3d2a0a 0%,#8a6a1a 100%)}
   .inv-card-icon{font-size:32px}
   .inv-card-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:3px}
   .inv-card-desc{font-size:11px;color:rgba(255,255,255,.65)}
@@ -96,7 +99,7 @@
   .alert-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
   .alert-pill.red{background:#FEE2E2;color:#991B1B}
   .alert-pill.amber{background:#FEF3C7;color:#92400E}
-  .alert-pill.green{background:#DCFCE7;color:#166534}
+  .alert-pill.green{background:#e8f5ec;color:var(--green)}
 
   /* ── BOTTOM PANELS ── */
   .bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -112,7 +115,7 @@
   .alert-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg);font-size:12px}
   .alert-item:last-child{border-bottom:none}
   .alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-  .alert-dot.red{background:#DC2626}
+  .alert-dot.red{background:var(--danger)}
   .alert-dot.amber{background:#CA8A04}
 
   /* ── RESPONSIVE ── */

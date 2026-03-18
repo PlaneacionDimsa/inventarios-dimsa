@@ -10,34 +10,30 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #E8E8E6;
-    --surface: #FFFFFF;
-    --header: #1A1A1A;
-    --accent: #8B1A4A;
-    --accent-hover: #6E1239;
-    --accent-light: #FAE8F0;
-    --accent-text: #6E1239;
-    --green: #2D7A3A;
-    --green-hover: #1E5528;
-    --b7-bg: #EAF2EC;
-    --b7-text: #1E5528;
-    --tp-bg: #FAE8F0;
-    --tp-text: #6E1239;
-    --danger: #B91C1C;
-    --danger-bg: #FEF2F2;
-    --text: #1C1614;
-    --muted: #6B5F5C;
-    --border: #DDD5D0;
-    --border-strong: #C4B8B4;
+    :root {
+    --bg: #f5f0e8;
+    --surface: #fdf8f2;
+    --surface2: #ede8de;
+    --header-bg: #fdf8f2;
+    --accent: #9e2a2b;
+    --accent-hover: #7b1d1e;
+    --accent-light: #f9eded;
+    --green: #4a7a5a;
+    --danger: #e53e3e;
+    --amber: #92400E;
+    --text: #2c1f0f;
+    --muted: #8a7070;
+    --border: #d9cfc0;
+    --border-strong: #c4b090;
     --radius: 10px;
     --radius-sm: 6px;
-    --shadow: 0 1px 3px rgba(0,0,0,.08);
-    --shadow-md: 0 4px 16px rgba(0,0,0,.12);
+    --shadow: 0 1px 3px rgba(44,31,15,.08);
+    --shadow-md: 0 4px 16px rgba(44,31,15,.14);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { font-size: 14px; }
-  body { font-family: 'Outfit', sans-serif; background-color: var(--bg); color: var(--text); min-height: 100vh; }
+    body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--bg); color: var(--text); min-height: 100vh;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4a882' fill-opacity='0.07'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
   body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
     background-repeat: repeat; background-size: 200px 200px; opacity: 1; }
@@ -55,14 +51,14 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    border-bottom: 3px solid #8B1A4A;
+    border-bottom: 2px solid var(--accent);
     box-shadow: 0 2px 8px rgba(0,0,0,.08);
   }
   .logo { color: #1C1614; font-size: 14px; font-weight: 600; letter-spacing: -0.3px; font-family: 'IBM Plex Mono', monospace; }
-  .logo span { color: #8B1A4A; font-weight: 400; }
+  .logo span { color: var(--accent); font-weight: 400; }
   .header-right { display: flex; align-items: center; gap: 12px; }
   .live-badge { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #6B5F5C; }
-  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #2D7A3A; }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
   .live-dot.offline { background: #aaa; }
   .user-chip { background: #2A2A27; color: #CCC; font-size: 12px; padding: 4px 10px; border-radius: 20px; cursor: pointer; border: 1px solid #3A3A37; }
   .user-chip:hover { background: #333; }
@@ -83,9 +79,9 @@
 
   /* ── TABS ── */
   .tabs { display: flex; gap: 4px; margin-bottom: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px; width: fit-content; box-shadow: var(--shadow); }
-  .tab-btn { font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; padding: 6px 16px; border-radius: var(--radius-sm); border: none; background: transparent; color: var(--muted); cursor: pointer; transition: all .15s; }
+  .tab-btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 6px 16px; border-radius: var(--radius-sm); border: none; background: transparent; color: var(--muted); cursor: pointer; transition: all .15s; }
   .tab-btn:hover { color: var(--text); }
-  .tab-btn.active { background: #8B1A4A; color: #FFF; }
+  .tab-btn.active { background: var(--accent); color: #FFF; }
 
   /* ── CARD ── */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; box-shadow: var(--shadow); margin-bottom: 1rem; }
@@ -93,13 +89,13 @@
 
   /* ── TOOLBAR ── */
   .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
-  .search-input { font-family: 'Outfit', sans-serif; font-size: 13px; padding: 7px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); width: 200px; outline: none; }
+  .search-input { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; padding: 7px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); width: 200px; outline: none; }
   .search-input:focus { border-color: var(--accent); background: var(--surface); }
-  .filter-btn { font-family: 'Outfit', sans-serif; font-size: 12px; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; }
+  .filter-btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; }
   .filter-btn:hover { border-color: var(--border-strong); color: var(--text); }
-  .filter-btn.on { background: #8B1A4A; color: #FFF; border-color: #8B1A4A; }
+  .filter-btn.on { background: var(--accent); color: #FFF; border-color: var(--accent); }
   .spacer { flex: 1; }
-  .add-btn { font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: var(--radius-sm); border: none; background: var(--accent); color: #FFF; cursor: pointer; }
+  .add-btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: var(--radius-sm); border: none; background: var(--accent); color: #FFF; cursor: pointer; }
   .add-btn:hover { background: var(--accent-hover); }
 
   /* ── TABLE ── */
@@ -123,10 +119,10 @@
   tbody tr.stock-ok:hover   td { background: var(--bg) !important; }
   .qty-input.stock-zero { border-color: #DC2626; background: #FFF5F5; color: #DC2626; }
   .qty-input.stock-low  { border-color: #CA8A04; background: #FEFCE8; color: #854D0E; }
-  .qty-input.stock-ok   { border-color: #2D7A3A; background: #F0FDF4; color: #1E5528; }
+  .qty-input.stock-ok   { border-color: var(--green); background: #f0f9f3; color: var(--green); }
   .qty-input.stock-zero:focus { border-color: #DC2626; }
   .qty-input.stock-low:focus  { border-color: #CA8A04; }
-  .qty-input.stock-ok:focus   { border-color: #2D7A3A; }
+  .qty-input.stock-ok:focus   { border-color: var(--green); }
   .qty-num-hidden { display: none; }
   .qty-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; color: var(--text); transition: all .1s; font-family: monospace; line-height: 1; touch-action: manipulation; }
   .qty-btn:hover { background: var(--bg); border-color: var(--border-strong); }
@@ -143,11 +139,11 @@
   .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
   .form-col { display: flex; flex-direction: column; gap: 4px; }
   .form-col label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
-  .form-col input, .form-col select, .form-col textarea { font-family: 'Outfit', sans-serif; font-size: 13px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; width: 100%; }
+  .form-col input, .form-col select, .form-col textarea { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; width: 100%; }
   .form-col input:focus, .form-col select:focus, .form-col textarea:focus { border-color: var(--accent); }
   .form-col textarea { resize: vertical; min-height: 60px; font-size: 12px; }
   .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .btn { font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; padding: 8px 18px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: all .1s; }
+  .btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 8px 18px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: all .1s; }
   .btn:hover { background: var(--bg); }
   .btn:active { transform: scale(0.98); }
   .btn.primary { background: var(--accent); color: #FFF; border-color: var(--accent); }
@@ -160,7 +156,7 @@
   .log-item { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--border); }
   .log-item:last-child { border-bottom: none; }
   .log-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 600; white-space: nowrap; }
-  .lb-entrada { background: #FAE8F0; color: #6E1239; }
+  .lb-entrada { background: var(--accent-light); color: var(--accent-hover); }
   .lb-salida { background: #FEE2E2; color: #991B1B; }
   .lb-ajuste { background: #FEF3C7; color: #92400E; }
   .lb-new { background: #E0F2FE; color: #075985; }
@@ -181,9 +177,9 @@
   .login-card { background: var(--surface); border-radius: 14px; padding: 2.5rem 2rem; width: 100%; max-width: 380px; box-shadow: var(--shadow-md); text-align: center; }
   .login-logo { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 500; margin-bottom: 6px; }
   .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 2rem; }
-  .login-input { font-family: 'Outfit', sans-serif; font-size: 15px; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: var(--radius); width: 100%; outline: none; margin-bottom: 12px; }
+  .login-input { font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: var(--radius); width: 100%; outline: none; margin-bottom: 12px; }
   .login-input:focus { border-color: var(--accent); }
-  .login-btn { width: 100%; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; padding: 12px; border-radius: var(--radius); border: none; background: var(--accent); color: #FFF; cursor: pointer; }
+  .login-btn { width: 100%; font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; font-weight: 600; padding: 12px; border-radius: var(--radius); border: none; background: var(--accent); color: #FFF; cursor: pointer; }
   .login-btn:hover { background: var(--accent-hover); }
   .login-note { font-size: 11px; color: var(--muted); margin-top: 12px; }
 
@@ -202,7 +198,7 @@
   .qty-input::-webkit-outer-spin-button, .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
 
   /* ── OBS INLINE EDIT ── */
-  .obs-input { font-family: 'Outfit', sans-serif; font-size: 12px; width: 100%; min-width: 140px; padding: 4px 7px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--text); outline: none; cursor: text; }
+  .obs-input { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; width: 100%; min-width: 140px; padding: 4px 7px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--text); outline: none; cursor: text; }
   .obs-input:hover { border-color: var(--border); background: var(--bg); }
   .obs-input:focus { border-color: var(--accent); background: #fff; cursor: text; }
   .obs-input::placeholder { color: #BBBBBB; font-style: italic; }
@@ -213,15 +209,15 @@
   .sol-panel-title { font-size: 13px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }
   .sol-panel-title .ico { font-size: 15px; }
   .sol-panel-actions { display: flex; align-items: center; gap: 8px; }
-  .sol-new-btn { font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: var(--radius-sm); border: none; background: #E4A800; color: #fff; cursor: pointer; }
+  .sol-new-btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: var(--radius-sm); border: none; background: #E4A800; color: #fff; cursor: pointer; }
   .sol-new-btn:hover { background: #C49000; }
   .sol-empty { font-size: 12px; color: var(--muted); padding: 10px 0; }
   .sol-cards { display: flex; flex-direction: column; gap: 8px; }
   .sol-card { background: #FFFBF0; border: 1px solid #F5D97A; border-left: 4px solid #E4A800; border-radius: var(--radius-sm); padding: 11px 14px; display: flex; align-items: flex-start; gap: 12px; }
-  .sol-card.resuelta { background: #FAF0F4; border-color: #FFCCE2; border-left-color: #2D7A3A; opacity: 0.65; }
+  .sol-card.resuelta { background: #FAF0F4; border-color: #F9C3C3; border-left-color: var(--green); opacity: 0.65; }
   .sol-card-body { flex: 1; }
   .sol-card-text { font-size: 13px; font-weight: 500; color: #3D2A00; line-height: 1.4; margin-bottom: 4px; }
-  .sol-card.resuelta .sol-card-text { text-decoration: line-through; color: #6E1239; }
+  .sol-card.resuelta .sol-card-text { text-decoration: line-through; color: var(--accent-hover); }
   .sol-card-meta { font-size: 11px; color: #92700A; }
   .sol-card.resuelta .sol-card-meta { color: #E0709A; }
   .sol-card-tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; background: #FDE68A; color: #78350F; display: inline-block; margin-right: 5px; }
@@ -233,14 +229,14 @@
   /* ── SOLICITUDES ── (tab section styles kept for compat) */
   .sol-list { display: flex; flex-direction: column; gap: 10px; }
   .sol-item { background: #FFFBF0; border: 1px solid #F5D97A; border-left: 4px solid #E4A800; border-radius: var(--radius-sm); padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: start; }
-  .sol-item.resuelta { background: #FAF0F4; border-color: #FFCCE2; border-left-color: #2D7A3A; opacity: 0.7; }
+  .sol-item.resuelta { background: #FAF0F4; border-color: #F9C3C3; border-left-color: var(--green); opacity: 0.7; }
   .sol-text { font-size: 13px; color: #3D2A00; font-weight: 500; margin-bottom: 3px; }
-  .sol-item.resuelta .sol-text { color: #6E1239; text-decoration: line-through; }
+  .sol-item.resuelta .sol-text { color: var(--accent-hover); text-decoration: line-through; }
   .sol-meta { font-size: 11px; color: #92700A; }
   .sol-item.resuelta .sol-meta { color: #E0709A; }
   .sol-actions { display: flex; gap: 5px; }
-  .sol-btn { font-size: 11px; padding: 4px 9px; border-radius: 4px; border: 1px solid; cursor: pointer; font-family: 'Outfit', sans-serif; font-weight: 500; white-space: nowrap; }
-  .sol-btn.ok { background: #FAE8F0; color: #6E1239; border-color: #FFCCE2; }
+  .sol-btn { font-size: 11px; padding: 4px 9px; border-radius: 4px; border: 1px solid; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; white-space: nowrap; }
+  .sol-btn.ok { background: var(--accent-light); color: var(--accent-hover); border-color: #F9C3C3; }
   .sol-btn.ok:hover { background: #F5C8DC; }
   .sol-btn.del { background: #FEE2E2; color: #991B1B; border-color: #FECACA; }
   .sol-btn.del:hover { background: #FECACA; }
@@ -308,15 +304,15 @@
   .setup-banner.hidden { display: none; }
   .badge-offline { background: #F59E0B; color: #451A03; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
   /* ── EDIT SESSION BAR ── */
-  .edit-bar { background: #6E1239; color: #fff; padding: 0 1.5rem; height: 0; overflow: hidden; display: flex; align-items: center; justify-content: space-between; transition: height .2s; font-size: 13px; }
+  .edit-bar { background: var(--accent-hover); color: #fff; padding: 0 1.5rem; height: 0; overflow: hidden; display: flex; align-items: center; justify-content: space-between; transition: height .2s; font-size: 13px; }
   .edit-bar.visible { height: 44px; }
   .edit-bar-left { display: flex; align-items: center; gap: 10px; }
-  .edit-bar-dot { width: 8px; height: 8px; border-radius: 50%; background: #FFB3D1; animation: pulse 1.5s infinite; }
+  .edit-bar-dot { width: 8px; height: 8px; border-radius: 50%; background: #F9C3C3; animation: pulse 1.5s infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
   .edit-bar-text { font-weight: 500; }
-  .edit-bar-sub { font-size: 11px; color: #FFCCE2; }
-  .end-btn { font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700; padding: 7px 16px; border-radius: 6px; border: none; background: #fff; color: #6E1239; cursor: pointer; letter-spacing: .2px; }
-  .end-btn:hover { background: #FAE8F0; }
+  .edit-bar-sub { font-size: 11px; color: #F9C3C3; }
+  .end-btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; font-weight: 700; padding: 7px 16px; border-radius: 6px; border: none; background: #fff; color: var(--accent-hover); cursor: pointer; letter-spacing: .2px; }
+  .end-btn:hover { background: var(--accent-light); }
   .end-btn:active { transform: scale(.97); }
 
 
@@ -329,7 +325,7 @@
   .pin-input:focus { border-color: var(--accent); }
   .pin-input.error { border-color: var(--danger); animation: shake .3s; }
   @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
-  .pin-btn { width: 100%; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; padding: 10px; border-radius: var(--radius); border: none; background: var(--accent); color: #FFF; cursor: pointer; }
+  .pin-btn { width: 100%; font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; font-weight: 600; padding: 10px; border-radius: var(--radius); border: none; background: var(--accent); color: #FFF; cursor: pointer; }
   .pin-btn:hover { background: var(--accent-hover); }
   .pin-cancel { font-size: 12px; color: var(--muted); margin-top: 10px; cursor: pointer; display: block; }
   .pin-cancel:hover { color: var(--text); }
@@ -341,9 +337,9 @@
   .locked .add-btn { display: none; }
   .locked .btn.primary { display: none; }
   .locked-tab { pointer-events: none; opacity: 0.5; }
-  .edit-chip { font-size: 11px; padding: 3px 10px; border-radius: 20px; cursor: pointer; border: 1px solid; font-family: 'Outfit', sans-serif; font-weight: 600; }
+  .edit-chip { font-size: 11px; padding: 3px 10px; border-radius: 20px; cursor: pointer; border: 1px solid; font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; }
   .edit-chip.locked { background: #FEF3C7; color: #92400E; border-color: #FDE68A; }
-  .edit-chip.unlocked { background: #FAE8F0; color: #6E1239; border-color: #FFCCE2; }
+  .edit-chip.unlocked { background: var(--accent-light); color: var(--accent-hover); border-color: #F9C3C3; }
 </style>
 </head>
 <body>
@@ -383,7 +379,7 @@
       <li>Guarda el archivo y ábrelo desde un servidor (puedes usar <strong>Netlify Drop</strong> — arrastra la carpeta a <em>app.netlify.com/drop</em> — gratis).</li>
     </ol>
     <p style="font-size:12px;color:#888;margin-top:1rem">Una vez configurado, cualquiera que abra el link verá el inventario actualizado al segundo.</p>
-    <button onclick="document.getElementById('modal-setup').style.display='none'" style="margin-top:1.5rem;padding:8px 20px;border-radius:8px;border:1px solid #DDD;background:#FFF;cursor:pointer;font-family:'Outfit',sans-serif">Cerrar</button>
+    <button onclick="document.getElementById('modal-setup').style.display='none'" style="margin-top:1.5rem;padding:8px 20px;border-radius:8px;border:1px solid #DDD;background:#FFF;cursor:pointer;font-family:'IBM Plex Sans',sans-serif">Cerrar</button>
   </div>
 </div>
 
@@ -522,7 +518,7 @@
 
   <!-- HISTORIAL COLAPSABLE -->
   <div style="margin-top:1rem;">
-    <button onclick="toggleHistorial(this)" style="font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:4px 0;">
+    <button onclick="toggleHistorial(this)" style="font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:4px 0;">
       <span id="historial-arrow">▶</span> Ver historial de cambios
     </button>
     <div id="historial-panel" style="display:none;margin-top:8px;">
