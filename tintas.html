@@ -227,8 +227,8 @@
 <div class="pin-overlay" id="pin-overlay">
   <div class="pin-card">
     <div class="pin-title">Modo edición</div>
-    <div class="pin-sub">Ingresa el código de aduana para editar el inventario.</div>
-    <input class="pin-input" id="pin-input" type="password" maxlength="10" placeholder="••••" autocomplete="off">
+    <div class="pin-sub">Ingresa tu código (4 dígitos para aduaneros, 6 para jefe).</div>
+    <input class="pin-input" id="pin-input" type="password" maxlength="6" placeholder="• • • •" autocomplete="off">
     <button class="pin-btn" onclick="verificarPin()">Entrar</button>
     <span class="pin-cancel" onclick="cerrarPin()">Cancelar — solo quiero ver</span>
   </div>
@@ -258,7 +258,7 @@
   <div class="edit-bar-left">
     <div class="edit-bar-dot"></div>
     <div>
-      <div style="font-weight:500">Sesión de edición activa — Aduana</div>
+      <div style="font-weight:500">Sesión activa — <span id="edit-bar-user">Aduana</span></div>
       <div class="edit-bar-sub">Todos los cambios se guardan en tiempo real</div>
     </div>
   </div>
@@ -339,14 +339,9 @@
 
     <!-- HISTORIAL COLAPSABLE -->
     <div style="margin-top:1rem">
-      <button onclick="toggleHistorial()" style="font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:4px 0">
-        <span id="historial-arrow">▶</span> Ver historial de movimientos
+      <button onclick="toggleHistorial()" style="font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-light);border:1px solid var(--accent);border-radius:6px;cursor:pointer;padding:6px 14px;display:inline-flex;align-items:center;gap:6px">
+        ⬇ Exportar historial de movimientos (Excel)
       </button>
-      <div id="historial-panel" style="display:none;margin-top:8px">
-        <div class="card">
-          <div class="log-list" id="log-list"><div class="empty"><div class="empty-icon">📋</div><p>Sin movimientos registrados.</p></div></div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -366,13 +361,28 @@
         </div>
         <div class="form-col">
           <label>Descripción / Tinta</label>
-          <input id="m-desc" placeholder="Buscar descripción..." list="desc-list" type="text" oninput="filtrarLotes()">
+          <input id="m-desc" placeholder="Buscar descripción..." list="desc-list" type="text" oninput="filtrarLotes();checkTintaNueva()">
           <datalist id="desc-list"></datalist>
         </div>
         <div class="form-col">
           <label>Lote específico</label>
           <select id="m-lote"><option value="">— selecciona primero la tinta —</option></select>
         </div>
+      </div>
+
+      <!-- AVISO TINTA NUEVA -->
+      <div id="nueva-tinta-aviso" style="display:none;margin:10px 0;padding:10px 14px;background:#FEF3C7;border:1px solid #FDE68A;border-left:4px solid #CA8A04;border-radius:var(--radius-sm)">
+        <div style="font-size:12px;font-weight:600;color:#78350F;margin-bottom:8px">⚠ Tinta nueva — completa los datos para registrarla en el inventario</div>
+        <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+          <div class="form-col"><label>Clave</label><input id="a-clave" placeholder="ej. 80-002-108" type="text"></div>
+          <div class="form-col"><label>Lote / Pedimento</label><input id="a-lote-nuevo" placeholder="ej. T-1-16339" type="text"></div>
+          <div class="form-col"><label>Ubicación</label><input id="a-ubic" placeholder="ej. TIN-1-2" type="text"></div>
+          <div class="form-col"><label>Categoría</label><input id="a-cat" placeholder="ej. Tintas Azules" type="text"></div>
+          <div class="form-col"><label>Hoja</label><select id="a-sheet"><option value="TINTAS 1">Tintas 1</option><option value="TINTAS 2">Tintas 2</option><option value="TINTAS 3">Tintas 3</option></select></div>
+        </div>
+      </div>
+
+      <div class="form-grid">
         <div class="form-col">
           <label>Cantidad</label>
           <div style="display:flex;gap:6px;align-items:center">
@@ -455,7 +465,18 @@ const FIREBASE_CONFIG = {
 };
 /* ════════════════════════════════════════════ */
 
-const PIN = '1234';
+const USUARIOS = {
+  "8698616a6419549cd9c035d5e250c81c6cefff11ff31c9602bf2ff5aa3e06b7f": "Noe",
+  "68732e61c9a20e1c9ae05bc99a950847d3731293978ae442fe50323044c6a095": "Abel",
+  "bc20a2aa08022b0ac9cc09039c57de9500b8498918e3b15d01e8a409d5b04e71": "Nataly",
+  "95d4362bd3cd4315d0bbe38dfa5d7fb8f0aed5f1a31d98d510907279194e3000": "Nancy",
+  "25dcece36ebd3d3c75a932af879be419196ceb3a26ebbcf1d719c839d9997702": "Daniel",
+  "de8736cc048486e16dcd174d8f5f0bc3e19aa4f0b0c26a19572b4cfafa5b31ca": "Erick",
+  "110e600290fd88a5817d6d6cc2f3c8495bb881d3b8487f1ee93603b1b0d3c1b5": "Josue",
+  "1a0774b36ea2885f90e416c8e53be40bfd731bb21118c0b43de829e267a3cabb": "Fernando"
+};
+const HASH_MAESTRO = "1a0774b36ea2885f90e416c8e53be40bfd731bb21118c0b43de829e267a3cabb";
+let modoMaestro = false;
 let db, useFirebase = false;
 let inv = [], logs = [];
 let sheetFilter = 'todos';
@@ -1530,20 +1551,27 @@ function abrirPin(cb){
   setTimeout(()=>i.focus(),100);
 }
 function cerrarPin(){document.getElementById('pin-overlay').classList.remove('show');pinCallback=null}
-function verificarPin(){
+async function hashPin(pin){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pin));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function verificarPin(){
   const i=document.getElementById('pin-input');
-  if(i.value===PIN){cerrarPin();desbloquear();if(pinCallback)pinCallback();}
+  const hash=await hashPin(i.value);
+  const nombre=USUARIOS[hash];
+  if(nombre){cerrarPin();desbloquear(nombre,hash===HASH_MAESTRO);if(pinCallback)pinCallback();}
   else{i.classList.add('error');i.value='';setTimeout(()=>i.classList.remove('error'),400);}
 }
 document.getElementById('pin-input').addEventListener('keydown',e=>{if(e.key==='Enter')verificarPin()});
-function desbloquear(){
-  modoEdicion=true;usuario='Aduana';
+function desbloquear(nombre,esMaestro=false){
+  modoEdicion=true;modoMaestro=esMaestro;usuario=nombre;
   document.getElementById('main-content').classList.remove('locked');
   document.getElementById('edit-bar').classList.add('visible');
-  const c=document.getElementById('edit-chip');c.textContent='🔓 Editando';c.className='edit-chip unlocked';
+  document.getElementById('edit-bar-user').textContent=nombre+(esMaestro?' ★':'');
+  const c=document.getElementById('edit-chip');c.textContent='🔓 '+nombre;c.className='edit-chip unlocked';
 }
 function bloquear(){
-  modoEdicion=false;usuario='';
+  modoEdicion=false;modoMaestro=false;usuario='';
   document.getElementById('main-content').classList.add('locked');
   document.getElementById('edit-bar').classList.remove('visible');
   const c=document.getElementById('edit-chip');c.textContent='🔒 Solo lectura';c.className='edit-chip locked';
@@ -1701,6 +1729,14 @@ async function eliminar(id){
   toast('Eliminado.');
 }
 
+function checkTintaNueva(){
+  const val=(document.getElementById('m-desc').value||'').trim().toLowerCase();
+  const aviso=document.getElementById('nueva-tinta-aviso');
+  if(!val){aviso.style.display='none';return;}
+  const existe=inv.some(r=>(r.desc||'').toLowerCase()===val);
+  aviso.style.display=existe?'none':'block';
+}
+
 async function registrarMovimiento(){
   const tipo=document.getElementById('m-tipo').value;
   const desc=document.getElementById('m-desc').value.trim();
@@ -1713,9 +1749,39 @@ async function registrarMovimiento(){
   const subop=document.getElementById('m-subop').value.trim();
   const nota=document.getElementById('m-nota').value.trim();
   if(!desc||qty<=0){alert('Ingresa descripción y cantidad.');return;}
+
+  // Check if it's a new tinta
+  const esNueva=!inv.some(r=>(r.desc||'').toLowerCase()===desc.toLowerCase());
+  if(esNueva){
+    const aviso=document.getElementById('nueva-tinta-aviso');
+    if(aviso.style.display==='none'){aviso.style.display='block';toast('Es una tinta nueva — completa los datos y da clic en Registrar movimiento otra vez.');return;}
+    // Register as new tinta
+    const clave=document.getElementById('a-clave').value.trim()||'S/C';
+    const loteNuevo=document.getElementById('a-lote-nuevo').value.trim();
+    const ubic=document.getElementById('a-ubic').value.trim();
+    const cat=document.getElementById('a-cat').value.trim();
+    const sheet=document.getElementById('a-sheet').value;
+    if(!loteNuevo){toast('Ingresa el número de lote.');return;}
+    const now=new Date().toISOString();
+    const item={clave,desc,lote:loteNuevo,qty,unidad,ubic,cat,sheet,updatedAt:now,updatedBy:usuario,lastMovAt:now};
+    if(useFirebase){
+      await db.collection('tintas').add(item);
+      await db.collection('tintas_mov').add({tipo:'nuevo-registro',desc,lote:loteNuevo,qty,unidad,quien:usuario,nota:nota||'Nueva tinta registrada',ts:Date.now(),fecha:fmt(new Date())});
+    }else{
+      inv.push({...item,id:'loc'+Date.now()});
+      inv.sort((a,b)=>a.desc.localeCompare(b.desc));
+      addLogLocal('nuevo-registro',desc,loteNuevo,qty,'Nueva tinta registrada');
+      saveLocal();renderAll();
+    }
+    document.getElementById('nueva-tinta-aviso').style.display='none';
+    ['a-clave','a-lote-nuevo','a-ubic','a-cat'].forEach(id=>document.getElementById(id).value='');
+    limpiarMov();
+    toast(`Tinta "${desc}" registrada con ${qty} ${unidad}.`);
+    return;
+  }
+
   const now=new Date().toISOString();
   const nota2=`T${turno}${maq?' · '+maq:''}${op?' · OP:'+op:''}${subop?' · Sub:'+subop:''}${nota?' · '+nota:''}`;
-  // Update inventory if specific lot selected
   if(loteId){
     const idx=inv.findIndex(r=>r.id===loteId);
     if(idx>=0){
@@ -1828,13 +1894,10 @@ function renderTable(){
           </td>
           <td></td>
           <td>
-            <div class="qty-ctrl">
-              <button class="qty-btn" onclick="event.stopPropagation();cambiarQty('${r.id}',-1)" style="width:24px;height:24px;font-size:14px">−</button>
-              <input class="qty-input ${stockCls}" type="number" value="${qty}" min="0" step="0.01" style="width:62px"
-                onchange="setQtyDirecto('${r.id}',this)" onkeydown="if(event.key==='Enter')this.blur()"
-                onclick="event.stopPropagation()">
-              <button class="qty-btn" onclick="event.stopPropagation();cambiarQty('${r.id}',1)" style="width:24px;height:24px;font-size:14px">+</button>
-            </div>
+            ${modoMaestro
+              ? `<div class="qty-ctrl"><button class="qty-btn" onclick="event.stopPropagation();cambiarQty('${r.id}',-1)" style="width:24px;height:24px;font-size:14px">−</button><input class="qty-input ${stockCls}" type="number" value="${qty}" min="0" step="0.01" style="width:62px" onchange="setQtyDirecto('${r.id}',this)" onkeydown="if(event.key==='Enter')this.blur()" onclick="event.stopPropagation()"><button class="qty-btn" onclick="event.stopPropagation();cambiarQty('${r.id}',1)" style="width:24px;height:24px;font-size:14px">+</button></div>`
+              : `<span class="qty-input ${stockCls}" style="display:inline-block;padding:3px 7px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;border:1px solid">${qty}</span>`
+            }
           </td>
           <td><input class="obs-input" type="text" value="${ubicVal}" placeholder="Ubicación"
             onchange="guardarCampo('${r.id}','ubic',this.value)" onkeydown="if(event.key==='Enter')this.blur()"
@@ -1922,15 +1985,29 @@ function showAddForm(){
   f.style.display=f.style.display==='none'?'':'none';
 }
 function toggleHistorial(){
-  const p=document.getElementById('historial-panel'),a=document.getElementById('historial-arrow');
-  const v=p.style.display!=='none';
-  p.style.display=v?'none':'block';a.textContent=v?'▶':'▼';
+  if(!logs.length){toast('No hay movimientos para exportar.');return;}
+  const rows=[['Fecha','Tipo','Descripción','Lote','Cantidad','Unidad','Turno','Máquina','OP','Sub OP','Nota','Registrado por']];
+  logs.forEach(l=>{
+    const tipo={'entrada':'Entrada','salida':'Salida','devolucion':'Devolución','ajuste':'Ajuste','nuevo-registro':'Nuevo registro'}[l.tipo]||l.tipo;
+    rows.push([l.fecha||'',tipo,l.desc||'',l.lote||'',l.qty||'',l.unidad||'kg',l.turno||'',l.maq||'',l.op||'',l.subop||'',l.nota||'',l.quien||'']);
+  });
+  const bom='\uFEFF';
+  const csv=bom+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;
+  const f=new Date();
+  const mes=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][f.getMonth()];
+  a.download=`historial-tintas-${mes}-${f.getFullYear()}.csv`;
+  a.click();URL.revokeObjectURL(url);
+  toast('Historial exportado.');
 }
 function limpiarMov(){
   ['m-desc','m-maq','m-op','m-subop','m-nota'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('m-qty').value='1';
   document.getElementById('m-tipo').value='entrada';
   document.getElementById('m-lote').innerHTML='<option value="">— selecciona primero la tinta —</option>';
+  document.getElementById('nueva-tinta-aviso').style.display='none';
 }
 function toast(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');

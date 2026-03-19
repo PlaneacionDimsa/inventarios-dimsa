@@ -348,8 +348,8 @@
 <div class="pin-overlay" id="pin-overlay">
   <div class="pin-card">
     <div class="pin-title">Modo edición</div>
-    <div class="pin-sub">Ingresa tu código de 4 dígitos para registrar movimientos.</div>
-    <input class="pin-input" id="pin-input" type="password" maxlength="10" placeholder="••••" autocomplete="off">
+    <div class="pin-sub">Ingresa tu código (4 dígitos para aduaneros, 6 para jefe).</div>
+    <input class="pin-input" id="pin-input" type="password" maxlength="6" placeholder="• • • •" autocomplete="off">
     <button class="pin-btn" onclick="verificarPin()">Entrar</button>
     <span class="pin-cancel" onclick="cerrarPin()">Cancelar — solo quiero ver</span>
   </div>
@@ -707,18 +707,24 @@ function todayStr() {
 
 // ── PIN / AUTH ──
 // ── USUARIOS / AUTH ──
+// PINs almacenados como hashes SHA-256 (no se pueden revertir)
 const USUARIOS = {
-  '2841': 'Abel',
-  '3752': 'Nataly',
-  '4163': 'Nancy',
-  '1594': 'Noe',
-  '7236': 'Erick',
-  '6018': 'Daniel',
-  '9347': 'Josue',
-  '0000': 'Fernando' // ← PIN maestro, cámbialo antes de publicar
+  "8698616a6419549cd9c035d5e250c81c6cefff11ff31c9602bf2ff5aa3e06b7f": "Noe",
+  "68732e61c9a20e1c9ae05bc99a950847d3731293978ae442fe50323044c6a095": "Abel",
+  "bc20a2aa08022b0ac9cc09039c57de9500b8498918e3b15d01e8a409d5b04e71": "Nataly",
+  "95d4362bd3cd4315d0bbe38dfa5d7fb8f0aed5f1a31d98d510907279194e3000": "Nancy",
+  "25dcece36ebd3d3c75a932af879be419196ceb3a26ebbcf1d719c839d9997702": "Daniel",
+  "de8736cc048486e16dcd174d8f5f0bc3e19aa4f0b0c26a19572b4cfafa5b31ca": "Erick",
+  "110e600290fd88a5817d6d6cc2f3c8495bb881d3b8487f1ee93603b1b0d3c1b5": "Josue",
+  "1a0774b36ea2885f90e416c8e53be40bfd731bb21118c0b43de829e267a3cabb": "Fernando"
 };
-const PIN_MAESTRO = '0000'; // ← mismo PIN que Fernando arriba
+const HASH_MAESTRO = "1a0774b36ea2885f90e416c8e53be40bfd731bb21118c0b43de829e267a3cabb";
 let modoMaestro = false;
+
+async function hashPin(pin) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
 let modoEdicion = false;
 let pinCallback = null;
 
@@ -745,12 +751,14 @@ function cerrarPin() {
   pinCallback = null;
 }
 
-function verificarPin() {
+async function verificarPin() {
   const input = document.getElementById('pin-input');
-  const nombre = USUARIOS[input.value];
+  const hash = await hashPin(input.value);
+  const nombre = USUARIOS[hash];
   if (nombre) {
+    const esMaestro = (hash === HASH_MAESTRO);
     cerrarPin();
-    desbloquear(nombre);
+    desbloquear(nombre, esMaestro);
     if (pinCallback) pinCallback();
   } else {
     input.classList.add('error');
@@ -763,17 +771,17 @@ document.getElementById('pin-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') verificarPin();
 });
 
-function desbloquear(nombre) {
+function desbloquear(nombre, esMaestro = false) {
   modoEdicion = true;
-  modoMaestro = (document.getElementById('pin-input').value === PIN_MAESTRO);
+  modoMaestro = esMaestro;
   document.getElementById('main-content').classList.remove('locked');
   document.getElementById('edit-bar').classList.add('visible');
-  document.getElementById('edit-bar-user').textContent = nombre + (modoMaestro ? ' ★' : '');
+  document.getElementById('edit-bar-user').textContent = nombre + (esMaestro ? ' ★' : '');
   const chip = document.getElementById('edit-chip');
   chip.textContent = '🔓 ' + nombre;
   chip.className = 'edit-chip unlocked';
   usuario = nombre;
-  renderAll(); // re-render to show/hide master controls
+  renderAll();
 }
 
 function bloquear() {
