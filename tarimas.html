@@ -348,7 +348,7 @@
 <div class="pin-overlay" id="pin-overlay">
   <div class="pin-card">
     <div class="pin-title">Modo edición</div>
-    <div class="pin-sub" id="pin-sub">Ingresa el código de aduana para editar el inventario.</div>
+    <div class="pin-sub">Ingresa tu código de 4 dígitos para registrar movimientos.</div>
     <input class="pin-input" id="pin-input" type="password" maxlength="10" placeholder="••••" autocomplete="off">
     <button class="pin-btn" onclick="verificarPin()">Entrar</button>
     <span class="pin-cancel" onclick="cerrarPin()">Cancelar — solo quiero ver</span>
@@ -407,7 +407,7 @@
   <div class="edit-bar-left">
     <div class="edit-bar-dot"></div>
     <div>
-      <div class="edit-bar-text">Sesión de edición activa — Aduana</div>
+      <div class="edit-bar-text">Sesión activa — <span id="edit-bar-user">Aduana</span></div>
       <div class="edit-bar-sub">Todos los cambios se guardan en tiempo real</div>
     </div>
   </div>
@@ -425,46 +425,6 @@
     <div class="stat"><div class="stat-label">Hoy</div><div class="stat-value green" id="s-hoy">—</div><div class="stat-sub">movimientos</div></div>
   </div>
 
-  <!-- SOLICITUDES — siempre visible -->
-  <div class="sol-panel" id="sol-panel-main">
-    <div class="sol-panel-header">
-      <div class="sol-panel-title">
-        <span class="ico">📋</span> Solicitudes a compras
-        <span class="sol-badge zero" id="sol-count-badge">0</span>
-      </div>
-      <div class="sol-panel-actions">
-        <label style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px;cursor:pointer">
-          <input type="checkbox" id="show-resueltas" onchange="renderSolicitudes()"> Ver resueltas
-        </label>
-        <button class="sol-new-btn" onclick="modoEdicion ? toggleSolForm() : abrirPin(toggleSolForm)">+ Nueva solicitud</button>
-      </div>
-    </div>
-
-    <!-- Formulario inline -->
-    <div id="sol-inline-form">
-      <div class="form-grid" style="grid-template-columns:1fr 1fr;margin-bottom:10px;">
-        <div class="form-col" style="grid-column:1/-1">
-          <label>Solicitud o mensaje para compras</label>
-          <textarea id="sol-texto" placeholder="ej. Necesitamos tarimas de 100×120, producción las pide seguido. Favor de solicitar a compras..." rows="2"></textarea>
-        </div>
-        <div class="form-col">
-          <label>Medida (opcional)</label>
-          <input type="text" id="sol-medida" placeholder="ej. 100*120" list="medidas-list">
-        </div>
-        <div class="form-col">
-          <label>Cantidad aproximada</label>
-          <input type="text" id="sol-cant" placeholder="ej. 50 piezas">
-        </div>
-      </div>
-      <div class="btn-row">
-        <button class="btn primary" onclick="agregarSolicitud()">Enviar solicitud</button>
-        <button class="btn" onclick="toggleSolForm()">Cancelar</button>
-      </div>
-    </div>
-
-    <div id="sol-cards-list" class="sol-cards"></div>
-  </div>
-
   <div class="tabs">
     <button class="tab-btn active" onclick="setTab(this,'inventario')">Inventario</button>
     <button class="tab-btn" id="tab-mov-btn" onclick="requirePin(this,'movimientos')">Registrar movimiento</button>
@@ -479,19 +439,21 @@
         <button class="filter-btn" data-f="BODEGA 7" onclick="setLoc(this,'BODEGA 7')">Bodega 7</button>
         <button class="filter-btn" data-f="EN TAPANCO" onclick="setLoc(this,'EN TAPANCO')">Tapanco</button>
         <div class="spacer"></div>
-        <button class="add-btn" onclick="setTab(document.querySelectorAll('.tab-btn')[0],'inventario');showAddForm()">+ Nueva medida</button>
+        <div id="maestro-add-btn" style="display:none">
+          <button class="add-btn" onclick="showAddFormPrincipal()">+ Nueva medida</button>
+        </div>
       </div>
       <div class="tbl-wrap">
         <table>
           <thead>
             <tr>
-              <th>Medida (cm)</th>
-              <th>Cantidad</th>
-              <th>Ubicación</th>
-              <th>Cliente / OP</th>
+              <th style="width:140px">Medida (cm)</th>
+              <th style="width:90px">Cantidad</th>
+              <th style="width:110px">Ubicación</th>
+              <th style="width:150px">Cliente / OP</th>
               <th>Observaciones</th>
-              <th>Últ. movimiento</th>
-              <th></th>
+              <th style="width:110px">Últ. movimiento</th>
+              <th style="width:36px"></th>
             </tr>
           </thead>
           <tbody id="tbl-body"></tbody>
@@ -499,32 +461,28 @@
       </div>
     </div>
 
-    <!-- Add form (hidden by default) -->
-    <div class="card" id="add-form" style="display:none">
-      <div class="card-title">Agregar nueva medida de tarima</div>
-      <div class="form-grid">
-        <div class="form-col"><label>Medida (ancho*largo)</label><input id="a-medida" placeholder="ej. 120*100" type="text"></div>
-        <div class="form-col"><label>Cantidad</label><input id="a-qty" type="number" min="0" value="0"></div>
-        <div class="form-col"><label>Ubicación</label><select id="a-loc"><option value="BODEGA 7">Bodega 7</option><option value="EN TAPANCO">En Tapanco</option></select></div>
-        <div class="form-col"><label>Cliente / OP</label><input id="a-op" placeholder="ej. KRISKA (opcional)" type="text"></div>
-      </div>
-      <div class="form-col" style="margin-bottom:12px"><label>Observaciones</label><textarea id="a-obs" placeholder="ej. tarima de cliente, con tratamiento..."></textarea></div>
-      <div class="btn-row">
-        <button class="btn primary" onclick="agregarTarima()">Guardar en inventario</button>
-        <button class="btn" onclick="document.getElementById('add-form').style.display='none'">Cancelar</button>
-      </div>
-    </div>
   </div>
 
-  <!-- HISTORIAL COLAPSABLE -->
+  <!-- EXPORTAR HISTORIAL -->
   <div style="margin-top:1rem;">
-    <button onclick="toggleHistorial(this)" style="font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:4px 0;">
-      <span id="historial-arrow">▶</span> Ver historial de cambios
+    <button onclick="exportarHistorial()" style="font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-light);border:1px solid var(--accent);border-radius:6px;cursor:pointer;padding:6px 14px;display:inline-flex;align-items:center;gap:6px;">
+      ⬇ Exportar historial de movimientos (Excel)
     </button>
-    <div id="historial-panel" style="display:none;margin-top:8px;">
-      <div class="card">
-        <div class="log-list" id="log-list"><div class="empty"><div class="empty-icon">📋</div><p>Sin movimientos registrados.</p></div></div>
-      </div>
+  </div>
+
+  <!-- NUEVA MEDIDA (solo Fernando) -->
+  <div class="card" id="add-form-principal" style="display:none;margin-top:1rem">
+    <div class="card-title">Agregar nueva medida de tarima</div>
+    <div class="form-grid">
+      <div class="form-col"><label>Medida (ancho*largo)</label><input id="ap-medida" placeholder="ej. 120*100" type="text"></div>
+      <div class="form-col"><label>Cantidad</label><input id="ap-qty" type="number" min="0" value="0"></div>
+      <div class="form-col"><label>Ubicación</label><select id="ap-loc"><option value="BODEGA 7">Bodega 7</option><option value="EN TAPANCO">En Tapanco</option></select></div>
+      <div class="form-col"><label>Cliente / OP</label><input id="ap-op" placeholder="ej. KRISKA (opcional)" type="text"></div>
+      <div class="form-col"><label>Observaciones</label><input id="ap-obs" placeholder="Opcional" type="text"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" onclick="agregarTarimaPrincipal()">Guardar en inventario</button>
+      <button class="btn" onclick="document.getElementById('add-form-principal').style.display='none'">Cancelar</button>
     </div>
   </div>
   </div>
@@ -546,9 +504,17 @@
         </div>
         <div class="form-col">
           <label>Medida de tarima</label>
-          <input id="m-medida" placeholder="ej. 120*100" list="medidas-list" type="text">
+          <input id="m-medida" placeholder="ej. 120*100" list="medidas-list" type="text" oninput="checkMedidaNueva()">
           <datalist id="medidas-list"></datalist>
         </div>
+      </div>
+
+      <!-- AVISO MEDIDA NUEVA -->
+      <div id="nueva-medida-aviso" style="display:none;margin:10px 0;padding:10px 14px;background:#FEF3C7;border:1px solid #FDE68A;border-left:4px solid #CA8A04;border-radius:var(--radius-sm)">
+        <div style="font-size:12px;font-weight:600;color:#78350F">⚠ Medida nueva — completa ubicación y datos abajo, luego da clic en Registrar movimiento</div>
+      </div>
+
+      <div class="form-grid" style="margin-top:0">
         <div class="form-col">
           <label>Cantidad</label>
           <input id="m-qty" type="number" min="1" value="1">
@@ -557,12 +523,25 @@
           <label>Nota u orden</label>
           <input id="m-nota" placeholder="ej. pedido #204, cliente ESSITY" type="text">
         </div>
+        <div class="form-col">
+          <label>Ubicación</label>
+          <select id="a-loc"><option value="BODEGA 7">Bodega 7</option><option value="EN TAPANCO">En Tapanco</option></select>
+        </div>
+        <div class="form-col">
+          <label>Cliente / OP</label>
+          <input id="a-op" placeholder="ej. KRISKA (opcional)" type="text">
+        </div>
+        <div class="form-col">
+          <label>Observaciones</label>
+          <input id="a-obs" placeholder="Opcional" type="text">
+        </div>
       </div>
       <div class="btn-row">
         <button class="btn primary" onclick="registrarMovimiento()">Registrar movimiento</button>
         <button class="btn" onclick="limpiarMov()">Limpiar</button>
       </div>
     </div>
+
   </div>
 </main>
 
@@ -710,7 +689,6 @@ const SEED = [
 // ── APP STATE ──
 let inv = [];
 let logs = [];
-let solicitudes = [];
 let db = null;
 let useFirebase = false;
 let locFilter = 'todos';
@@ -728,7 +706,19 @@ function todayStr() {
 }
 
 // ── PIN / AUTH ──
-const PIN = '1234'; // ← Cambia esto al código que le darás a aduana
+// ── USUARIOS / AUTH ──
+const USUARIOS = {
+  '2841': 'Abel',
+  '3752': 'Nataly',
+  '4163': 'Nancy',
+  '1594': 'Noe',
+  '7236': 'Erick',
+  '6018': 'Daniel',
+  '9347': 'Josue',
+  '0000': 'Fernando' // ← PIN maestro, cámbialo antes de publicar
+};
+const PIN_MAESTRO = '0000'; // ← mismo PIN que Fernando arriba
+let modoMaestro = false;
 let modoEdicion = false;
 let pinCallback = null;
 
@@ -757,9 +747,10 @@ function cerrarPin() {
 
 function verificarPin() {
   const input = document.getElementById('pin-input');
-  if (input.value === PIN) {
+  const nombre = USUARIOS[input.value];
+  if (nombre) {
     cerrarPin();
-    desbloquear();
+    desbloquear(nombre);
     if (pinCallback) pinCallback();
   } else {
     input.classList.add('error');
@@ -772,18 +763,22 @@ document.getElementById('pin-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') verificarPin();
 });
 
-function desbloquear() {
+function desbloquear(nombre) {
   modoEdicion = true;
+  modoMaestro = (document.getElementById('pin-input').value === PIN_MAESTRO);
   document.getElementById('main-content').classList.remove('locked');
   document.getElementById('edit-bar').classList.add('visible');
+  document.getElementById('edit-bar-user').textContent = nombre + (modoMaestro ? ' ★' : '');
   const chip = document.getElementById('edit-chip');
-  chip.textContent = '🔓 Editando';
+  chip.textContent = '🔓 ' + nombre;
   chip.className = 'edit-chip unlocked';
-  usuario = 'Aduana';
+  usuario = nombre;
+  renderAll(); // re-render to show/hide master controls
 }
 
 function bloquear() {
   modoEdicion = false;
+  modoMaestro = false;
   document.getElementById('main-content').classList.add('locked');
   document.getElementById('edit-bar').classList.remove('visible');
   const chip = document.getElementById('edit-chip');
@@ -876,10 +871,6 @@ function listenFirebase() {
     logs = snap.docs.map(d => ({id: d.id, ...d.data()}));
     renderLog();
   });
-  db.collection('solicitudes').orderBy('ts','desc').onSnapshot(snap => {
-    solicitudes = snap.docs.map(d => ({id: d.id, ...d.data()}));
-    renderSolicitudes();
-  });
 }
 
 async function fbSetQty(id, newQty, medida, oldQty) {
@@ -935,15 +926,12 @@ function loadLocal() {
   catch(e) { inv = SEED.map((s,i)=>({...s,id:String(i+1)})); }
   try { logs = JSON.parse(localStorage.getItem('tarimas-log') || '[]'); }
   catch(e) { logs = []; }
-  try { solicitudes = JSON.parse(localStorage.getItem('tarimas-sol') || '[]'); }
-  catch(e) { solicitudes = []; }
   renderAll();
 }
 
 function saveLocal() {
   localStorage.setItem('tarimas-inv', JSON.stringify(inv));
   localStorage.setItem('tarimas-log', JSON.stringify(logs));
-  localStorage.setItem('tarimas-sol', JSON.stringify(solicitudes));
 }
 
 function addLogLocal(tipo, medida, qty, nota) {
@@ -1017,6 +1005,7 @@ async function agregarTarima() {
     renderAll();
   }
   document.getElementById('add-form').style.display = 'none';
+  document.getElementById('add-form-arrow').textContent = '▶';
   limpiarAddForm();
   toast(`Tarima ${medida} agregada al inventario.`);
 }
@@ -1037,18 +1026,53 @@ async function eliminar(id) {
 }
 
 async function registrarMovimiento() {
-  const tipo = document.getElementById('m-tipo').value;
-  const medida = document.getElementById('m-medida').value.trim().toUpperCase();
-  const qty = parseInt(document.getElementById('m-qty').value) || 0;
-  const nota = document.getElementById('m-nota').value.trim();
+  const tipo   = document.getElementById('m-tipo').value;
+  const medida = normalizeMedida(document.getElementById('m-medida').value);
+  const qty    = Math.abs(parseInt(document.getElementById('m-qty').value) || 0);
+  const nota   = document.getElementById('m-nota').value.trim();
   if (!medida || qty < 1) { toast('Ingresa medida y cantidad.'); return; }
+
+  // Check if medida is new
+  const esNueva = !inv.some(r => normalizeMedida(r.medida) === medida);
+  if (esNueva) {
+    // Make sure aviso is visible and fields are filled
+    const aviso = document.getElementById('nueva-medida-aviso');
+    if (aviso.style.display === 'none') {
+      aviso.style.display = 'block';
+      toast('Es una medida nueva — completa los datos y da clic en Registrar movimiento otra vez.');
+      return;
+    }
+    // Register as new medida
+    await registrarNuevaMedidaYMovimiento();
+    return;
+  }
+
+  // Normal movement for existing medida
   if (useFirebase) {
     await fbMovimiento(tipo, medida, qty, nota);
+    // Also update loc/op/obs if provided
+    const loc = document.getElementById('a-loc').value;
+    const op  = document.getElementById('a-op').value.trim();
+    const obs = document.getElementById('a-obs').value.trim();
+    const idx = inv.findIndex(r => normalizeMedida(r.medida) === medida);
+    if (idx >= 0 && (loc || op || obs)) {
+      const upd = { updatedAt: new Date().toISOString(), updatedBy: usuario };
+      if (loc) upd.loc = loc;
+      if (op)  upd.op  = op;
+      if (obs) upd.obs = obs;
+      await db.collection('inventario').doc(inv[idx].id).update(upd);
+    }
   } else {
-    const idx = inv.findIndex(r => r.medida === medida);
+    const idx = inv.findIndex(r => normalizeMedida(r.medida) === medida);
     if (idx >= 0) {
       const isE = tipo === 'entrada';
       inv[idx].qty = Math.max(0, inv[idx].qty + (isE ? qty : -qty));
+      const loc = document.getElementById('a-loc').value;
+      const op  = document.getElementById('a-op').value.trim();
+      const obs = document.getElementById('a-obs').value.trim();
+      if (loc) inv[idx].loc = loc;
+      if (op)  inv[idx].op  = op;
+      if (obs) inv[idx].obs = obs;
     }
     addLogLocal(tipo, medida, qty, nota);
     renderAll();
@@ -1073,88 +1097,34 @@ async function limpiarHistorial() {
 }
 
 // ── SOLICITUDES ──
-async function agregarSolicitud() {
-  const texto = document.getElementById('sol-texto').value.trim();
-  const medida = document.getElementById('sol-medida').value.trim().toUpperCase();
-  const cant = document.getElementById('sol-cant').value.trim();
-  if (!texto) { toast('Escribe el mensaje de la solicitud.'); return; }
-  const sol = { texto, medida, cant, quien: usuario, fecha: fmt(new Date()), ts: Date.now(), resuelta: false };
+
+function showAddFormPrincipal() {
+  const f = document.getElementById('add-form-principal');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  if (f.style.display !== 'none') document.getElementById('ap-medida').focus();
+}
+
+async function agregarTarimaPrincipal() {
+  const medida = normalizeMedida(document.getElementById('ap-medida').value);
+  const qty    = parseInt(document.getElementById('ap-qty').value) || 0;
+  const loc    = document.getElementById('ap-loc').value;
+  const op     = document.getElementById('ap-op').value.trim();
+  const obs    = document.getElementById('ap-obs').value.trim();
+  if (!medida) { alert('Ingresa la medida.'); return; }
+  const item = { medida, qty, loc, op, obs };
   if (useFirebase) {
-    await db.collection('solicitudes').add(sol);
+    await fbAgregar(item);
   } else {
-    solicitudes.unshift({...sol, id: String(Date.now())});
-    saveLocal();
-    renderSolicitudes();
+    inv.push({...item, id: 'loc'+Date.now()});
+    inv.sort((a,b) => a.medida.localeCompare(b.medida));
+    addLogLocal('nuevo-registro', medida, qty, 'Nueva medida agregada');
+    saveLocal(); renderAll();
   }
-  limpiarSol();
-  toast('Solicitud enviada.');
+  document.getElementById('add-form-principal').style.display = 'none';
+  ['ap-medida','ap-op','ap-obs'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('ap-qty').value = '0';
+  toast(`Medida ${medida} agregada.`);
 }
-
-async function marcarResuelta(id) {
-  if (useFirebase) {
-    await db.collection('solicitudes').doc(id).update({ resuelta: true, resueltaPor: usuario, resueltaFecha: fmt(new Date()) });
-  } else {
-    const idx = solicitudes.findIndex(s => s.id === id);
-    if (idx >= 0) { solicitudes[idx].resuelta = true; solicitudes[idx].resueltaPor = usuario; solicitudes[idx].resueltaFecha = fmt(new Date()); }
-    saveLocal();
-    renderSolicitudes();
-  }
-  toast('Marcada como resuelta.');
-}
-
-async function eliminarSolicitud(id) {
-  if (!confirm('¿Eliminar esta solicitud?')) return;
-  if (useFirebase) {
-    await db.collection('solicitudes').doc(id).delete();
-  } else {
-    solicitudes = solicitudes.filter(s => s.id !== id);
-    saveLocal();
-    renderSolicitudes();
-  }
-  toast('Solicitud eliminada.');
-}
-
-function toggleSolForm() {
-  const f = document.getElementById('sol-inline-form');
-  f.classList.toggle('open');
-  if (f.classList.contains('open')) document.getElementById('sol-texto').focus();
-}
-
-function limpiarSol() {
-  document.getElementById('sol-texto').value = '';
-  document.getElementById('sol-medida').value = '';
-  document.getElementById('sol-cant').value = '';
-}
-
-function renderSolicitudes() {
-  const showResueltas = document.getElementById('show-resueltas')?.checked;
-  const lista = solicitudes.filter(s => showResueltas || !s.resuelta);
-  const pendientes = solicitudes.filter(s => !s.resuelta).length;
-  const badge = document.getElementById('sol-count-badge');
-  if (badge) {
-    badge.textContent = pendientes;
-    badge.className = pendientes > 0 ? 'sol-badge' : 'sol-badge zero';
-  }
-  const cont = document.getElementById('sol-cards-list');
-  if (!cont) return;
-  if (!lista.length) {
-    cont.innerHTML = '<p class="sol-empty">No hay solicitudes pendientes. Usa el botón "+ Nueva solicitud" para agregar una.</p>';
-    return;
-  }
-  cont.innerHTML = lista.map(s => `
-    <div class="sol-card ${s.resuelta ? 'resuelta' : ''}">
-      <div class="sol-card-body">
-        ${s.medida ? `<span class="sol-card-tag">${s.medida.replace(/\*/g,'×')}${s.cant ? ' · ' + s.cant : ''}</span>` : ''}
-        <div class="sol-card-text">${s.texto}</div>
-        <div class="sol-card-meta">${s.quien} · ${s.fecha}${s.resuelta ? ` · ✓ Resuelta por ${s.resueltaPor||'—'} (${s.resueltaFecha||''})` : ''}</div>
-      </div>
-      <div class="sol-card-actions">
-        ${!s.resuelta ? `<button class="sol-btn ok" onclick="marcarResuelta('${s.id}')">✓ Resuelta</button>` : ''}
-        <button class="sol-btn del" onclick="eliminarSolicitud('${s.id}')">×</button>
-      </div>
-    </div>`).join('');
-}
-
 
 function renderAll() {
   const total = inv.reduce((s,r) => s + (r.qty||0), 0);
@@ -1175,15 +1145,17 @@ function renderAll() {
   } else { ab.classList.remove('show'); }
   renderTable();
   renderLog();
-  renderSolicitudes();
   updateDatalist();
+  // Show/hide maestro controls
+  const maestroBtn = document.getElementById('maestro-add-btn');
+  if (maestroBtn) maestroBtn.style.display = modoMaestro ? 'block' : 'none';
 }
 
 function renderTable() {
-  const q = (document.getElementById('search').value || '').toLowerCase();
+  const q = normalizeMedida(document.getElementById('search').value);
   let rows = inv.filter(r => {
     if (locFilter !== 'todos' && r.loc !== locFilter) return false;
-    if (q && !r.medida.toLowerCase().includes(q) && !(r.op||'').toLowerCase().includes(q)) return false;
+    if (q && !normalizeMedida(r.medida).includes(q) && !(r.op||'').toLowerCase().includes(q.toLowerCase())) return false;
     return true;
   });
   const body = document.getElementById('tbl-body');
@@ -1203,24 +1175,15 @@ function renderTable() {
     const minQty = MIN_STOCK[medidaKey] || 0;
     const stockCls = qty === 0 ? 'stock-zero' : (minQty > 0 && qty <= minQty) || (minQty === 0 && qty <= 6) ? 'stock-low' : 'stock-ok';
     const lastMov = r.lastMovAt ? fmtRelative(r.lastMovAt) : '<span style="color:#ccc">—</span>';
+    const qtyCell = modoMaestro
+      ? `<div class="qty-ctrl"><button class="qty-btn" onclick="cambiarQty('${r.id}',-1)">−</button><input class="qty-input ${stockCls}" type="number" value="${qty}" min="0" onchange="setQtyDirecto('${r.id}',this)" onkeydown="if(event.key==='Enter')this.blur()"><button class="qty-btn" onclick="cambiarQty('${r.id}',1)">+</button></div>`
+      : `<span class="qty-input ${stockCls}" style="display:inline-block;padding:4px 8px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;border:1px solid">${qty}</span>`;
     return `<tr class="${stockCls}">
       <td><span class="medida-cell">${medidaDisplay}</span></td>
-      <td>
-        <div class="qty-ctrl">
-          <button class="qty-btn" onclick="cambiarQty('${r.id}',-1)">−</button>
-          <input class="qty-input ${stockCls}" type="number" value="${qty}" min="0"
-            onchange="setQtyDirecto('${r.id}',this)"
-            onkeydown="if(event.key==='Enter')this.blur()">
-          <button class="qty-btn" onclick="cambiarQty('${r.id}',1)">+</button>
-        </div>
-      </td>
-      <td><input class="obs-input" type="text" value="${locVal}" placeholder="ej. Bodega 7"
-        onchange="guardarCampo('${r.id}','loc',this.value)"
-        onkeydown="if(event.key==='Enter')this.blur()"></td>
-      <td><input class="obs-input" type="text" value="${opVal}" placeholder="ej. KRISKA"
-        onchange="guardarCampo('${r.id}','op',this.value)"
-        onkeydown="if(event.key==='Enter')this.blur()"></td>
-      <td><input class="obs-input" type="text" value="${obsVal}" placeholder="Agregar observación..."
+      <td>${qtyCell}</td>
+      <td style="font-size:12px;color:var(--text);max-width:120px">${locVal||'<span style="color:#ccc">—</span>'}</td>
+      <td style="font-size:12px;color:var(--text);max-width:150px">${opVal||'<span style="color:#ccc">—</span>'}</td>
+      <td style="font-size:12px;color:var(--muted);max-width:160px"><input class="obs-input" type="text" value="${obsVal}" placeholder="Agregar observación..."
         onchange="guardarCampo('${r.id}','obs',this.value)"
         onkeydown="if(event.key==='Enter')this.blur()"></td>
       <td style="font-size:11px;color:var(--muted);white-space:nowrap">${lastMov}</td>
@@ -1288,12 +1251,28 @@ function setTab(btn, tab) {
   });
 }
 
-function toggleHistorial(btn) {
-  const panel = document.getElementById('historial-panel');
-  const arrow = document.getElementById('historial-arrow');
-  const visible = panel.style.display !== 'none';
-  panel.style.display = visible ? 'none' : 'block';
-  arrow.textContent = visible ? '▶' : '▼';
+function exportarHistorial() {
+  if (!logs.length) { toast('No hay movimientos para exportar.'); return; }
+  const rows = [['Fecha','Tipo','Medida','Cantidad','Nota','Registrado por']];
+  logs.forEach(l => {
+    const tipo = {
+      'entrada':'Entrada','salida-produccion':'Salida producción',
+      'salida-entrega':'Salida entrega','salida-dano':'Salida daño/pérdida',
+      'ajuste':'Ajuste','nuevo-registro':'Nuevo registro','eliminado':'Eliminado'
+    }[l.tipo] || l.tipo;
+    rows.push([l.fecha||'', tipo, l.medida||'', l.qty||'', l.nota||'', l.quien||'']);
+  });
+  const bom = '\uFEFF';
+  const csv = bom + rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const f = new Date();
+  a.download = `historial-tarimas-${f.getFullYear()}${String(f.getMonth()+1).padStart(2,'0')}${String(f.getDate()).padStart(2,'0')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Historial exportado.');
 }
 
 
@@ -1304,11 +1283,46 @@ function setLoc(btn, loc) {
   renderTable();
 }
 
-function showAddForm() {
-  const f = document.getElementById('add-form');
-  f.style.display = f.style.display === 'none' ? '' : 'none';
-  if (f.style.display !== 'none') document.getElementById('a-medida').focus();
+function normalizeMedida(s) {
+  return (s||'').trim().toUpperCase().replace(/[xX]/g,'*');
 }
+
+function checkMedidaNueva() {
+  const val = normalizeMedida(document.getElementById('m-medida').value);
+  const aviso = document.getElementById('nueva-medida-aviso');
+  if (!val) { aviso.style.display = 'none'; return; }
+  const existe = inv.some(r => normalizeMedida(r.medida) === val);
+  aviso.style.display = existe ? 'none' : 'block';
+}
+
+async function registrarNuevaMedidaYMovimiento() {
+  const medida = normalizeMedida(document.getElementById('m-medida').value);
+  const qty    = Math.abs(parseInt(document.getElementById('m-qty').value) || 0);
+  const loc    = document.getElementById('a-loc').value;
+  const op     = document.getElementById('a-op').value.trim();
+  const obs    = document.getElementById('a-obs').value.trim();
+  const nota   = document.getElementById('m-nota').value.trim();
+  if (!medida) { toast('Escribe la medida.'); return; }
+  if (qty <= 0) { toast('Ingresa la cantidad de tarimas.'); return; }
+  const now = new Date().toISOString();
+  const item = { medida, qty, loc, op, obs, updatedAt: now, updatedBy: usuario, lastMovAt: now };
+  if (useFirebase) {
+    await fbAgregar(item);
+  } else {
+    const id = 'loc' + Date.now();
+    inv.push({...item, id});
+    inv.sort((a,b) => a.medida.localeCompare(b.medida));
+    addLogLocal('nuevo-registro', medida, qty, nota || 'Nueva medida registrada');
+    saveLocal(); renderAll();
+  }
+  document.getElementById('nueva-medida-aviso').style.display = 'none';
+  document.getElementById('a-op').value = '';
+  document.getElementById('a-obs').value = '';
+  limpiarMov();
+  toast(`Medida ${medida} registrada con ${qty} piezas.`);
+}
+
+
 
 function limpiarAddForm() {
   ['a-medida','a-op','a-obs'].forEach(id => document.getElementById(id).value='');
@@ -1317,9 +1331,11 @@ function limpiarAddForm() {
 }
 
 function limpiarMov() {
-  ['m-medida','m-nota'].forEach(id => document.getElementById(id).value='');
+  ['m-medida','m-nota','a-op','a-obs'].forEach(id => document.getElementById(id).value='');
   document.getElementById('m-qty').value='1';
   document.getElementById('m-tipo').value='entrada';
+  document.getElementById('a-loc').value='BODEGA 7';
+  document.getElementById('nueva-medida-aviso').style.display='none';
 }
 
 function toast(msg) {
