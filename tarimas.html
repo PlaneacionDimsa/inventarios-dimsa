@@ -420,8 +420,8 @@
 
   <div class="stats">
     <div class="stat"><div class="stat-label">Total tarimas</div><div class="stat-value" id="s-total">—</div><div class="stat-sub">en inventario</div></div>
-    <div class="stat"><div class="stat-label">Bodega 7</div><div class="stat-value blue" id="s-b7">—</div><div class="stat-sub">piezas</div></div>
-    <div class="stat"><div class="stat-label">Tapanco</div><div class="stat-value amber" id="s-tp">—</div><div class="stat-sub">piezas</div></div>
+    <div class="stat"><div class="stat-label">Bodega 7</div><div class="stat-value blue" id="s-b7">—</div><div class="stat-sub" id="s-b7-sub">piezas</div></div>
+    <div class="stat"><div class="stat-label">Tapanco</div><div class="stat-value amber" id="s-tp">—</div><div class="stat-sub" id="s-tp-sub">piezas</div></div>
     <div class="stat"><div class="stat-label">Hoy</div><div class="stat-value green" id="s-hoy">—</div><div class="stat-sub">movimientos</div></div>
   </div>
 
@@ -499,7 +499,7 @@
             <option value="salida-produccion">Salida — a producción / máquina</option>
             <option value="salida-entrega">Salida — entrega producto terminado</option>
             <option value="salida-dano">Salida — pérdida / daño</option>
-            <option value="ajuste">Ajuste de inventario</option>
+            <option value="ajuste">Ajuste — establecer cantidad exacta</option>
           </select>
         </div>
         <div class="form-col">
@@ -912,15 +912,28 @@ async function fbEliminar(id, medida) {
 }
 
 async function fbMovimiento(tipo, medida, qty, nota) {
-  const idx = inv.findIndex(r => r.medida === medida);
+  const idx = inv.findIndex(r => normalizeMedida(r.medida) === normalizeMedida(medida));
   if (idx >= 0) {
-    const isEntrada = tipo === 'entrada';
     const oldQty = inv[idx].qty;
-    const newQty = Math.max(0, oldQty + (isEntrada ? qty : -qty));
+    let newQty;
+    if (tipo === 'ajuste') {
+      newQty = qty; // ajuste establece el número exacto
+    } else {
+      const isEntrada = tipo === 'entrada';
+      newQty = Math.max(0, oldQty + (isEntrada ? qty : -qty));
+    }
     const now = new Date().toISOString();
+    // Log the actual difference for the historial
+    const diff = newQty - oldQty;
     await db.collection('inventario').doc(inv[idx].id).update({
       qty: newQty, updatedAt: now, updatedBy: usuario, lastMovAt: now
     });
+    await db.collection('movimientos').add({
+      tipo, medida, qty: tipo === 'ajuste' ? qty : qty, quien: usuario,
+      nota: tipo === 'ajuste' ? `${nota ? nota + ' · ' : ''}Ajuste: ${oldQty} → ${newQty}` : nota,
+      ts: Date.now(), fecha: fmt(new Date())
+    });
+    return;
   }
   await db.collection('movimientos').add({
     tipo, medida, qty, quien: usuario, nota,
@@ -1073,16 +1086,23 @@ async function registrarMovimiento() {
   } else {
     const idx = inv.findIndex(r => normalizeMedida(r.medida) === medida);
     if (idx >= 0) {
-      const isE = tipo === 'entrada';
-      inv[idx].qty = Math.max(0, inv[idx].qty + (isE ? qty : -qty));
+      const oldQty = inv[idx].qty;
+      if (tipo === 'ajuste') {
+        inv[idx].qty = qty;
+      } else {
+        const isE = tipo === 'entrada';
+        inv[idx].qty = Math.max(0, oldQty + (isE ? qty : -qty));
+      }
       const loc = document.getElementById('a-loc').value;
       const op  = document.getElementById('a-op').value.trim();
       const obs = document.getElementById('a-obs').value.trim();
       if (loc) inv[idx].loc = loc;
       if (op)  inv[idx].op  = op;
       if (obs) inv[idx].obs = obs;
+      inv[idx].lastMovAt = new Date().toISOString();
     }
-    addLogLocal(tipo, medida, qty, nota);
+    const notaLog = tipo === 'ajuste' ? `${nota ? nota + ' · ' : ''}Ajuste: ${inv.find(r=>normalizeMedida(r.medida)===medida)?.qty}` : nota;
+    addLogLocal(tipo, medida, qty, notaLog);
     renderAll();
   }
   limpiarMov();
@@ -1138,10 +1158,15 @@ function renderAll() {
   const total = inv.reduce((s,r) => s + (r.qty||0), 0);
   const b7 = inv.filter(r=>r.loc==='BODEGA 7').reduce((s,r) => s + (r.qty||0), 0);
   const tp = inv.filter(r=>r.loc==='EN TAPANCO').reduce((s,r) => s + (r.qty||0), 0);
+  const otros = total - b7 - tp;
   const hoy = logs.filter(l => l.fecha && l.fecha.startsWith(todayStr())).length;
   document.getElementById('s-total').textContent = total;
   document.getElementById('s-b7').textContent = b7;
   document.getElementById('s-tp').textContent = tp;
+  const subB7 = document.getElementById('s-b7-sub');
+  const subTp = document.getElementById('s-tp-sub');
+  if (subB7) subB7.textContent = otros > 0 ? `+ ${otros} sin ubicación` : 'piezas';
+  if (subTp) subTp.textContent = otros > 0 ? `(total: ${total})` : 'piezas';
 
   document.getElementById('s-hoy').textContent = hoy;
   // Alert: any medida with qty = 0
