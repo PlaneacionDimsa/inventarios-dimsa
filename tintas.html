@@ -359,10 +359,12 @@
             <option value="ajuste">Ajuste de inventario</option>
           </select>
         </div>
-        <div class="form-col">
+        <div class="form-col" style="position:relative">
           <label>Descripción / Tinta</label>
-          <input id="m-desc" placeholder="Buscar descripción..." list="desc-list" type="text" oninput="filtrarLotes();checkTintaNueva()">
-          <datalist id="desc-list"></datalist>
+          <input id="m-desc" placeholder="Escribe para buscar..." type="text" autocomplete="off"
+            oninput="filtrarLotes();checkTintaNueva();showDescDropdown()"
+            onblur="setTimeout(()=>hideDescDropdown(),200)">
+          <div id="desc-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);max-height:220px;overflow-y:auto;margin-top:2px"></div>
         </div>
         <div class="form-col">
           <label>Lote específico</label>
@@ -1935,8 +1937,36 @@ function renderLog(){
 }
 
 function updateDescList(){
-  const descs=[...new Set(inv.map(r=>r.desc))].sort();
-  document.getElementById('desc-list').innerHTML=descs.map(d=>`<option value="${d}">`).join('');
+  // no-op — dropdown uses showDescDropdown
+}
+
+function showDescDropdown(){
+  const q=(document.getElementById('m-desc').value||'').trim().toLowerCase();
+  const dd=document.getElementById('desc-dropdown');
+  if(!q){dd.style.display='none';return;}
+  const matches=[...new Set(
+    inv.filter(r=>(r.desc||'').toLowerCase().includes(q)).map(r=>r.desc)
+  )].slice(0,12);
+  if(!matches.length){dd.style.display='none';return;}
+  const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  dd.innerHTML=matches.map(d=>`
+    <div onclick="selectDesc(${JSON.stringify(d)})"
+      style="padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--bg);color:var(--text)"
+      onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">
+      ${d.replace(new RegExp(esc(q),'gi'),m=>`<strong style="color:var(--accent)">${m}</strong>`)}
+    </div>`).join('');
+  dd.style.display='block';
+}
+
+function hideDescDropdown(){
+  document.getElementById('desc-dropdown').style.display='none';
+}
+
+function selectDesc(desc){
+  document.getElementById('m-desc').value=desc;
+  hideDescDropdown();
+  filtrarLotes();
+  checkTintaNueva();
 }
 
 function filtrarLotes(){

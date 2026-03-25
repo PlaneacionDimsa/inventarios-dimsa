@@ -494,12 +494,14 @@
       <div class="form-grid">
         <div class="form-col">
           <label>Tipo de movimiento</label>
-          <select id="m-tipo">
+          <select id="m-tipo" onchange="checkTipoMovimiento()">
             <option value="entrada">Entrada — llegaron tarimas</option>
             <option value="salida-produccion">Salida — a producción / máquina</option>
             <option value="salida-entrega">Salida — entrega producto terminado</option>
             <option value="salida-dano">Salida — pérdida / daño</option>
             <option value="ajuste">Ajuste — establecer cantidad exacta</option>
+            <option value="traslado-b7-tp">Traslado — Bodega 7 → Tapanco</option>
+            <option value="traslado-tp-b7">Traslado — Tapanco → Bodega 7</option>
           </select>
         </div>
         <div class="form-col">
@@ -514,8 +516,13 @@
         <div style="font-size:12px;font-weight:600;color:#78350F">⚠ Medida nueva — completa ubicación y datos abajo, luego da clic en Registrar movimiento</div>
       </div>
 
+      <!-- AVISO TRASLADO -->
+      <div id="traslado-aviso" style="display:none;margin:10px 0;padding:10px 14px;background:#EFF6FF;border:1px solid #BFDBFE;border-left:4px solid var(--accent);border-radius:var(--radius-sm)">
+        <div style="font-size:12px;font-weight:600;color:#1e3a5f" id="traslado-texto">↔ Se actualizará la ubicación sin cambiar la cantidad</div>
+      </div>
+
       <div class="form-grid" style="margin-top:0">
-        <div class="form-col">
+        <div class="form-col" id="qty-field">
           <label>Cantidad</label>
           <input id="m-qty" type="number" min="1" value="1">
         </div>
@@ -1053,6 +1060,26 @@ async function registrarMovimiento() {
   const nota   = document.getElementById('m-nota').value.trim();
   if (!medida || qty < 1) { toast('Ingresa medida y cantidad.'); return; }
 
+  // Traslado — solo cambia ubicación
+  if (tipo.startsWith('traslado')) {
+    if (!medida) { toast('Ingresa la medida.'); return; }
+    const nuevaLoc = tipo === 'traslado-b7-tp' ? 'EN TAPANCO' : 'BODEGA 7';
+    const origenLoc = tipo === 'traslado-b7-tp' ? 'BODEGA 7' : 'EN TAPANCO';
+    const idx = inv.findIndex(r => normalizeMedida(r.medida) === medida);
+    const now = new Date().toISOString();
+    if (useFirebase) {
+      if (idx >= 0) await db.collection('inventario').doc(inv[idx].id).update({ loc: nuevaLoc, updatedAt: now, updatedBy: usuario, lastMovAt: now });
+      await db.collection('movimientos').add({ tipo, medida, qty: idx >= 0 ? inv[idx].qty : 0, quien: usuario, nota: nota || `Traslado ${origenLoc} → ${nuevaLoc}`, ts: Date.now(), fecha: fmt(new Date()) });
+    } else {
+      if (idx >= 0) { inv[idx].loc = nuevaLoc; inv[idx].lastMovAt = now; }
+      addLogLocal(tipo, medida, idx >= 0 ? inv[idx].qty : 0, nota || `Traslado ${origenLoc} → ${nuevaLoc}`);
+      saveLocal(); renderAll();
+    }
+    limpiarMov();
+    toast(`Traslado registrado: ${medida} → ${nuevaLoc === 'EN TAPANCO' ? 'Tapanco' : 'Bodega 7'}`);
+    return;
+  }
+
   // Check if medida is new
   const esNueva = !inv.some(r => normalizeMedida(r.medida) === medida);
   if (esNueva) {
@@ -1251,7 +1278,7 @@ function renderLog() {
   };
   const clsMap = {
     'entrada':'lb-entrada','salida-produccion':'lb-salida','salida-entrega':'lb-salida',
-    'salida-dano':'lb-salida','ajuste':'lb-ajuste','nuevo-registro':'lb-new','eliminado':'lb-del'
+    'salida-dano':'lb-salida','ajuste':'lb-ajuste','nuevo-registro':'lb-new','eliminado':'lb-del','traslado-b7-tp':'lb-new','traslado-tp-b7':'lb-new'
   };
   const isPos = t => t==='entrada'||t==='nuevo-registro';
   const isNeg = t => t.startsWith('salida');
@@ -1320,6 +1347,21 @@ function normalizeMedida(s) {
   return (s||'').trim().toUpperCase().replace(/[xX]/g,'*');
 }
 
+function checkTipoMovimiento() {
+  const tipo = document.getElementById('m-tipo').value;
+  const esTraslado = tipo.startsWith('traslado');
+  document.getElementById('qty-field').style.display = esTraslado ? 'none' : '';
+  document.getElementById('traslado-aviso').style.display = esTraslado ? 'block' : 'none';
+  if (esTraslado) {
+    const txt = tipo === 'traslado-b7-tp'
+      ? '↔ Se moverá de Bodega 7 → Tapanco (sin cambiar cantidad)'
+      : '↔ Se moverá de Tapanco → Bodega 7 (sin cambiar cantidad)';
+    document.getElementById('traslado-texto').textContent = txt;
+  }
+  document.getElementById('nueva-medida-aviso').style.display = 'none';
+}
+
+
 function checkMedidaNueva() {
   const val = normalizeMedida(document.getElementById('m-medida').value);
   const aviso = document.getElementById('nueva-medida-aviso');
@@ -1369,6 +1411,8 @@ function limpiarMov() {
   document.getElementById('m-tipo').value='entrada';
   document.getElementById('a-loc').value='BODEGA 7';
   document.getElementById('nueva-medida-aviso').style.display='none';
+  document.getElementById('traslado-aviso').style.display='none';
+  document.getElementById('qty-field').style.display='';
 }
 
 function toast(msg) {
