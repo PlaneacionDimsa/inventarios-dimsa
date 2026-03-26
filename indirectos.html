@@ -535,7 +535,29 @@ async function seedIfEmpty(){
     const batch=db.batch();
     SEED.forEach(item=>{const ref=db.collection('indirectos').doc();batch.set(ref,{...item,updatedAt:now,updatedBy:'Sistema'});});
     await batch.commit();
+  } else {
+    await deduplicarIndirectos();
   }
+}
+
+async function deduplicarIndirectos(){
+  const snap=await db.collection('indirectos').get();
+  const vistos={};
+  const batch=db.batch();
+  let borrados=0;
+  snap.docs.forEach(doc=>{
+    const nombre=(doc.data().nombre||'').trim().toLowerCase();
+    const lote=(doc.data().lote||'').trim();
+    const key=nombre+'__'+lote;
+    if(vistos[key]){
+      // keep the one with higher qty or more recent, delete this duplicate
+      batch.delete(doc.ref);
+      borrados++;
+    } else {
+      vistos[key]=true;
+    }
+  });
+  if(borrados>0) await batch.commit();
 }
 
 function listenFirebase(){

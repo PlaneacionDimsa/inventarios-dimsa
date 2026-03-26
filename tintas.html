@@ -1752,6 +1752,15 @@ async function registrarMovimiento(){
   const nota=document.getElementById('m-nota').value.trim();
   if(!desc||qty<=0){alert('Ingresa descripción y cantidad.');return;}
 
+  // Validate desc matches exactly or user must pick from dropdown
+  const matchExact=inv.some(r=>(r.desc||'').toLowerCase()===desc.toLowerCase());
+  const matchPartial=inv.some(r=>(r.desc||'').toLowerCase().includes(desc.toLowerCase()));
+  if(!matchExact && matchPartial){
+    toast('Selecciona una tinta específica del menú desplegable.');
+    showDescDropdown();
+    return;
+  }
+
   // Check if it's a new tinta
   const esNueva=!inv.some(r=>(r.desc||'').toLowerCase()===desc.toLowerCase());
   if(esNueva){
