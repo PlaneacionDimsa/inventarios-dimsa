@@ -201,7 +201,11 @@
   /* ── RESPONSIVE ── */
   @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr 1fr}}
   @media(max-width:640px){
-    .header{padding:0 1rem;height:52px}
+    .header{padding:0 1rem;height:auto;flex-direction:column;align-items:stretch;padding:8px 1rem}
+    .header-left{margin-bottom:4px}
+    .header-nav{overflow-x:auto;-webkit-overflow-scrolling:touch;gap:2px;margin-bottom:4px}
+    .header-nav a{font-size:10px;padding:4px 8px;white-space:nowrap}
+    .header-right{justify-content:flex-end}
     .header img{height:26px}
     .logo{font-size:12px}
     .clock-txt{display:none}
@@ -241,7 +245,7 @@
     <div class="header-divider"></div>
     <div class="logo">TINTAS <span>/ inventario</span></div>
   </div>
-  <nav style="display:flex;gap:4px">
+  <nav class="header-nav" style="display:flex;gap:4px">
     <a href="index.html" style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:5px;text-decoration:none;color:var(--muted)">← Inicio</a>
     <a href="tarimas.html" style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:5px;text-decoration:none;color:var(--muted)">Tarimas</a>
     <a href="indirectos.html" style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:5px;text-decoration:none;color:var(--muted)">Indirectos</a>
@@ -1691,11 +1695,28 @@ async function setQtyDirecto(id,input){
 
 async function guardarCampo(id,campo,valor){
   const idx=inv.findIndex(r=>r.id===id);if(idx<0)return;
-  inv[idx][campo]=valor.trim();
+  const valorAnterior=inv[idx][campo]||'';
+  const valorNuevo=valor.trim();
+  if(valorAnterior===valorNuevo)return;
+  inv[idx][campo]=valorNuevo;
   if(useFirebase){
     const u={updatedAt:new Date().toISOString(),updatedBy:usuario};u[campo]=inv[idx][campo];
     await db.collection('tintas').doc(id).update(u);
-  }else{saveLocal();}
+    if(campo==='obs'){
+      const desc=inv[idx].desc||inv[idx].clave;
+      const qty=inv[idx].qty||0;
+      const nota=valorAnterior?`Observación modificada: "${valorAnterior}" → "${valorNuevo}"`:`Observación agregada: "${valorNuevo}"`;
+      await db.collection('movimientos-tintas').add({tipo:'edicion-obs',producto:desc,qty,quien:usuario,nota,ts:Date.now(),fecha:fmt(new Date())});
+    }
+  }else{
+    if(campo==='obs'){
+      const desc=inv[idx].desc||inv[idx].clave;
+      const qty=inv[idx].qty||0;
+      const nota=valorAnterior?`Observación modificada: "${valorAnterior}" → "${valorNuevo}"`:`Observación agregada: "${valorNuevo}"`;
+      addLogLocal('edicion-obs',desc,qty,nota);
+    }
+    saveLocal();
+  }
   toast('Guardado.');
 }
 

@@ -626,6 +626,13 @@
   </svg>
 </div>
 
+<!-- Botón deduplicación (solo maestro) -->
+<div id="dedup-btn-container" style="position:fixed;bottom:20px;left:20px;z-index:500;display:none">
+  <button onclick="deduplicarTarimas()" style="font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:600;padding:8px 14px;border-radius:6px;border:1px solid #D97706;background:#FEF3C7;color:#92400E;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15)">
+    🔧 Eliminar duplicados
+  </button>
+</div>
+
 <div class="toast" id="toast"></div>
 
 
@@ -649,18 +656,17 @@ const SEED = [
   {medida:'146*140',qty:16,loc:'BODEGA 7',op:'',obs:''},
   {medida:'117*117',qty:80,loc:'BODEGA 7',op:'CON TACON',obs:''},
   {medida:'97*59',qty:8,loc:'BODEGA 7',op:'',obs:'FAVOR DE SOLICITAR TARIMAS DE 100X120 YA QUE PRODUCCION SOLICITA MUCHO ESA MEDIDA'},
-  {medida:'168*80',qty:35,loc:'BODEGA 7',op:'',obs:''},
+  {medida:'168*80',qty:56,loc:'BODEGA 7',op:'',obs:'CONSOLIDADO: 35 B7 + 13 TP (168) + 8 TP (80)'},
   {medida:'71*49',qty:55,loc:'BODEGA 7',op:'PARA RICHI',obs:''},
   {medida:'76*55',qty:0,loc:'BODEGA 7',op:'',obs:''},
   {medida:'84*114',qty:9,loc:'',op:'',obs:''},
-  {medida:'125*125',qty:20,loc:'',op:'',obs:''},
   {medida:'100*60',qty:20,loc:'BODEGA 7',op:'KRISKA',obs:'TARIMAS DE CLIENTE'},
   {medida:'61*47',qty:6,loc:'BODEGA 7',op:'',obs:''},
   {medida:'155*80',qty:2,loc:'BODEGA 7',op:'',obs:''},
   {medida:'137*61',qty:5,loc:'BODEGA 7',op:'',obs:''},
   {medida:'114*85',qty:0,loc:'BODEGA 7',op:'',obs:''},
   {medida:'145*100',qty:11,loc:'BODEGA 7',op:'',obs:''},
-  {medida:'130*70',qty:1,loc:'BODEGA 7',op:'',obs:''},
+  {medida:'130*70',qty:16,loc:'BODEGA 7',op:'',obs:'CONSOLIDADO: 1 B7 + 15 TP'},
   {medida:'120*200',qty:10,loc:'BODEGA 7',op:'',obs:''},
   {medida:'115*115',qty:18,loc:'BODEGA 7',op:'',obs:''},
   {medida:'60*50',qty:0,loc:'EN TAPANCO',op:'KRISKA',obs:''},
@@ -683,11 +689,8 @@ const SEED = [
   {medida:'147*61',qty:2,loc:'EN TAPANCO',op:'',obs:''},
   {medida:'55*45',qty:20,loc:'EN TAPANCO',op:'',obs:''},
   {medida:'31*80',qty:9,loc:'EN TAPANCO',op:'',obs:''},
-  {medida:'130*70',qty:15,loc:'EN TAPANCO',op:'',obs:''},
-  {medida:'168*80',qty:13,loc:'EN TAPANCO',op:'',obs:'ENTRADA DE 168'},
   {medida:'59*36',qty:0,loc:'EN TAPANCO',op:'',obs:''},
   {medida:'120*54',qty:3,loc:'EN TAPANCO',op:'',obs:''},
-  {medida:'168*80',qty:8,loc:'EN TAPANCO',op:'',obs:'ENTRADA EN 80'},
   {medida:'144*56',qty:3,loc:'EN TAPANCO',op:'',obs:''},
   {medida:'122*101',qty:3,loc:'EN TAPANCO',op:'',obs:''},
   {medida:'100*120',qty:78,loc:'EN TAPANCO',op:'',obs:'CON TRATAMIENTO'}
@@ -876,6 +879,61 @@ async function seedIfEmpty() {
   }
 }
 
+// ── DEDUPLICAR TARIMAS (ejecutar una sola vez para limpiar duplicados) ──
+async function deduplicarTarimas() {
+  if (!confirm('⚠️ Esta acción eliminará registros duplicados de tarimas.\n\nSe conservará el registro con mayor cantidad.\n\n¿Continuar?')) return;
+  
+  const snap = await db.collection('inventario').get();
+  const items = snap.docs.map(d => ({id: d.id, ...d.data()}));
+  
+  // Agrupar por medida + ubicación
+  const grupos = {};
+  items.forEach(item => {
+    const key = `${item.medida}|${item.loc || ''}`;
+    if (!grupos[key]) grupos[key] = [];
+    grupos[key].push(item);
+  });
+  
+  // Encontrar duplicados
+  let eliminados = 0;
+  const batch = db.batch();
+  
+  for (const key in grupos) {
+    const grupo = grupos[key];
+    if (grupo.length > 1) {
+      // Ordenar por cantidad descendente
+      grupo.sort((a,b) => (b.qty || 0) - (a.qty || 0));
+      
+      // Consolidar: sumar cantidades si hay diferencias
+      const principal = grupo[0];
+      const totalQty = grupo.reduce((sum, item) => sum + (item.qty || 0), 0);
+      
+      // Actualizar el principal con la suma
+      if (totalQty !== principal.qty) {
+        batch.update(db.collection('inventario').doc(principal.id), {
+          qty: totalQty,
+          obs: (principal.obs || '') + (principal.obs ? ' | ' : '') + `CONSOLIDADO (${grupo.length} duplicados)`,
+          updatedAt: new Date().toISOString(),
+          updatedBy: 'SISTEMA-DEDUP'
+        });
+      }
+      
+      // Eliminar los demás
+      for (let i = 1; i < grupo.length; i++) {
+        batch.delete(db.collection('inventario').doc(grupo[i].id));
+        eliminados++;
+      }
+    }
+  }
+  
+  if (eliminados > 0) {
+    await batch.commit();
+    toast(`✓ Se eliminaron ${eliminados} registros duplicados.`);
+  } else {
+    toast('No se encontraron duplicados.');
+  }
+}
+
 function listenFirebase() {
   db.collection('inventario').onSnapshot(snap => {
     inv = snap.docs.map(d => ({id: d.id, ...d.data()}));
@@ -1004,12 +1062,45 @@ async function setQtyDirecto(id, input) {
 async function guardarCampo(id, campo, valor) {
   const idx = inv.findIndex(r => r.id === id);
   if (idx < 0) return;
-  inv[idx][campo] = valor.trim();
+  const valorAnterior = inv[idx][campo] || '';
+  const valorNuevo = valor.trim();
+  
+  // Si no hay cambio real, no hacer nada
+  if (valorAnterior === valorNuevo) return;
+  
+  inv[idx][campo] = valorNuevo;
   if (useFirebase) {
     const upd = { updatedAt: new Date().toISOString(), updatedBy: usuario };
     upd[campo] = inv[idx][campo];
     await db.collection('inventario').doc(id).update(upd);
+    
+    // Registrar el cambio de observación como movimiento
+    if (campo === 'obs') {
+      const medida = inv[idx].medida;
+      const qty = inv[idx].qty || 0;
+      const nota = valorAnterior 
+        ? `Observación modificada: "${valorAnterior}" → "${valorNuevo}"`
+        : `Observación agregada: "${valorNuevo}"`;
+      
+      await db.collection('movimientos').add({
+        tipo: 'edicion-obs',
+        medida,
+        qty,
+        quien: usuario,
+        nota,
+        ts: Date.now(),
+        fecha: fmt(new Date())
+      });
+    }
   } else {
+    if (campo === 'obs') {
+      const medida = inv[idx].medida;
+      const qty = inv[idx].qty || 0;
+      const nota = valorAnterior 
+        ? `Observación modificada: "${valorAnterior}" → "${valorNuevo}"`
+        : `Observación agregada: "${valorNuevo}"`;
+      addLogLocal('edicion-obs', medida, qty, nota);
+    }
     saveLocal();
   }
   toast('Guardado.');
@@ -1209,6 +1300,8 @@ function renderAll() {
   // Show/hide maestro controls
   const maestroBtn = document.getElementById('maestro-add-btn');
   if (maestroBtn) maestroBtn.style.display = modoMaestro ? 'block' : 'none';
+  const dedupBtn = document.getElementById('dedup-btn-container');
+  if (dedupBtn) dedupBtn.style.display = modoMaestro ? 'block' : 'none';
 }
 
 function renderTable() {
