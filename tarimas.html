@@ -626,9 +626,9 @@
   </svg>
 </div>
 
-<!-- Botón deduplicación (solo maestro) -->
-<div id="dedup-btn-container" style="position:fixed;bottom:20px;left:20px;z-index:500;display:none">
-  <button onclick="deduplicarTarimas()" style="font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:600;padding:8px 14px;border-radius:6px;border:1px solid #D97706;background:#FEF3C7;color:#92400E;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15)">
+<!-- Botón deduplicación -->
+<div id="dedup-btn-container" style="position:fixed;bottom:80px;right:20px;z-index:500;display:none">
+  <button onclick="ejecutarDeduplicacion()" style="font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:700;padding:12px 20px;border-radius:8px;border:2px solid #D97706;background:#FEF3C7;color:#92400E;cursor:pointer;box-shadow:0 4px 12px rgba(217,119,6,.3);transition:all .2s">
     🔧 Eliminar duplicados
   </button>
 </div>
@@ -845,6 +845,9 @@ async function startApp() {
       useFirebase = true;
       document.getElementById('setup-banner').classList.add('hidden');
       setLiveStatus(true);
+      // Mostrar botón de deduplicación
+      const dedupBtn = document.getElementById('dedup-btn-container');
+      if (dedupBtn) dedupBtn.style.display = 'block';
       await seedIfEmpty();
       listenFirebase();
       return;
@@ -880,6 +883,14 @@ async function seedIfEmpty() {
 }
 
 // ── DEDUPLICAR TARIMAS (ejecutar una sola vez para limpiar duplicados) ──
+function ejecutarDeduplicacion() {
+  if (!modoMaestro) {
+    alert('⚠️ Esta función requiere acceso de administrador.\n\nSolo Fernando puede ejecutarla.');
+    return;
+  }
+  deduplicarTarimas();
+}
+
 async function deduplicarTarimas() {
   if (!confirm('⚠️ Esta acción eliminará registros duplicados de tarimas.\n\nSe conservará el registro con mayor cantidad.\n\n¿Continuar?')) return;
   
@@ -1300,8 +1311,9 @@ function renderAll() {
   // Show/hide maestro controls
   const maestroBtn = document.getElementById('maestro-add-btn');
   if (maestroBtn) maestroBtn.style.display = modoMaestro ? 'block' : 'none';
+  // Show dedup button if Firebase is active (but functionality requires maestro)
   const dedupBtn = document.getElementById('dedup-btn-container');
-  if (dedupBtn) dedupBtn.style.display = modoMaestro ? 'block' : 'none';
+  if (dedupBtn) dedupBtn.style.display = useFirebase ? 'block' : 'none';
 }
 
 function renderTable() {
