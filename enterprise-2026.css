@@ -722,6 +722,8 @@ textarea:focus,
   scrollbar-width:thin;
   scrollbar-color:rgba(158,42,43,.28) rgba(237,232,222,.7);
   touch-action:pan-x pan-y;
+  overscroll-behavior:contain;
+  position:relative;
 }
 .tbl-wrap::-webkit-scrollbar{
   width:10px;
@@ -735,6 +737,25 @@ textarea:focus,
   background:rgba(158,42,43,.26);
   border-radius:999px;
   border:2px solid rgba(237,232,222,.72);
+}
+.scroll-hint{
+  display:none;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:-2px 0 10px;
+  padding:8px 10px;
+  border-radius:10px;
+  background:rgba(255,255,255,.62);
+  border:1px dashed rgba(196,176,144,.72);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+.scroll-hint span:last-child{
+  font-family:'IBM Plex Mono',monospace;
 }
 .tbl-wrap table,
 table{
@@ -1340,6 +1361,31 @@ body.page-indirectos .header-nav a[href="indirectos.html"]{
     max-height:52vh;
     min-height:260px;
     overflow:auto;
+    border:1px solid rgba(196,176,144,.72);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.72);
+    background:rgba(255,250,244,.95);
+  }
+  .tbl-wrap::before,
+  .tbl-wrap::after{
+    content:"";
+    position:sticky;
+    left:0;
+    right:0;
+    height:12px;
+    display:block;
+    pointer-events:none;
+    z-index:3;
+  }
+  .tbl-wrap::before{
+    top:0;
+    background:linear-gradient(180deg, rgba(245,240,232,.95), rgba(245,240,232,0));
+  }
+  .tbl-wrap::after{
+    bottom:0;
+    background:linear-gradient(0deg, rgba(245,240,232,.95), rgba(245,240,232,0));
+  }
+  .scroll-hint{
+    display:flex;
   }
   .tabs{
     gap:5px;
