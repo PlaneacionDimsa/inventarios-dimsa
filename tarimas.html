@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -6,399 +6,69 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141412">
-<title>Tarimas · Inventario</title>
+<title>Tarimas &middot; Inventario</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-    :root {
-    --bg: #f5f0e8;
-    --surface: #fdf8f2;
-    --surface2: #ede8de;
-    --header-bg: #fdf8f2;
-    --accent: #9e2a2b;
-    --accent-hover: #7b1d1e;
-    --accent-light: #f9eded;
-    --green: #4a7a5a;
-    --danger: #e53e3e;
-    --amber: #92400E;
-    --text: #2c1f0f;
-    --muted: #8a7070;
-    --border: #d9cfc0;
-    --border-strong: #c4b090;
-    --radius: 10px;
-    --radius-sm: 6px;
-    --shadow: 0 1px 3px rgba(44,31,15,.08);
-    --shadow-md: 0 4px 16px rgba(44,31,15,.14);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { font-size: 14px; }
-    body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--bg); color: var(--text); min-height: 100vh;
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4a882' fill-opacity='0.07'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
-  body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
-    background-repeat: repeat; background-size: 200px 200px; opacity: 1; }
-  .header, .card, .stat, .tbl-wrap, .sol-card, .sol-form-inner, footer { position: relative; z-index: 1; }
-  .main { position: relative; z-index: 1; }
-
-  /* ── HEADER ── */
-  .header {
-    background: #F2E8D9;
-    padding: 0 1.5rem;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    border-bottom: 2px solid var(--accent);
-    box-shadow: 0 2px 8px rgba(0,0,0,.08);
-  }
-  .logo { color: #1C1614; font-size: 14px; font-weight: 600; letter-spacing: -0.3px; font-family: 'IBM Plex Mono', monospace; }
-  .logo span { color: var(--accent); font-weight: 400; }
-  .header-right { display: flex; align-items: center; gap: 12px; }
-  .live-badge { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #6B5F5C; }
-  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
-  .live-dot.offline { background: #aaa; }
-  .user-chip { background: #2A2A27; color: #CCC; font-size: 12px; padding: 4px 10px; border-radius: 20px; cursor: pointer; border: 1px solid #3A3A37; }
-  .user-chip:hover { background: #333; }
-  .clock-txt { color: #888; font-size: 12px; font-family: 'IBM Plex Mono', monospace; }
-
-  /* ── MAIN LAYOUT ── */
-  .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1.25rem; }
-
-  /* ── STAT CARDS ── */
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
-  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
-  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
-  .stat-value { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
-  .stat-value.green { color: var(--green); }
-  .stat-value.blue  { color: var(--accent); }
-  .stat-value.amber { color: #954D0A; }
-  .stat-sub { font-size: 10px; color: var(--muted); margin-top: 3px; }
-
-  /* ── TABS ── */
-  .tabs { display: flex; gap: 4px; margin-bottom: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px; width: fit-content; box-shadow: var(--shadow); }
-  .tab-btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 6px 16px; border-radius: var(--radius-sm); border: none; background: transparent; color: var(--muted); cursor: pointer; transition: all .15s; }
-  .tab-btn:hover { color: var(--text); }
-  .tab-btn.active { background: var(--accent); color: #FFF; }
-
-  /* ── CARD ── */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; box-shadow: var(--shadow); margin-bottom: 1rem; }
-  .card-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; color: var(--muted); margin-bottom: 1rem; }
-
-  /* ── TOOLBAR ── */
-  .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
-  .search-input { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; padding: 7px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); width: 200px; outline: none; }
-  .search-input:focus { border-color: var(--accent); background: var(--surface); }
-  .filter-btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; }
-  .filter-btn:hover { border-color: var(--border-strong); color: var(--text); }
-  .filter-btn.on { background: var(--accent); color: #FFF; border-color: var(--accent); }
-  .spacer { flex: 1; }
-  .add-btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: var(--radius-sm); border: none; background: var(--accent); color: #FFF; cursor: pointer; }
-  .add-btn:hover { background: var(--accent-hover); }
-
-  /* ── TABLE ── */
-  .tbl-wrap { overflow-x: auto; max-height: 520px; overflow-y: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
-  .tbl-wrap thead th { position: sticky; top: 0; background: var(--surface); z-index: 2; box-shadow: 0 1px 0 var(--border-strong); }
-  table { width: 100%; border-collapse: collapse; }
-  thead th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; color: var(--muted); padding: 8px 12px; border-bottom: 2px solid var(--border); text-align: left; white-space: nowrap; position: sticky; top: 0; background: var(--surface); z-index: 1; }
-  tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover td { background: var(--bg); }
-
-  .medida-cell { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; }
-  tbody tr.stock-zero td:first-child { border-left: none; }
-  tbody tr.stock-low  td:first-child { border-left: none; }
-  tbody tr.stock-ok   td:first-child { border-left: none; }
-  tbody tr.stock-zero { background: none; }
-  tbody tr.stock-low  { background: none; }
-  tbody tr.stock-ok   { background: none; }
-  tbody tr.stock-zero:hover td { background: var(--bg) !important; }
-  tbody tr.stock-low:hover  td { background: var(--bg) !important; }
-  tbody tr.stock-ok:hover   td { background: var(--bg) !important; }
-  .qty-input.stock-zero { border-color: #DC2626; background: #FFF5F5; color: #DC2626; }
-  .qty-input.stock-low  { border-color: #CA8A04; background: #FEFCE8; color: #854D0E; }
-  .qty-input.stock-ok   { border-color: var(--green); background: #f0f9f3; color: var(--green); }
-  .qty-input.stock-zero:focus { border-color: #DC2626; }
-  .qty-input.stock-low:focus  { border-color: #CA8A04; }
-  .qty-input.stock-ok:focus   { border-color: var(--green); }
-  .qty-num-hidden { display: none; }
-  .qty-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; color: var(--text); transition: all .1s; font-family: monospace; line-height: 1; touch-action: manipulation; }
-  .qty-btn:hover { background: var(--bg); border-color: var(--border-strong); }
-  .qty-btn:active { transform: scale(0.92); }
-  .tag { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 600; white-space: nowrap; }
-  .tag-b7 { background: var(--b7-bg); color: var(--b7-text); }
-  .tag-tp { background: var(--tp-bg); color: var(--tp-text); }
-  .tag-cl { background: #F0E8FF; color: #5B21B6; }
-  .obs-cell { font-size: 11px; color: var(--muted); max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .del-btn { font-size: 11px; padding: 3px 8px; border-radius: 4px; border: 1px solid #FECACA; background: var(--danger-bg); color: var(--danger); cursor: pointer; }
-  .del-btn:hover { background: #FEE2E2; }
-
-  /* ── FORM ── */
-  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
-  .form-col { display: flex; flex-direction: column; gap: 4px; }
-  .form-col label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
-  .form-col input, .form-col select, .form-col textarea { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; width: 100%; }
-  .form-col input:focus, .form-col select:focus, .form-col textarea:focus { border-color: var(--accent); }
-  .form-col textarea { resize: vertical; min-height: 60px; font-size: 12px; }
-  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 8px 18px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: all .1s; }
-  .btn:hover { background: var(--bg); }
-  .btn:active { transform: scale(0.98); }
-  .btn.primary { background: var(--accent); color: #FFF; border-color: var(--accent); }
-  .btn.primary:hover { background: var(--accent-hover); }
-  .btn.danger { background: var(--danger-bg); color: var(--danger); border-color: #FECACA; }
-  .btn.danger:hover { background: #FEE2E2; }
-
-  /* ── LOG ── */
-  .log-list { display: flex; flex-direction: column; gap: 0; }
-  .log-item { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--border); }
-  .log-item:last-child { border-bottom: none; }
-  .log-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 600; white-space: nowrap; }
-  .lb-entrada { background: var(--accent-light); color: var(--accent-hover); }
-  .lb-salida { background: #FEE2E2; color: #991B1B; }
-  .lb-ajuste { background: #FEF3C7; color: #92400E; }
-  .lb-new { background: #E0F2FE; color: #075985; }
-  .lb-del { background: #F3E8FF; color: #6B21A8; }
-  .log-desc { font-size: 13px; color: var(--text); }
-  .log-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
-  .log-qty { font-size: 13px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
-  .log-qty.pos { color: var(--accent); }
-  .log-qty.neg { color: var(--danger); }
-  .log-qty.neu { color: var(--muted); }
-
-  /* ── EMPTY STATE ── */
-  .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
-  .empty-icon { font-size: 2.5rem; margin-bottom: 8px; }
-
-  /* ── LOGIN OVERLAY ── */
-  .overlay { position: fixed; inset: 0; background: rgba(20,20,18,.85); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-  .login-card { background: var(--surface); border-radius: 14px; padding: 2.5rem 2rem; width: 100%; max-width: 380px; box-shadow: var(--shadow-md); text-align: center; }
-  .login-logo { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 500; margin-bottom: 6px; }
-  .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 2rem; }
-  .login-input { font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: var(--radius); width: 100%; outline: none; margin-bottom: 12px; }
-  .login-input:focus { border-color: var(--accent); }
-  .login-btn { width: 100%; font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; font-weight: 600; padding: 12px; border-radius: var(--radius); border: none; background: var(--accent); color: #FFF; cursor: pointer; }
-  .login-btn:hover { background: var(--accent-hover); }
-  .login-note { font-size: 11px; color: var(--muted); margin-top: 12px; }
-
-  /* ── TOAST ── */
-  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--header); color: #FFF; font-size: 13px; padding: 10px 18px; border-radius: 8px; opacity: 0; transform: translateY(8px); transition: all .2s; pointer-events: none; z-index: 999; max-width: 280px; box-shadow: var(--shadow-md); }
-  .toast.show { opacity: 1; transform: translateY(0); }
-
-  /* ── ALERT ── */
-  .alert-bar { background: #FEF3C7; border: 1px solid #FDE68A; border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 1rem; font-size: 13px; color: #92400E; display: none; }
-  .alert-bar.show { display: block; }
-
-  /* ── QTY DIRECT INPUT ── */
-  .qty-ctrl { display: flex; align-items: center; gap: 5px; }
-  .qty-input { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; width: 52px; text-align: center; padding: 3px 4px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); color: var(--text); outline: none; -moz-appearance: textfield; }
-  .qty-input:focus { border-color: var(--accent); background: #fff; }
-  .qty-input::-webkit-outer-spin-button, .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-
-  /* ── OBS INLINE EDIT ── */
-  .obs-input { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; width: 100%; min-width: 140px; padding: 4px 7px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--text); outline: none; cursor: text; }
-  .obs-input:hover { border-color: var(--border); background: var(--bg); }
-  .obs-input:focus { border-color: var(--accent); background: #fff; cursor: text; }
-  .obs-input::placeholder { color: #BBBBBB; font-style: italic; }
-
-  /* ── SOLICITUDES PANEL (siempre visible) ── */
-  .sol-panel { margin-bottom: 1rem; }
-  .sol-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
-  .sol-panel-title { font-size: 13px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }
-  .sol-panel-title .ico { font-size: 15px; }
-  .sol-panel-actions { display: flex; align-items: center; gap: 8px; }
-  .sol-new-btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: var(--radius-sm); border: none; background: #E4A800; color: #fff; cursor: pointer; }
-  .sol-new-btn:hover { background: #C49000; }
-  .sol-empty { font-size: 12px; color: var(--muted); padding: 10px 0; }
-  .sol-cards { display: flex; flex-direction: column; gap: 8px; }
-  .sol-card { background: #FFFBF0; border: 1px solid #F5D97A; border-left: 4px solid #E4A800; border-radius: var(--radius-sm); padding: 11px 14px; display: flex; align-items: flex-start; gap: 12px; }
-  .sol-card.resuelta { background: #FAF0F4; border-color: #F9C3C3; border-left-color: var(--green); opacity: 0.65; }
-  .sol-card-body { flex: 1; }
-  .sol-card-text { font-size: 13px; font-weight: 500; color: #3D2A00; line-height: 1.4; margin-bottom: 4px; }
-  .sol-card.resuelta .sol-card-text { text-decoration: line-through; color: var(--accent-hover); }
-  .sol-card-meta { font-size: 11px; color: #92700A; }
-  .sol-card.resuelta .sol-card-meta { color: #E0709A; }
-  .sol-card-tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; background: #FDE68A; color: #78350F; display: inline-block; margin-right: 5px; }
-  .sol-card-actions { display: flex; gap: 5px; flex-shrink: 0; margin-top: 2px; }
-  /* form inside panel */
-  #sol-inline-form { background: var(--surface); border: 1px solid #F5D97A; border-radius: var(--radius-sm); padding: 14px; margin-top: 10px; display: none; }
-  #sol-inline-form.open { display: block; }
-
-  /* ── SOLICITUDES ── (tab section styles kept for compat) */
-  .sol-list { display: flex; flex-direction: column; gap: 10px; }
-  .sol-item { background: #FFFBF0; border: 1px solid #F5D97A; border-left: 4px solid #E4A800; border-radius: var(--radius-sm); padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: start; }
-  .sol-item.resuelta { background: #FAF0F4; border-color: #F9C3C3; border-left-color: var(--green); opacity: 0.7; }
-  .sol-text { font-size: 13px; color: #3D2A00; font-weight: 500; margin-bottom: 3px; }
-  .sol-item.resuelta .sol-text { color: var(--accent-hover); text-decoration: line-through; }
-  .sol-meta { font-size: 11px; color: #92700A; }
-  .sol-item.resuelta .sol-meta { color: #E0709A; }
-  .sol-actions { display: flex; gap: 5px; }
-  .sol-btn { font-size: 11px; padding: 4px 9px; border-radius: 4px; border: 1px solid; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; white-space: nowrap; }
-  .sol-btn.ok { background: var(--accent-light); color: var(--accent-hover); border-color: #F9C3C3; }
-  .sol-btn.ok:hover { background: #F5C8DC; }
-  .sol-btn.del { background: #FEE2E2; color: #991B1B; border-color: #FECACA; }
-  .sol-btn.del:hover { background: #FECACA; }
-  .sol-badge { display: inline-flex; align-items: center; justify-content: center; background: #E4A800; color: #FFF; font-size: 10px; font-weight: 700; border-radius: 10px; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 6px; }
-  .sol-badge.zero { display: none; }
-  .tab-btn { position: relative; }
-
-  /* ── RESPONSIVE ── */
-
-  /* Tablet: 641–900px */
-  @media (max-width: 900px) {
-    .stats { grid-template-columns: repeat(2, 1fr); }
-    .form-grid { grid-template-columns: 1fr 1fr; }
-    .tbl-wrap { max-height: 400px; }
-  }
-
-  /* Mobile: ≤640px */
-  @media (max-width: 640px) {
-    html { font-size: 13px; }
-    .header { padding: 0 1rem; height: 52px; }
-    .header img { height: 26px; }
-    .logo { font-size: 13px; }
-    .clock-txt { display: none; }
-    .edit-chip { font-size: 10px; padding: 3px 8px; }
-    .main { padding: 0.75rem; }
-    .stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    .stat { padding: 10px 12px; }
-    .stat-value { font-size: 22px; }
-    .tabs { width: 100%; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
-    .tab-btn { white-space: nowrap; font-size: 12px; padding: 5px 12px; }
-    .card { padding: 1rem; }
-    .form-grid { grid-template-columns: 1fr; }
-    .toolbar { gap: 6px; }
-    .search-input { width: 100%; max-width: none; }
-    /* Table: hide obs on mobile, keep key cols */
-    .tbl-wrap { max-height: 360px; }
-    thead th:nth-child(5), thead th:nth-child(6) { display: none; }
-    tbody td:nth-child(5), tbody td:nth-child(6) { display: none; }
-    /* Sol panel */
-    .sol-panel-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-    .sol-card { flex-direction: column; gap: 8px; }
-    .sol-card-actions { flex-direction: row; }
-    /* Edit bar */
-    .edit-bar { padding: 0 1rem; font-size: 12px; }
-    .edit-bar.visible { height: auto; min-height: 44px; padding: 8px 1rem; flex-direction: column; align-items: flex-start; gap: 6px; }
-    .end-btn { width: 100%; text-align: center; }
-    .edit-bar-sub { display: none; }
-    /* Footer */
-    footer div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
-    /* Pin modal */
-    .pin-card { padding: 1.5rem 1.25rem; }
-  }
-
-  /* Very small: ≤380px */
-  @media (max-width: 380px) {
-    .stats { grid-template-columns: 1fr 1fr; }
-    .stat-value { font-size: 20px; }
-    .header img { display: none; }
-    .header div[style*="width:1px"] { display: none; }
-  }
-
-  /* ── SETUP BANNER ── */
-  .setup-banner { background: #1e3a5f; color: #93C5FD; font-size: 12px; padding: 8px 1.5rem; display: flex; align-items: center; gap: 8px; }
-  .setup-banner a { color: #60A5FA; }
-  .setup-banner.hidden { display: none; }
-  .badge-offline { background: #F59E0B; color: #451A03; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
-  /* ── EDIT SESSION BAR ── */
-  .edit-bar { background: var(--accent-hover); color: #fff; padding: 0 1.5rem; height: 0; overflow: hidden; display: flex; align-items: center; justify-content: space-between; transition: height .2s; font-size: 13px; }
-  .edit-bar.visible { height: 44px; }
-  .edit-bar-left { display: flex; align-items: center; gap: 10px; }
-  .edit-bar-dot { width: 8px; height: 8px; border-radius: 50%; background: #F9C3C3; animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-  .edit-bar-text { font-weight: 500; }
-  .edit-bar-sub { font-size: 11px; color: #F9C3C3; }
-  .end-btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; font-weight: 700; padding: 7px 16px; border-radius: 6px; border: none; background: #fff; color: var(--accent-hover); cursor: pointer; letter-spacing: .2px; }
-  .end-btn:hover { background: var(--accent-light); }
-  .end-btn:active { transform: scale(.97); }
-
-
-  .pin-overlay { position: fixed; inset: 0; background: rgba(20,20,18,.75); z-index: 500; display: none; align-items: center; justify-content: center; }
-  .pin-overlay.show { display: flex; }
-  .pin-card { background: var(--surface); border-radius: 14px; padding: 2rem 1.75rem; width: 100%; max-width: 320px; box-shadow: var(--shadow-md); text-align: center; }
-  .pin-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-  .pin-sub { font-size: 12px; color: var(--muted); margin-bottom: 1.25rem; }
-  .pin-input { font-family: 'IBM Plex Mono', monospace; font-size: 22px; letter-spacing: 6px; text-align: center; padding: 10px 16px; border: 1.5px solid var(--border); border-radius: var(--radius); width: 100%; outline: none; margin-bottom: 10px; }
-  .pin-input:focus { border-color: var(--accent); }
-  .pin-input.error { border-color: var(--danger); animation: shake .3s; }
-  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
-  .pin-btn { width: 100%; font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; font-weight: 600; padding: 10px; border-radius: var(--radius); border: none; background: var(--accent); color: #FFF; cursor: pointer; }
-  .pin-btn:hover { background: var(--accent-hover); }
-  .pin-cancel { font-size: 12px; color: var(--muted); margin-top: 10px; cursor: pointer; display: block; }
-  .pin-cancel:hover { color: var(--text); }
-  /* lock icon on editable fields when locked */
-  .locked .obs-input { pointer-events: none; color: var(--muted); background: transparent; border-color: transparent; cursor: default; }
-  .locked .qty-btn { pointer-events: none; opacity: 0.4; cursor: default; }
-  .locked .qty-input { pointer-events: none; }
-  .locked .del-btn { display: none; }
-  .locked .add-btn { display: none; }
-  .locked .btn.primary { display: none; }
-  .locked-tab { pointer-events: none; opacity: 0.5; }
-  .edit-chip { font-size: 11px; padding: 3px 10px; border-radius: 20px; cursor: pointer; border: 1px solid; font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; }
-  .edit-chip.locked { background: #FEF3C7; color: #92400E; border-color: #FDE68A; }
-  .edit-chip.unlocked { background: var(--accent-light); color: var(--accent-hover); border-color: #F9C3C3; }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="enterprise-2026.css">
 </head>
-<body>
+<body class="page-tarimas">
 
 <!-- PIN MODAL -->
 <div class="pin-overlay" id="pin-overlay">
   <div class="pin-card">
     <div class="pin-title">Modo edición</div>
     <div class="pin-sub">Ingresa tu código (4 dígitos para aduaneros, 6 para jefe).</div>
-    <input class="pin-input" id="pin-input" type="password" maxlength="6" placeholder="• • • •" autocomplete="off">
-    <button class="pin-btn" onclick="verificarPin()">Entrar</button>
-    <span class="pin-cancel" onclick="cerrarPin()">Cancelar — solo quiero ver</span>
+    <input class="pin-input" id="pin-input" type="password" maxlength="6" placeholder="&bull; &bull; &bull; &bull;" autocomplete="off">
+    <div class="pin-actions">
+      <button class="pin-btn" onclick="verificarPin()">Entrar</button>
+      <span class="pin-cancel" onclick="cerrarPin()">Cancelar &mdash; solo quiero ver</span>
+    </div>
   </div>
 </div>
 
 <!-- SETUP BANNER -->
 <div class="setup-banner" id="setup-banner">
-  ⚡ Modo local (sin sincronización). Para ver el inventario en tiempo real con otras personas, configura Firebase —
+  &#9889; Modo local (sin sincronización). Para ver el inventario en tiempo real con otras personas, configura Firebase &mdash;
   <a href="#" onclick="document.getElementById('modal-setup').style.display='flex'">ver instrucciones</a>
   <span class="badge-offline">OFFLINE</span>
 </div>
 
 <!-- SETUP MODAL -->
-<div id="modal-setup" style="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem">
-  <div style="background:#FFF;border-radius:14px;padding:2rem;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)">
-    <h2 style="font-size:18px;margin-bottom:6px">Configurar Firebase (sync en vivo)</h2>
-    <p style="font-size:13px;color:#666;margin-bottom:1.5rem">Sigue estos pasos para que aduana y tú vean el mismo inventario en tiempo real:</p>
-    <ol style="font-size:13px;color:#333;line-height:2;padding-left:1.2rem">
+<div id="modal-setup" class="modal-shell">
+  <div class="modal-card">
+    <h2>Configurar Firebase (sync en vivo)</h2>
+    <p style="margin-bottom:1.5rem">Sigue estos pasos para que aduana y tú vean el mismo inventario en tiempo real:</p>
+    <ol>
       <li>Ve a <strong>console.firebase.google.com</strong> e inicia sesión con tu cuenta de Google.</li>
-      <li>Haz clic en <strong>"Agregar proyecto"</strong> → ponle nombre (ej. <em>tarimas-planta</em>) → crea.</li>
-      <li>En el panel del proyecto, selecciona <strong>Firestore Database</strong> → "Crear base de datos" → modo producción → elige la región más cercana.</li>
-      <li>En <strong>Reglas de Firestore</strong>, pega esto para permitir acceso:<br>
-        <code style="display:block;background:#F5F5F5;padding:8px;border-radius:6px;margin:6px 0;font-size:11px">rules_version = '2';<br>service cloud.firestore {<br>&nbsp;&nbsp;match /databases/{db}/documents/{doc=**} {<br>&nbsp;&nbsp;&nbsp;&nbsp;allow read, write: if true;<br>&nbsp;&nbsp;}<br>}</code>
-      </li>
-      <li>Ve a <strong>Configuración del proyecto</strong> (⚙️) → pestaña "General" → sección "Tus apps" → agrega una app web (<code>&lt;/&gt;</code>).</li>
+      <li>Haz clic en <strong>"Agregar proyecto"</strong> &rarr; ponle nombre (ej. <em>tarimas-planta</em>) &rarr; crea.</li>
+      <li>En el panel del proyecto, selecciona <strong>Firestore Database</strong> &rarr; "Crear base de datos" &rarr; modo producción &rarr; elige la región más cercana.</li>
+      <li>En <strong>Reglas de Firestore</strong>, configura permisos restringidos para tu equipo. Evita usar reglas abiertas permanentes.</li>
+      <li>Ve a <strong>Configuración del proyecto</strong> (⚙️) &rarr; pestaña "General" &rarr; sección "Tus apps" &rarr; agrega una app web (<code>&lt;/&gt;</code>).</li>
       <li>Copia el objeto <code>firebaseConfig</code> que aparece y <strong>pégalo en el archivo <code>index.html</code></strong> en la sección <code>FIREBASE CONFIG</code> marcada abajo.</li>
-      <li>Guarda el archivo y ábrelo desde un servidor (puedes usar <strong>Netlify Drop</strong> — arrastra la carpeta a <em>app.netlify.com/drop</em> — gratis).</li>
+      <li>Guarda el archivo y ábrelo desde un servidor (puedes usar <strong>Netlify Drop</strong> &mdash; arrastra la carpeta a <em>app.netlify.com/drop</em> &mdash; gratis).</li>
     </ol>
-    <p style="font-size:12px;color:#888;margin-top:1rem">Una vez configurado, cualquiera que abra el link verá el inventario actualizado al segundo.</p>
-    <button onclick="document.getElementById('modal-setup').style.display='none'" style="margin-top:1.5rem;padding:8px 20px;border-radius:8px;border:1px solid #DDD;background:#FFF;cursor:pointer;font-family:'IBM Plex Sans',sans-serif">Cerrar</button>
+    <p style="margin-top:1rem">Una vez configurado, cualquiera que abra el link verá el inventario actualizado al segundo.</p>
+    <button class="btn modal-close" onclick="document.getElementById('modal-setup').style.display='none'">Cerrar</button>
   </div>
 </div>
 
 <!-- HEADER -->
 <header class="header">
-  <div style="display:flex;align-items:center;gap:14px;">
+  <div class="header-left">
     <img src="https://www.dim-sa.com.mx/assets/img/LOGODIMSA.png" alt="DIMSA" style="height:34px;object-fit:contain;">
-    <div style="width:1px;height:24px;background:#DDD5D0;"></div>
+    <div class="header-divider"></div>
     <div class="logo">TARIMAS <span>/ inventario</span></div>
   </div>
-  <nav style="display:flex;gap:4px">
-    <a href="index.html" style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:5px;text-decoration:none;color:var(--muted)">← Inicio</a>
-    <a href="tintas.html" style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:5px;text-decoration:none;color:var(--muted)">Tintas</a>
-    <a href="indirectos.html" style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:5px;text-decoration:none;color:var(--muted)">Indirectos</a>
+  <nav class="header-nav">
+    <a href="index.html">&larr; Inicio</a>
+    <a href="tarimas.html" class="active">Tarimas</a>
+    <a href="tintas.html">Tintas</a>
+    <a href="indirectos.html">Indirectos</a>
   </nav>
   <div class="header-right">
     <div class="live-badge"><div class="live-dot" id="live-dot"></div><span id="live-txt">conectando...</span></div>
     <span class="clock-txt" id="clock"></span>
-    <div class="edit-chip locked" id="edit-chip" onclick="clickEditChip()">🔒 Solo lectura</div>
+    <div class="edit-chip locked" id="edit-chip" onclick="clickEditChip()">&#128274; Solo lectura</div>
   </div>
 </header>
 
@@ -407,22 +77,20 @@
   <div class="edit-bar-left">
     <div class="edit-bar-dot"></div>
     <div>
-      <div class="edit-bar-text">Sesión activa — <span id="edit-bar-user">Aduana</span></div>
+      <div class="edit-bar-text">Sesión activa &mdash; <span id="edit-bar-user">Aduana</span></div>
       <div class="edit-bar-sub">Todos los cambios se guardan en tiempo real</div>
     </div>
   </div>
-  <button class="end-btn" onclick="bloquear()">✓ Terminar edición</button>
+  <button class="end-btn" onclick="bloquear()">&#10003; Terminar edición</button>
 </div>
 
 <!-- MAIN -->
 <main class="main locked" id="main-content">
-  <div class="alert-bar" id="alert-bar"></div>
-
   <div class="stats">
-    <div class="stat"><div class="stat-label">Total tarimas</div><div class="stat-value" id="s-total">—</div><div class="stat-sub">en inventario</div></div>
-    <div class="stat"><div class="stat-label">Bodega 7</div><div class="stat-value blue" id="s-b7">—</div><div class="stat-sub" id="s-b7-sub">piezas</div></div>
-    <div class="stat"><div class="stat-label">Tapanco</div><div class="stat-value amber" id="s-tp">—</div><div class="stat-sub" id="s-tp-sub">piezas</div></div>
-    <div class="stat"><div class="stat-label">Hoy</div><div class="stat-value green" id="s-hoy">—</div><div class="stat-sub">movimientos</div></div>
+    <div class="stat"><div class="stat-label">Total tarimas</div><div class="stat-value" id="s-total">&mdash;</div><div class="stat-sub">en inventario</div></div>
+    <div class="stat"><div class="stat-label">Bodega 7</div><div class="stat-value blue" id="s-b7">&mdash;</div><div class="stat-sub" id="s-b7-sub">piezas</div></div>
+    <div class="stat"><div class="stat-label">Tapanco</div><div class="stat-value amber" id="s-tp">&mdash;</div><div class="stat-sub" id="s-tp-sub">piezas</div></div>
+    <div class="stat"><div class="stat-label">Hoy</div><div class="stat-value green" id="s-hoy">&mdash;</div><div class="stat-sub">movimientos</div></div>
   </div>
 
   <div class="tabs">
@@ -433,7 +101,7 @@
   <!-- TAB: INVENTARIO -->
   <div id="tab-inventario">
     <div class="card">
-      <div class="toolbar">
+      <div class="toolbar toolbar-sticky">
         <input class="search-input" id="search" placeholder="Buscar medida o cliente..." oninput="renderTable()">
         <button class="filter-btn on" data-f="todos" onclick="setLoc(this,'todos')">Todos</button>
         <button class="filter-btn" data-f="BODEGA 7" onclick="setLoc(this,'BODEGA 7')">Bodega 7</button>
@@ -447,12 +115,11 @@
         <table>
           <thead>
             <tr>
-              <th style="width:140px">Medida (cm)</th>
-              <th style="width:90px">Cantidad</th>
-              <th style="width:110px">Ubicación</th>
-              <th style="width:150px">Cliente / OP</th>
+              <th style="width:220px">Medida (cm)</th>
+              <th style="width:110px">Cantidad</th>
+              <th style="width:120px">Ubicación</th>
+              <th style="width:170px">Cliente / OP</th>
               <th>Observaciones</th>
-              <th style="width:110px">Últ. movimiento</th>
               <th style="width:36px"></th>
             </tr>
           </thead>
@@ -464,10 +131,16 @@
   </div>
 
   <!-- EXPORTAR HISTORIAL -->
-  <div style="margin-top:1rem;">
-    <button onclick="exportarHistorial()" style="font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-light);border:1px solid var(--accent);border-radius:6px;cursor:pointer;padding:6px 14px;display:inline-flex;align-items:center;gap:6px;">
+  <div class="inline-action">
+    <button class="action-link-btn" onclick="exportarHistorial()">
       ⬇ Exportar historial de movimientos (Excel)
     </button>
+  </div>
+
+  <div class="card recent-card">
+    <div class="section-title">Últimos 10 movimientos</div>
+    <div class="section-subtitle">Incluye responsable y contexto de la salida o ajuste.</div>
+    <div class="log-list" id="log-list"></div>
   </div>
 
   <!-- NUEVA MEDIDA (solo Fernando) -->
@@ -476,7 +149,7 @@
     <div class="form-grid">
       <div class="form-col"><label>Medida (ancho*largo)</label><input id="ap-medida" placeholder="ej. 120*100" type="text"></div>
       <div class="form-col"><label>Cantidad</label><input id="ap-qty" type="number" min="0" value="0"></div>
-      <div class="form-col"><label>Ubicación</label><select id="ap-loc"><option value="BODEGA 7">Bodega 7</option><option value="EN TAPANCO">En Tapanco</option></select></div>
+      <div class="form-col"><label>Ubicación</label><div class="select-wrap"><select id="ap-loc"><option value="BODEGA 7">Bodega 7</option><option value="EN TAPANCO">En Tapanco</option></select></div></div>
       <div class="form-col"><label>Cliente / OP</label><input id="ap-op" placeholder="ej. KRISKA (opcional)" type="text"></div>
       <div class="form-col"><label>Observaciones</label><input id="ap-obs" placeholder="Opcional" type="text"></div>
     </div>
@@ -488,21 +161,31 @@
   </div>
 
   <!-- TAB: MOVIMIENTOS -->
-  <div id="tab-movimientos" style="display:none">
+  <div id="tab-movimientos" class="movement-overlay" onclick="if(event.target===this) setTab(document.querySelector('.tab-btn'),'inventario')">
+    <div class="movement-panel">
     <div class="card">
-      <div class="card-title">Registrar entrada o salida</div>
+      <div class="movement-head">
+        <div>
+          <div class="movement-kicker">Movimiento</div>
+          <div class="movement-title">Registrar entrada o salida</div>
+          <div class="movement-sub">Captura el movimiento en un panel flotante sin perder contexto del inventario.</div>
+        </div>
+        <button class="movement-close" type="button" onclick="setTab(document.querySelector('.tab-btn'),'inventario')">&times;</button>
+      </div>
       <div class="form-grid">
         <div class="form-col">
           <label>Tipo de movimiento</label>
-          <select id="m-tipo" onchange="checkTipoMovimiento()">
-            <option value="entrada">Entrada — llegaron tarimas</option>
-            <option value="salida-produccion">Salida — a producción / máquina</option>
-            <option value="salida-entrega">Salida — entrega producto terminado</option>
-            <option value="salida-dano">Salida — pérdida / daño</option>
-            <option value="ajuste">Ajuste — establecer cantidad exacta</option>
-            <option value="traslado-b7-tp">Traslado — Bodega 7 → Tapanco</option>
-            <option value="traslado-tp-b7">Traslado — Tapanco → Bodega 7</option>
-          </select>
+          <div class="select-wrap">
+            <select id="m-tipo" onchange="checkTipoMovimiento()">
+              <option value="entrada">Entrada &mdash; llegaron tarimas</option>
+              <option value="salida-produccion">Salida &mdash; a producción / máquina</option>
+              <option value="salida-entrega">Salida &mdash; entrega producto terminado</option>
+              <option value="salida-dano">Salida &mdash; pérdida / daño</option>
+              <option value="ajuste">Ajuste &mdash; establecer cantidad exacta</option>
+              <option value="traslado-b7-tp">Traslado &mdash; Bodega 7 &rarr; Tapanco</option>
+              <option value="traslado-tp-b7">Traslado &mdash; Tapanco &rarr; Bodega 7</option>
+            </select>
+          </div>
         </div>
         <div class="form-col">
           <label>Medida de tarima</label>
@@ -512,19 +195,28 @@
       </div>
 
       <!-- AVISO MEDIDA NUEVA -->
-      <div id="nueva-medida-aviso" style="display:none;margin:10px 0;padding:10px 14px;background:#FEF3C7;border:1px solid #FDE68A;border-left:4px solid #CA8A04;border-radius:var(--radius-sm)">
-        <div style="font-size:12px;font-weight:600;color:#78350F">⚠ Medida nueva — completa ubicación y datos abajo, luego da clic en Registrar movimiento</div>
+      <div id="nueva-medida-aviso" class="panel-note warning" style="display:none">
+        <strong>Medida nueva</strong>
+        <div>Completa ubicación y datos abajo, luego registra el movimiento.</div>
       </div>
 
       <!-- AVISO TRASLADO -->
-      <div id="traslado-aviso" style="display:none;margin:10px 0;padding:10px 14px;background:#EFF6FF;border:1px solid #BFDBFE;border-left:4px solid var(--accent);border-radius:var(--radius-sm)">
-        <div style="font-size:12px;font-weight:600;color:#1e3a5f" id="traslado-texto">↔ Se actualizará la ubicación sin cambiar la cantidad</div>
+      <div id="traslado-aviso" class="panel-note info" style="display:none">
+        <strong>Traslado</strong>
+        <div id="traslado-texto">Se actualizará la ubicación sin cambiar la cantidad.</div>
       </div>
 
       <div class="form-grid" style="margin-top:0">
         <div class="form-col" id="qty-field">
           <label>Cantidad</label>
           <input id="m-qty" type="number" min="1" value="1">
+          <div class="quick-qty">
+            <button class="quick-btn" type="button" onclick="setQuickQty('m-qty',1)">1</button>
+            <button class="quick-btn" type="button" onclick="setQuickQty('m-qty',5)">5</button>
+            <button class="quick-btn" type="button" onclick="setQuickQty('m-qty',10)">10</button>
+            <button class="quick-btn" type="button" onclick="adjustQty('m-qty',-1)">-1</button>
+            <button class="quick-btn" type="button" onclick="adjustQty('m-qty',1)">+1</button>
+          </div>
         </div>
         <div class="form-col">
           <label>Nota u orden</label>
@@ -532,7 +224,7 @@
         </div>
         <div class="form-col">
           <label>Ubicación</label>
-          <select id="a-loc"><option value="BODEGA 7">Bodega 7</option><option value="EN TAPANCO">En Tapanco</option></select>
+          <div class="select-wrap"><select id="a-loc"><option value="BODEGA 7">Bodega 7</option><option value="EN TAPANCO">En Tapanco</option></select></div>
         </div>
         <div class="form-col">
           <label>Cliente / OP</label>
@@ -546,85 +238,15 @@
       <div class="btn-row">
         <button class="btn primary" onclick="registrarMovimiento()">Registrar movimiento</button>
         <button class="btn" onclick="limpiarMov()">Limpiar</button>
+        <button class="btn" onclick="setTab(document.querySelector('.tab-btn'),'inventario')">Cerrar</button>
       </div>
     </div>
-
+    </div>
   </div>
 </main>
 
 
-<!-- PALLET PATTERN FOOTER -->
-<div style="margin-top:3rem;overflow:hidden;height:160px;position:relative;opacity:0.35;">
-  <svg width="100%" height="160" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <!-- Wood grain filter -->
-      <filter id="grain">
-        <feTurbulence type="fractalNoise" baseFrequency="0.04 0.7" numOctaves="3" seed="2" result="noise"/>
-        <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
-        <feBlend in="SourceGraphic" in2="gray" mode="multiply"/>
-      </filter>
-      <filter id="grain2">
-        <feTurbulence type="fractalNoise" baseFrequency="0.04 0.7" numOctaves="3" seed="8" result="noise"/>
-        <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
-        <feBlend in="SourceGraphic" in2="gray" mode="multiply"/>
-      </filter>
-      <!-- Pallet plank pattern: top boards -->
-      <pattern id="pallet" x="0" y="0" width="220" height="160" patternUnits="userSpaceOnUse">
-        <!-- Base/stringers (the thick middle beams) -->
-        <rect x="0" y="0" width="220" height="160" fill="#C8A870"/>
-        <!-- top deck planks -->
-        <rect x="0"   y="0"  width="220" height="18" fill="#D4B07A" filter="url(#grain)"/>
-        <rect x="0"   y="20" width="220" height="3"  fill="#A0784A" opacity="0.4"/>
-        <rect x="0"   y="23" width="220" height="18" fill="#CBa46E" filter="url(#grain)"/>
-        <rect x="0"   y="43" width="220" height="3"  fill="#A0784A" opacity="0.4"/>
-        <rect x="0"   y="46" width="220" height="18" fill="#D6B47C" filter="url(#grain)"/>
-        <!-- Middle stringer beam -->
-        <rect x="0"   y="66" width="220" height="28" fill="#B8924E"/>
-        <rect x="0"   y="66" width="220" height="2"  fill="#7A5C28" opacity="0.5"/>
-        <rect x="0"   y="92" width="220" height="2"  fill="#7A5C28" opacity="0.5"/>
-        <!-- bottom deck planks -->
-        <rect x="0"   y="96"  width="220" height="18" fill="#CBa46E" filter="url(#grain2)"/>
-        <rect x="0"   y="116" width="220" height="3"  fill="#A0784A" opacity="0.4"/>
-        <rect x="0"   y="119" width="220" height="18" fill="#D4B07A" filter="url(#grain2)"/>
-        <rect x="0"   y="139" width="220" height="3"  fill="#A0784A" opacity="0.4"/>
-        <rect x="0"   y="142" width="220" height="18" fill="#C8A464" filter="url(#grain2)"/>
-        <!-- Vertical notch dividers (between planks) -->
-        <line x1="0"   y1="0" x2="0"   y2="160" stroke="#8C6432" stroke-width="1.5" opacity="0.3"/>
-        <line x1="73"  y1="0" x2="73"  y2="160" stroke="#8C6432" stroke-width="1.5" opacity="0.3"/>
-        <line x1="146" y1="0" x2="146" y2="160" stroke="#8C6432" stroke-width="1.5" opacity="0.3"/>
-        <line x1="219" y1="0" x2="219" y2="160" stroke="#8C6432" stroke-width="1.5" opacity="0.3"/>
-        <!-- Nail dots -->
-        <circle cx="20"  cy="9"   r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="20"  cy="32"  r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="20"  cy="55"  r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="20"  cy="105" r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="20"  cy="128" r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="20"  cy="151" r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="93"  cy="9"   r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="93"  cy="32"  r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="93"  cy="55"  r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="93"  cy="105" r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="93"  cy="128" r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="93"  cy="151" r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="166" cy="9"   r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="166" cy="32"  r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="166" cy="55"  r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="166" cy="105" r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="166" cy="128" r="2" fill="#7A5C28" opacity="0.5"/>
-        <circle cx="166" cy="151" r="2" fill="#7A5C28" opacity="0.5"/>
-      </pattern>
-    </defs>
-    <rect width="100%" height="160" fill="url(#pallet)"/>
-    <!-- Fade top to transparent -->
-    <defs>
-      <linearGradient id="fadeTop" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#E8E8E6" stop-opacity="1"/>
-        <stop offset="40%" stop-color="#E8E8E6" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-    <rect width="100%" height="160" fill="url(#fadeTop)"/>
-  </svg>
-</div>
+<div class="page-footer"></div>
 
 <!-- Botón deduplicación -->
 <div id="dedup-btn-container" style="position:fixed;bottom:80px;right:20px;z-index:500;display:none">
@@ -638,7 +260,7 @@
 
 <script>
 /* ════════════════════════════════════════════════
-   FIREBASE CONFIG — REEMPLAZA ESTOS VALORES
+   FIREBASE CONFIG &mdash; REEMPLAZA ESTOS VALORES
    (Consíguelos en console.firebase.google.com)
    ════════════════════════════════════════════════ */
 const FIREBASE_CONFIG = {
@@ -800,7 +422,7 @@ function bloquear() {
   document.getElementById('main-content').classList.add('locked');
   document.getElementById('edit-bar').classList.remove('visible');
   const chip = document.getElementById('edit-chip');
-  chip.textContent = '🔒 Solo lectura';
+  chip.textContent = '\uD83D\uDD12 Solo lectura';
   chip.className = 'edit-chip locked';
   usuario = '';
   const movTab = document.querySelector('#tab-mov-btn');
@@ -892,7 +514,7 @@ function ejecutarDeduplicacion() {
 }
 
 async function deduplicarTarimas() {
-  if (!confirm('⚠️ Esta acción eliminará registros duplicados de tarimas.\n\nSe conservará el registro con mayor cantidad.\n\n¿Continuar?')) return;
+  if (!confirm('⚠️ Esta acción eliminará registros duplicados de tarimas.\n\nSe conservará el registro con mayor cantidad.\n\n&iquest;Continuar?')) return;
   
   const snap = await db.collection('inventario').get();
   const items = snap.docs.map(d => ({id: d.id, ...d.data()}));
@@ -939,7 +561,7 @@ async function deduplicarTarimas() {
   
   if (eliminados > 0) {
     await batch.commit();
-    toast(`✓ Se eliminaron ${eliminados} registros duplicados.`);
+    toast(`\u2713 Se eliminaron ${eliminados} registros duplicados.`);
   } else {
     toast('No se encontraron duplicados.');
   }
@@ -964,7 +586,7 @@ async function fbSetQty(id, newQty, medida, oldQty) {
   const tipo = newQty > oldQty ? 'entrada' : 'salida-produccion';
   await db.collection('movimientos').add({
     tipo, medida, qty: Math.abs(newQty - oldQty),
-    quien: usuario, nota: `Ajuste rápido (${oldQty}→${newQty})`,
+    quien: usuario, nota: `Ajuste rápido (${oldQty}&rarr;${newQty})`,
     ts: Date.now(), fecha: fmt(new Date())
   });
 }
@@ -1006,7 +628,7 @@ async function fbMovimiento(tipo, medida, qty, nota) {
     });
     await db.collection('movimientos').add({
       tipo, medida, qty: tipo === 'ajuste' ? qty : qty, quien: usuario,
-      nota: tipo === 'ajuste' ? `${nota ? nota + ' · ' : ''}Ajuste: ${oldQty} → ${newQty}` : nota,
+      nota: tipo === 'ajuste' ? `${nota ? nota + ' &middot; ' : ''}Ajuste: ${oldQty} &rarr; ${newQty}` : nota,
       ts: Date.now(), fecha: fmt(new Date())
     });
     return;
@@ -1047,7 +669,7 @@ async function cambiarQty(id, delta) {
     await fbSetQty(id, newQty, inv[idx].medida, oldQty);
   } else {
     inv[idx].qty = newQty;
-    addLogLocal(delta > 0 ? 'entrada' : 'salida-produccion', inv[idx].medida, Math.abs(delta), `Ajuste rápido (${oldQty}→${newQty})`);
+    addLogLocal(delta > 0 ? 'entrada' : 'salida-produccion', inv[idx].medida, Math.abs(delta), `Ajuste rápido (${oldQty}&rarr;${newQty})`);
     renderAll();
   }
   toast(`${inv[idx]?.medida || ''}: ${newQty} piezas`);
@@ -1064,7 +686,7 @@ async function setQtyDirecto(id, input) {
     await fbSetQty(id, newQty, inv[idx].medida, oldQty);
   } else {
     inv[idx].qty = newQty;
-    addLogLocal(newQty > oldQty ? 'entrada' : 'salida-produccion', inv[idx].medida, Math.abs(newQty - oldQty), `Cambio directo (${oldQty}→${newQty})`);
+    addLogLocal(newQty > oldQty ? 'entrada' : 'salida-produccion', inv[idx].medida, Math.abs(newQty - oldQty), `Cambio directo (${oldQty}&rarr;${newQty})`);
     renderAll();
   }
   toast(`${inv[idx]?.medida || ''}: ${newQty} piezas`);
@@ -1090,7 +712,7 @@ async function guardarCampo(id, campo, valor) {
       const medida = inv[idx].medida;
       const qty = inv[idx].qty || 0;
       const nota = valorAnterior 
-        ? `Observación modificada: "${valorAnterior}" → "${valorNuevo}"`
+        ? `Observación modificada: "${valorAnterior}" &rarr; "${valorNuevo}"`
         : `Observación agregada: "${valorNuevo}"`;
       
       await db.collection('movimientos').add({
@@ -1108,7 +730,7 @@ async function guardarCampo(id, campo, valor) {
       const medida = inv[idx].medida;
       const qty = inv[idx].qty || 0;
       const nota = valorAnterior 
-        ? `Observación modificada: "${valorAnterior}" → "${valorNuevo}"`
+        ? `Observación modificada: "${valorAnterior}" &rarr; "${valorNuevo}"`
         : `Observación agregada: "${valorNuevo}"`;
       addLogLocal('edicion-obs', medida, qty, nota);
     }
@@ -1135,7 +757,6 @@ async function agregarTarima() {
     renderAll();
   }
   document.getElementById('add-form').style.display = 'none';
-  document.getElementById('add-form-arrow').textContent = '▶';
   limpiarAddForm();
   toast(`Tarima ${medida} agregada al inventario.`);
 }
@@ -1143,7 +764,7 @@ async function agregarTarima() {
 async function eliminar(id) {
   const idx = inv.findIndex(r => r.id === id);
   if (idx < 0) return;
-  if (!confirm(`¿Eliminar ${inv[idx].medida} del inventario?`)) return;
+  if (!confirm(`&iquest;Eliminar ${inv[idx].medida} del inventario?`)) return;
   const medida = inv[idx].medida;
   if (useFirebase) {
     await fbEliminar(id, medida);
@@ -1162,7 +783,7 @@ async function registrarMovimiento() {
   const nota   = document.getElementById('m-nota').value.trim();
   if (!medida || qty < 1) { toast('Ingresa medida y cantidad.'); return; }
 
-  // Traslado — solo cambia ubicación
+  // Traslado &mdash; solo cambia ubicación
   if (tipo.startsWith('traslado')) {
     if (!medida) { toast('Ingresa la medida.'); return; }
     const nuevaLoc = tipo === 'traslado-b7-tp' ? 'EN TAPANCO' : 'BODEGA 7';
@@ -1171,14 +792,14 @@ async function registrarMovimiento() {
     const now = new Date().toISOString();
     if (useFirebase) {
       if (idx >= 0) await db.collection('inventario').doc(inv[idx].id).update({ loc: nuevaLoc, updatedAt: now, updatedBy: usuario, lastMovAt: now });
-      await db.collection('movimientos').add({ tipo, medida, qty: idx >= 0 ? inv[idx].qty : 0, quien: usuario, nota: nota || `Traslado ${origenLoc} → ${nuevaLoc}`, ts: Date.now(), fecha: fmt(new Date()) });
+      await db.collection('movimientos').add({ tipo, medida, qty: idx >= 0 ? inv[idx].qty : 0, quien: usuario, nota: nota || `Traslado ${origenLoc} &rarr; ${nuevaLoc}`, ts: Date.now(), fecha: fmt(new Date()) });
     } else {
       if (idx >= 0) { inv[idx].loc = nuevaLoc; inv[idx].lastMovAt = now; }
-      addLogLocal(tipo, medida, idx >= 0 ? inv[idx].qty : 0, nota || `Traslado ${origenLoc} → ${nuevaLoc}`);
+      addLogLocal(tipo, medida, idx >= 0 ? inv[idx].qty : 0, nota || `Traslado ${origenLoc} &rarr; ${nuevaLoc}`);
       saveLocal(); renderAll();
     }
     limpiarMov();
-    toast(`Traslado registrado: ${medida} → ${nuevaLoc === 'EN TAPANCO' ? 'Tapanco' : 'Bodega 7'}`);
+    toast(`Traslado registrado: ${medida} &rarr; ${nuevaLoc === 'EN TAPANCO' ? 'Tapanco' : 'Bodega 7'}`);
     return;
   }
 
@@ -1230,7 +851,7 @@ async function registrarMovimiento() {
       if (obs) inv[idx].obs = obs;
       inv[idx].lastMovAt = new Date().toISOString();
     }
-    const notaLog = tipo === 'ajuste' ? `${nota ? nota + ' · ' : ''}Ajuste: ${inv.find(r=>normalizeMedida(r.medida)===medida)?.qty}` : nota;
+    const notaLog = tipo === 'ajuste' ? `${nota ? nota + ' &middot; ' : ''}Ajuste: ${inv.find(r=>normalizeMedida(r.medida)===medida)?.qty}` : nota;
     addLogLocal(tipo, medida, qty, notaLog);
     renderAll();
   }
@@ -1298,13 +919,6 @@ function renderAll() {
   if (subTp) subTp.textContent = otros > 0 ? `(total: ${total})` : 'piezas';
 
   document.getElementById('s-hoy').textContent = hoy;
-  // Alert: any medida with qty = 0
-  const zeros = inv.filter(r=>r.qty===0);
-  const ab = document.getElementById('alert-bar');
-  if (zeros.length) {
-    ab.textContent = `Sin stock: ${zeros.map(r=>r.medida.replace(/\*/g,'×')).slice(0,4).join(', ')}${zeros.length>4?` y ${zeros.length-4} más`:''}`;
-    ab.classList.add('show');
-  } else { ab.classList.remove('show'); }
   renderTable();
   renderLog();
   updateDatalist();
@@ -1317,15 +931,22 @@ function renderAll() {
 }
 
 function renderTable() {
-  const q = normalizeMedida(document.getElementById('search').value);
+  const rawQuery = (document.getElementById('search').value || '').trim().toLowerCase();
+  const q = normalizeMedida(rawQuery);
   let rows = inv.filter(r => {
     if (locFilter !== 'todos' && r.loc !== locFilter) return false;
-    if (q && !normalizeMedida(r.medida).includes(q) && !(r.op||'').toLowerCase().includes(q.toLowerCase())) return false;
+    if (
+      q &&
+      !normalizeMedida(r.medida).includes(q) &&
+      !(r.op||'').toLowerCase().includes(rawQuery) &&
+      !(r.loc||'').toLowerCase().includes(rawQuery) &&
+      !(r.obs||'').toLowerCase().includes(rawQuery)
+    ) return false;
     return true;
   });
   const body = document.getElementById('tbl-body');
   if (!rows.length) {
-    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:#888">Sin resultados para ese filtro.</td></tr>';
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#888">Sin resultados para ese filtro.</td></tr>';
     return;
   }
   body.innerHTML = rows.map(r => {
@@ -1339,26 +960,26 @@ function renderTable() {
     const medidaKey = (r.medida||'').trim();
     const minQty = MIN_STOCK[medidaKey] || 0;
     const stockCls = qty === 0 ? 'stock-zero' : (minQty > 0 && qty <= minQty) || (minQty === 0 && qty <= 6) ? 'stock-low' : 'stock-ok';
-    const lastMov = r.lastMovAt ? fmtRelative(r.lastMovAt) : '<span style="color:#ccc">—</span>';
+    const lastMov = r.lastMovAt ? fmtRelative(r.lastMovAt) : '&mdash;';
+    const audit = getAuditLine(r.updatedBy, r.updatedAt);
     const qtyCell = modoMaestro
       ? `<div class="qty-ctrl"><button class="qty-btn" onclick="cambiarQty('${r.id}',-1)">−</button><input class="qty-input ${stockCls}" type="number" value="${qty}" min="0" onchange="setQtyDirecto('${r.id}',this)" onkeydown="if(event.key==='Enter')this.blur()"><button class="qty-btn" onclick="cambiarQty('${r.id}',1)">+</button></div>`
       : `<span class="qty-input ${stockCls}" style="display:inline-block;padding:4px 8px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;border:1px solid">${qty}</span>`;
     return `<tr class="${stockCls}">
-      <td><span class="medida-cell">${medidaDisplay}</span></td>
-      <td>${qtyCell}</td>
-      <td style="font-size:12px;color:var(--text);max-width:120px">${locVal||'<span style="color:#ccc">—</span>'}</td>
-      <td style="font-size:12px;color:var(--text);max-width:150px">${opVal||'<span style="color:#ccc">—</span>'}</td>
-      <td style="font-size:12px;color:var(--muted);max-width:160px"><input class="obs-input" type="text" value="${obsVal}" placeholder="Agregar observación..."
+      <td data-label="Medida"><div class="table-main"><span class="medida-cell">${medidaDisplay}</span><div class="mobile-meta">${locVal||'Sin ubicación'} · ${opVal||'Sin cliente / OP'} · ${lastMov}</div>${audit}</div></td>
+      <td data-label="Cantidad">${qtyCell}</td>
+      <td data-label="Ubicación" style="font-size:12px;color:var(--text);max-width:120px">${locVal||'<span style="color:#ccc">&mdash;</span>'}</td>
+      <td data-label="Cliente / OP" style="font-size:12px;color:var(--text);max-width:150px">${opVal||'<span style="color:#ccc">&mdash;</span>'}</td>
+      <td data-label="Observaciones" style="font-size:12px;color:var(--muted);max-width:160px"><input class="obs-input" type="text" value="${obsVal}" placeholder="Agregar observación..."
         onchange="guardarCampo('${r.id}','obs',this.value)"
         onkeydown="if(event.key==='Enter')this.blur()"></td>
-      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${lastMov}</td>
-      <td><button class="del-btn" onclick="eliminar('${r.id}')">×</button></td>
+      <td data-label="Acción"><button class="del-btn" onclick="eliminar('${r.id}')">×</button></td>
     </tr>`;
   }).join('');
 }
 
 function fmtRelative(iso) {
-  if (!iso) return '—';
+  if (!iso) return '&mdash;';
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return 'Hace un momento';
@@ -1373,6 +994,7 @@ function fmtRelative(iso) {
 
 function renderLog() {
   const list = document.getElementById('log-list');
+  if (!list) return;
   if (!logs.length) {
     list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>Sin movimientos registrados.</p></div>';
     return;
@@ -1387,15 +1009,16 @@ function renderLog() {
   };
   const isPos = t => t==='entrada'||t==='nuevo-registro';
   const isNeg = t => t.startsWith('salida');
-  list.innerHTML = logs.slice(0,60).map(l => {
+  list.innerHTML = logs.slice(0,10).map(l => {
     const cls = clsMap[l.tipo]||'lb-ajuste';
     const qcls = isPos(l.tipo)?'pos':isNeg(l.tipo)?'neg':'neu';
-    const sign = isPos(l.tipo)?'+':isNeg(l.tipo)?'-':'±';
+    const sign = isPos(l.tipo)?'+':isNeg(l.tipo)?'-':'&plusmn;';
+    const medidaDisplay = (l.medida||'').replace(/\*/g, 'x');
     return `<div class="log-item">
       <span class="log-badge ${cls}">${labels[l.tipo]||l.tipo}</span>
       <div>
-        <div class="log-desc">${l.medida}${l.nota?' — '+l.nota:''}</div>
-        <div class="log-meta">${l.quien||'—'} · ${l.fecha||''}</div>
+        <div class="log-desc">${medidaDisplay}${l.nota?' &mdash; '+l.nota:''}</div>
+        <div class="log-meta">${l.quien||'&mdash;'} &middot; ${l.fecha||''}</div>
       </div>
       <span class="log-qty ${qcls}">${sign}${l.qty}</span>
     </div>`;
@@ -1411,9 +1034,17 @@ function setTab(btn, tab) {
   currentTab = tab;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   if (btn && btn.classList) btn.classList.add('active');
-  ['inventario','movimientos'].forEach(t => {
-    document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
-  });
+  const inv = document.getElementById('tab-inventario');
+  const mov = document.getElementById('tab-movimientos');
+  if (tab === 'movimientos') {
+    inv.style.display = '';
+    mov.classList.add('show');
+    document.body.classList.add('movement-open');
+  } else {
+    inv.style.display = '';
+    mov.classList.remove('show');
+    document.body.classList.remove('movement-open');
+  }
 }
 
 function exportarHistorial() {
@@ -1459,8 +1090,8 @@ function checkTipoMovimiento() {
   document.getElementById('traslado-aviso').style.display = esTraslado ? 'block' : 'none';
   if (esTraslado) {
     const txt = tipo === 'traslado-b7-tp'
-      ? '↔ Se moverá de Bodega 7 → Tapanco (sin cambiar cantidad)'
-      : '↔ Se moverá de Tapanco → Bodega 7 (sin cambiar cantidad)';
+      ? 'Se moverá de Bodega 7 a Tapanco sin cambiar cantidad.'
+      : 'Se moverá de Tapanco a Bodega 7 sin cambiar cantidad.';
     document.getElementById('traslado-texto').textContent = txt;
   }
   document.getElementById('nueva-medida-aviso').style.display = 'none';
@@ -1519,6 +1150,21 @@ function limpiarMov() {
   document.getElementById('traslado-aviso').style.display='none';
   document.getElementById('qty-field').style.display='';
 }
+function setQuickQty(id, value) {
+  const input = document.getElementById(id);
+  if (input) input.value = String(value);
+}
+function adjustQty(id, delta) {
+  const input = document.getElementById(id);
+  if (!input) return;
+  const current = parseInt(input.value, 10) || 0;
+  input.value = String(Math.max(0, current + delta));
+}
+function getAuditLine(user, iso) {
+  const userTxt = user || 'Sin usuario';
+  const when = iso ? fmtRelative(iso) : 'Sin fecha';
+  return `<div class="audit-line"><span class="audit-pill"><strong>${userTxt}</strong></span><span>${when}</span></div>`;
+}
 
 function toast(msg) {
   const t = document.getElementById('toast');
@@ -1541,3 +1187,16 @@ init();
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+

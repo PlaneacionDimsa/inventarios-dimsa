@@ -4,269 +4,385 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="theme-color" content="#F2E8D9">
-<title>Portal de Inventarios — DIMSA</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<title>Portal de Inventarios - DIMSA</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="enterprise-2026.css">
 <style>
-    :root {
-    --bg: #f5f0e8;
-    --surface: #fdf8f2;
-    --surface2: #ede8de;
-    --header-bg: #fdf8f2;
-    --accent: #9e2a2b;
-    --accent-hover: #7b1d1e;
-    --accent-light: #f9eded;
-    --green: #4a7a5a;
-    --danger: #e53e3e;
-    --amber: #92400E;
-    --text: #2c1f0f;
-    --muted: #8a7070;
-    --border: #d9cfc0;
-    --border-strong: #c4b090;
-    --radius: 10px;
-    --radius-sm: 6px;
-    --shadow: 0 1px 3px rgba(44,31,15,.08);
-    --shadow-md: 0 4px 16px rgba(44,31,15,.14);
+body.page-home .main{max-width:1280px}
+.hero-card{
+  margin-bottom:1rem;
+}
+.hero-panel{
+  padding:1.5rem;
+  display:grid;
+  grid-template-columns:minmax(0,1.4fr) minmax(280px,.8fr);
+  gap:18px;
+  align-items:start;
+}
+.hero-kicker{
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+.hero-title{
+  font-size:30px;
+  line-height:1.12;
+  margin-bottom:8px;
+  color:var(--text);
+}
+.hero-title span{color:var(--accent)}
+.hero-copy{
+  max-width:62ch;
+  font-size:13px;
+  line-height:1.6;
+  color:var(--muted);
+}
+.hero-summary{
+  display:grid;
+  gap:10px;
+}
+.hero-mini{
+  min-height:116px;
+  border-radius:16px;
+  padding:16px;
+  background:rgba(255,255,255,.55);
+  border:1px solid rgba(196,176,144,.52);
+}
+.hero-mini .stat-label{
+  margin-bottom:10px;
+}
+.hero-copy-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.module-grid{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:16px;
+  margin-bottom:1rem;
+}
+.module-card{
+  text-decoration:none;
+  color:inherit;
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.module-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 20px rgba(44,31,15,.08);
+}
+.module-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:14px;
+}
+.module-title{
+  font-size:18px;
+  font-weight:700;
+}
+.module-sub{
+  margin-top:4px;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.5;
+}
+.module-badge{
+  min-height:26px;
+  padding:0 10px;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.05em;
+  white-space:nowrap;
+}
+.module-badge.tarimas{background:#e6f2e9;color:var(--green)}
+.module-badge.tintas{background:var(--accent-light);color:var(--accent-hover)}
+.module-badge.indirectos{background:#f5e8bc;color:#82590b}
+.module-stats{
+  display:grid;
+  gap:10px;
+}
+.module-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  font-size:12px;
+}
+.module-row strong{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13px;
+}
+.module-footer{
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid rgba(217,207,192,.52);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.module-link{
+  font-size:12px;
+  font-weight:700;
+}
+.home-grid{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:16px;
+}
+.quick-list,
+.alerts-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.quick-link{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-height:48px;
+  padding:12px 14px;
+  border-radius:14px;
+  text-decoration:none;
+  color:var(--text);
+  background:rgba(255,255,255,.64);
+  border:1px solid rgba(196,176,144,.56);
+}
+.quick-link:hover{
+  border-color:rgba(158,42,43,.28);
+  color:var(--accent-hover);
+}
+.quick-link strong{
+  font-size:12px;
+}
+.quick-link span:last-child{
+  margin-left:auto;
+  color:var(--muted);
+  font-weight:700;
+}
+.alert-item-home{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:10px;
+  align-items:start;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(217,207,192,.56);
+  background:rgba(255,255,255,.58);
+}
+.alert-item-home.red{border-left:4px solid #d86d6d}
+.alert-item-home.amber{border-left:4px solid #d2a458}
+.alert-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  margin-top:4px;
+}
+.alert-dot.red{background:#d86d6d}
+.alert-dot.amber{background:#d2a458}
+.alert-title{
+  font-size:12px;
+  font-weight:700;
+  color:var(--text);
+}
+.alert-meta{
+  margin-top:3px;
+  font-size:10px;
+  color:var(--muted);
+  line-height:1.45;
+}
+.alert-link{
+  font-size:11px;
+  font-weight:700;
+  color:var(--accent-hover);
+  text-decoration:none;
+}
+.loading-empty{
+  text-align:center;
+  padding:1.8rem 1rem;
+  color:var(--muted);
+  font-size:12px;
+}
+@media (max-width:960px){
+  .hero-card,
+  .home-grid,
+  .module-grid{
+    grid-template-columns:1fr;
   }
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--bg); color: var(--text); min-height: 100vh;
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4a882' fill-opacity='0.07'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
-  
-
-  /* ── TOPBAR ── */
-  .topbar{background:var(--header-bg);border-bottom:3px solid var(--accent);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-  .topbar-left{display:flex;align-items:center;gap:16px}
-  .topbar-left img{height:32px;object-fit:contain}
-  .topbar-divider{width:1px;height:24px;background:var(--border)}
-  .topbar-title{font-size:14px;font-weight:600;color:var(--text);font-family:'IBM Plex Mono',monospace}
-  .topbar-title span{color:var(--accent)}
-  .topbar-nav{display:flex;align-items:center;gap:4px}
-  .topbar-nav a{font-size:12px;font-weight:600;padding:5px 12px;border-radius:6px;text-decoration:none;color:var(--muted);transition:all .15s}
-  .topbar-nav a:hover{background:var(--border);color:var(--text)}
-  .topbar-nav a.active{background:var(--accent);color:#fff}
-  .topbar-right{display:flex;align-items:center;gap:12px}
-  .live-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
-  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
-  .clock-txt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-
-  /* ── CONTENT ── */
-  .content{max-width:1200px;margin:0 auto;padding:2rem 1.5rem;position:relative;z-index:1}
-
-  /* ── HERO ── */
-  .hero{margin-bottom:1.75rem}
-  .hero-greeting{font-size:13px;color:var(--muted);margin-bottom:4px}
-  .hero-title{font-size:26px;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:.25rem}
-  .hero-title span{color:var(--accent)}
-  .hero-sub{font-size:13px;color:var(--muted)}
-
-  /* ── STATS ROW ── */
-  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.75rem}
-  .stat-card{background:var(--surface);border-radius:var(--radius);padding:1rem 1.25rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
-  .stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
-  .stat-card.tarimas::after{background:var(--green)}
-  .stat-card.tintas::after{background:var(--accent)}
-  .stat-card.indirectos::after{background:#8B6914}
-  .stat-card.alerts::after{background:var(--danger)}
-  .stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px}
-  .stat-val{font-size:30px;font-weight:700;font-family:'IBM Plex Mono',monospace;line-height:1}
-  .stat-val.green{color:var(--green)}
-  .stat-val.accent{color:var(--accent)}
-  .stat-val.blue{color:#8B6914}
-  .stat-val.red{color:var(--danger)}
-  .stat-sub{font-size:11px;color:var(--muted);margin-top:5px}
-
-  /* ── INVENTORY CARDS ── */
-  .inv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:1.75rem}
-  .inv-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;text-decoration:none;color:var(--text);transition:all .2s;display:flex;flex-direction:column}
-  .inv-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
-  .inv-card-header{padding:1.25rem 1.5rem;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-  .inv-card-header.tarimas{background:linear-gradient(135deg,#1e3a1e 0%,#4a7a5a 100%)}
-  .inv-card-header.tintas{background:linear-gradient(135deg,#4A0A28 0%,var(--accent) 100%)}
-  .inv-card-header.indirectos{background:linear-gradient(135deg,#3d2a0a 0%,#8a6a1a 100%)}
-  .inv-card-icon{font-size:32px}
-  .inv-card-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:3px}
-  .inv-card-desc{font-size:11px;color:rgba(255,255,255,.65)}
-  .inv-card-body{padding:1.25rem 1.5rem;flex:1}
-  .inv-stat-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-  .inv-stat-row:last-child{margin-bottom:0}
-  .inv-stat-label{font-size:12px;color:var(--muted)}
-  .inv-stat-val{font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace}
-  .inv-card-footer{padding:.75rem 1.5rem;border-top:1px solid var(--bg);display:flex;align-items:center;justify-content:space-between}
-  .inv-card-link{font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
-  .inv-card-link.tarimas{color:var(--green)}
-  .inv-card-link.tintas{color:var(--accent)}
-  .inv-card-link.indirectos{color:#8B6914}
-  .alert-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
-  .alert-pill.red{background:#FEE2E2;color:#991B1B}
-  .alert-pill.amber{background:#FEF3C7;color:#92400E}
-  .alert-pill.green{background:#e8f5ec;color:var(--green)}
-
-  /* ── BOTTOM PANELS ── */
-  .bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .panel{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-  .panel-header{padding:.875rem 1.25rem;border-bottom:1px solid var(--bg);display:flex;align-items:center;justify-content:space-between}
-  .panel-title{font-size:13px;font-weight:600}
-  .panel-sub{font-size:11px;color:var(--muted)}
-  .panel-body{padding:1rem 1.25rem}
-  .quick-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;margin-bottom:6px;text-decoration:none;color:var(--text);font-size:13px;font-weight:500;background:var(--bg);transition:all .15s}
-  .quick-btn:hover{background:var(--border)}
-  .quick-btn .qb-icon{font-size:18px}
-  .quick-btn .qb-arrow{margin-left:auto;color:var(--muted)}
-  .alert-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg);font-size:12px}
-  .alert-item:last-child{border-bottom:none}
-  .alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-  .alert-dot.red{background:var(--danger)}
-  .alert-dot.amber{background:#CA8A04}
-
-  /* ── RESPONSIVE ── */
-  @media(max-width:1024px){.stats-row{grid-template-columns:repeat(2,1fr)}.inv-grid{grid-template-columns:1fr 1fr}.bottom-grid{grid-template-columns:1fr}}
-  @media(max-width:640px){
-    .topbar{padding:0 1rem}
-    .topbar-nav{display:none}
-    .content{padding:1rem}
-    .stats-row{grid-template-columns:1fr 1fr;gap:8px}
-    .inv-grid{grid-template-columns:1fr}
-    .clock-txt{display:none}
+  .hero-panel{
+    grid-template-columns:1fr;
   }
+}
+@media (max-width:640px){
+  .hero-panel{padding:1.1rem}
+  .hero-title{font-size:24px}
+  .module-card{padding:1rem}
+  .module-footer{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .quick-link{
+    width:100%;
+  }
+  .alert-item-home{
+    grid-template-columns:auto 1fr;
+  }
+  .alert-link{
+    grid-column:2;
+  }
+}
 </style>
 </head>
-<body>
+<body class="page-home">
 
-<body>
-
-<!-- TOPBAR -->
-<header class="topbar">
-  <div class="topbar-left">
-    <img src="https://www.dim-sa.com.mx/assets/img/LOGODIMSA.png" alt="DIMSA">
-    <div class="topbar-divider"></div>
-    <div class="topbar-title">Portal <span>DIMSA</span></div>
+<header class="header">
+  <div class="header-left">
+    <img src="https://www.dim-sa.com.mx/assets/img/LOGODIMSA.png" alt="DIMSA" style="height:34px;object-fit:contain">
+    <div class="header-divider"></div>
+    <div class="logo">PORTAL <span>/ inventarios</span></div>
   </div>
-
-  <div class="topbar-right">
-    <div class="live-badge"><div class="live-dot"></div><span>Sistema activo</span></div>
-    <span class="clock-txt" id="sb-clock">--:--</span>
+  <div class="header-right">
+    <div class="live-badge"><div class="live-dot" id="live-dot"></div><span id="live-txt">conectando...</span></div>
+    <span class="clock-txt" id="clock"></span>
   </div>
 </header>
 
-<div class="content">
-
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-greeting" id="greeting">Buenos días</div>
-    <div class="hero-title">Control de <span>inventarios</span></div>
-    <div class="hero-sub" id="sb-date">Planta DIMSA — visión general del sistema</div>
-  </div>
-
-  <!-- STATS -->
-  <div class="stats-row">
-    <div class="stat-card tarimas">
-      <div class="stat-label">Tarimas en bodega</div>
-      <div class="stat-val green" id="st-tarimas">—</div>
-      <div class="stat-sub">piezas totales</div>
+<main class="main">
+  <section class="hero-card">
+    <div class="card hero-panel">
+      <div class="hero-copy-wrap">
+        <div class="hero-kicker" id="greeting">Buenos dias</div>
+        <h1 class="hero-title">Control central de <span>inventarios</span></h1>
+        <p class="hero-copy" id="today-label">Vista general para entrar rápido a tarimas, tintas e indirectos y revisar alertas operativas sin abrir Excel ni esperar cortes manuales.</p>
+      </div>
+      <div class="hero-summary">
+        <div class="hero-mini">
+          <div class="stat-label">Sistema</div>
+          <div class="stat-value green" id="st-live">En linea</div>
+          <div class="stat-sub">estado de sincronización general</div>
+        </div>
+        <div class="hero-mini">
+          <div class="stat-label">Alertas activas</div>
+          <div class="stat-value red" id="st-alerts">--</div>
+          <div class="stat-sub">registros que requieren atención</div>
+        </div>
+      </div>
     </div>
-    <div class="stat-card tintas">
-      <div class="stat-label">Stock tintas</div>
-      <div class="stat-val accent" id="st-tintas">—</div>
-      <div class="stat-sub">kg totales</div>
+  </section>
+
+  <section class="stats">
+    <div class="stat">
+      <div class="stat-label">Tarimas</div>
+      <div class="stat-value green" id="st-tarimas">--</div>
+      <div class="stat-sub">piezas totales registradas</div>
     </div>
-    <div class="stat-card indirectos">
+    <div class="stat">
+      <div class="stat-label">Tintas</div>
+      <div class="stat-value accent" id="st-tintas">--</div>
+      <div class="stat-sub">kilogramos disponibles</div>
+    </div>
+    <div class="stat">
       <div class="stat-label">Indirectos OK</div>
-      <div class="stat-val blue" id="st-indir">—</div>
-      <div class="stat-sub">productos sobre mínimo</div>
+      <div class="stat-value amber" id="st-indir">--</div>
+      <div class="stat-sub">productos sobre minimo</div>
     </div>
-    <div class="stat-card alerts">
-      <div class="stat-label">Alertas activas</div>
-      <div class="stat-val red" id="st-alerts">—</div>
-      <div class="stat-sub">productos bajo mínimo</div>
+    <div class="stat">
+      <div class="stat-label">Ultima actualizacion</div>
+      <div class="stat-value" id="st-updated">--</div>
+      <div class="stat-sub">referencia general del portal</div>
     </div>
-  </div>
+  </section>
 
-  <!-- INVENTORY CARDS -->
-  <div class="inv-grid">
-    <a class="inv-card" href="tarimas.html">
-      <div class="inv-card-header tarimas">
+  <section class="module-grid">
+    <a class="card module-card" href="tarimas.html">
+      <div class="module-head">
         <div>
-          <div class="inv-card-title">Tarimas</div>
-          <div class="inv-card-desc">Control de pallets en bodega y tapanco</div>
+          <div class="module-title">Tarimas</div>
+          <div class="module-sub">Control de pallets en Bodega 7 y Tapanco.</div>
         </div>
-        
+        <span class="module-badge tarimas" id="ic-tar-alert">Cargando</span>
       </div>
-      <div class="inv-card-body">
-        <div class="inv-stat-row"><span class="inv-stat-label">Bodega 7</span><span class="inv-stat-val" id="ic-b7">—</span></div>
-        <div class="inv-stat-row"><span class="inv-stat-label">En Tapanco</span><span class="inv-stat-val" id="ic-tp">—</span></div>
-        <div class="inv-stat-row"><span class="inv-stat-label">Medidas distintas</span><span class="inv-stat-val" id="ic-tipos">—</span></div>
+      <div class="module-stats">
+        <div class="module-row"><span>Bodega 7</span><strong id="ic-b7">--</strong></div>
+        <div class="module-row"><span>En Tapanco</span><strong id="ic-tp">--</strong></div>
+        <div class="module-row"><span>Medidas distintas</span><strong id="ic-tipos">--</strong></div>
       </div>
-      <div class="inv-card-footer">
-        <span class="inv-card-link tarimas">Ver inventario →</span>
-        <span class="alert-pill" id="ic-tar-alert"></span>
+      <div class="module-footer">
+        <span class="module-link">Abrir inventario</span>
+        <span class="unit-inline">movimientos y ubicaciones</span>
       </div>
     </a>
 
-    <a class="inv-card" href="tintas.html">
-      <div class="inv-card-header tintas">
+    <a class="card module-card" href="tintas.html">
+      <div class="module-head">
         <div>
-          <div class="inv-card-title">Tintas</div>
-          <div class="inv-card-desc">Tintas, adhesivos, barnices y aditivos</div>
+          <div class="module-title">Tintas</div>
+          <div class="module-sub">Tintas, adhesivos, barnices y aditivos por lote.</div>
         </div>
-        
+        <span class="module-badge tintas" id="ic-tint-alert">Cargando</span>
       </div>
-      <div class="inv-card-body">
-        <div class="inv-stat-row"><span class="inv-stat-label">Total registros</span><span class="inv-stat-val" id="ic-tint-total">—</span></div>
-        <div class="inv-stat-row"><span class="inv-stat-label">Total kg</span><span class="inv-stat-val" id="ic-tint-kg">—</span></div>
-        <div class="inv-stat-row"><span class="inv-stat-label">Lotes en cero</span><span class="inv-stat-val" id="ic-tint-zero">—</span></div>
+      <div class="module-stats">
+        <div class="module-row"><span>Total registros</span><strong id="ic-tint-total">--</strong></div>
+        <div class="module-row"><span>Total kg</span><strong id="ic-tint-kg">--</strong></div>
+        <div class="module-row"><span>Lotes en cero</span><strong id="ic-tint-zero">--</strong></div>
       </div>
-      <div class="inv-card-footer">
-        <span class="inv-card-link tintas">Ver inventario →</span>
-        <span class="alert-pill" id="ic-tint-alert"></span>
+      <div class="module-footer">
+        <span class="module-link">Abrir inventario</span>
+        <span class="unit-inline">salidas, devoluciones y ajustes</span>
       </div>
     </a>
 
-    <a class="inv-card" href="indirectos.html">
-      <div class="inv-card-header indirectos">
+    <a class="card module-card" href="indirectos.html">
+      <div class="module-head">
         <div>
-          <div class="inv-card-title">Materiales Indirectos</div>
-          <div class="inv-card-desc">Empaques, químicos, flejes y consumibles</div>
+          <div class="module-title">Indirectos</div>
+          <div class="module-sub">Empaques, flejes, consumibles y materiales de apoyo.</div>
         </div>
-        
+        <span class="module-badge indirectos" id="ic-ind-alert">Cargando</span>
       </div>
-      <div class="inv-card-body">
-        <div class="inv-stat-row"><span class="inv-stat-label">Total productos</span><span class="inv-stat-val" id="ic-ind-total">—</span></div>
-        <div class="inv-stat-row"><span class="inv-stat-label">Sobre el mínimo</span><span class="inv-stat-val" id="ic-ind-ok">—</span></div>
-        <div class="inv-stat-row"><span class="inv-stat-label">Bajo el mínimo</span><span class="inv-stat-val" id="ic-ind-low">—</span></div>
+      <div class="module-stats">
+        <div class="module-row"><span>Total productos</span><strong id="ic-ind-total">--</strong></div>
+        <div class="module-row"><span>Sobre minimo</span><strong id="ic-ind-ok">--</strong></div>
+        <div class="module-row"><span>Bajo minimo</span><strong id="ic-ind-low">--</strong></div>
       </div>
-      <div class="inv-card-footer">
-        <span class="inv-card-link indirectos">Ver inventario →</span>
-        <span class="alert-pill" id="ic-ind-alert"></span>
+      <div class="module-footer">
+        <span class="module-link">Abrir inventario</span>
+        <span class="unit-inline">captura y control de reposición</span>
       </div>
     </a>
-  </div>
+  </section>
 
-  <!-- BOTTOM PANELS -->
-  <div class="bottom-grid">
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-title">Acceso rápido</div>
-        <div class="panel-sub">Acciones frecuentes</div>
-      </div>
-      <div class="panel-body">
-        <a class="quick-btn" href="tarimas.html"><span>Registrar movimiento de tarimas</span><span class="qb-arrow">→</span></a>
-        <a class="quick-btn" href="tintas.html"><span>Registrar salida de tinta</span><span class="qb-arrow">→</span></a>
-        <a class="quick-btn" href="indirectos.html"><span>Ver materiales indirectos</span><span class="qb-arrow">→</span></a>
+  <section class="home-grid">
+    <div class="card">
+      <div class="section-title">Acceso Rapido</div>
+      <div class="section-subtitle">Entradas directas a las acciones mas frecuentes.</div>
+      <div class="quick-list">
+        <a class="quick-link" href="tarimas.html"><strong>Registrar movimiento de tarimas</strong><span>&rarr;</span></a>
+        <a class="quick-link" href="tintas.html"><strong>Registrar salida de tinta</strong><span>&rarr;</span></a>
+        <a class="quick-link" href="indirectos.html"><strong>Revisar materiales indirectos</strong><span>&rarr;</span></a>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-title">Alertas de stock</div>
-        <div class="panel-sub">Productos bajo el mínimo</div>
-      </div>
-      <div class="panel-body" id="alerts-panel">
-        <div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:13px">Conectando...</div>
+    <div class="card">
+      <div class="section-title">Alertas de Stock</div>
+      <div class="section-subtitle">Resumen transversal de lo que merece atención inmediata.</div>
+      <div class="alerts-list" id="alerts-panel">
+        <div class="loading-empty">Conectando con inventarios...</div>
       </div>
     </div>
-  </div>
+  </section>
+</main>
 
-</div>
+<div class="page-footer"></div>
 
 <script>
 const FIREBASE_CONFIG = {
@@ -278,39 +394,87 @@ const FIREBASE_CONFIG = {
   appId:             "1:585720335508:web:4a5818ce201ccf9e263881"
 };
 
-function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);})}
+let allAlerts = [];
+let lastUpdatedAt = 0;
+
+function loadScript(src){
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src=src;
+    s.onload=res;
+    s.onerror=rej;
+    document.head.appendChild(s);
+  });
+}
 
 function tick(){
-  const n=new Date(),p=x=>String(x).padStart(2,'0');
-  document.getElementById('sb-clock').textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
-  const days=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const now=new Date();
+  const p=x=>String(x).padStart(2,'0');
+  document.getElementById('clock').textContent=`${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
+  const hours=now.getHours();
+  document.getElementById('greeting').textContent=hours<12?'Buenos dias':hours<19?'Buenas tardes':'Buenas noches';
+  const days=['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
   const months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  document.getElementById('sb-date').textContent=`Planta DIMSA · ${days[n.getDay()]} ${n.getDate()} ${months[n.getMonth()]}`;
-  const h=n.getHours();
-  document.getElementById('greeting').textContent=h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches';
+  document.getElementById('today-label').textContent=`Planta DIMSA · ${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} · vista general operativa del sistema.`;
 }
-setInterval(tick,1000);tick();
 
-let allAlerts = [];
+function fmtRelative(iso){
+  if(!iso)return'--';
+  const diff=Date.now()-new Date(iso).getTime();
+  const mins=Math.floor(diff/60000);
+  if(mins<1)return'Ahora';
+  if(mins<60)return`Hace ${mins} min`;
+  const hrs=Math.floor(mins/60);
+  if(hrs<24)return`Hace ${hrs}h`;
+  const days=Math.floor(hrs/24);
+  if(days===1)return'Ayer';
+  return`Hace ${days} dias`;
+}
+
+function updateLastUpdated(candidate){
+  const value=new Date(candidate||0).getTime();
+  if(value && value>lastUpdatedAt){
+    lastUpdatedAt=value;
+    document.getElementById('st-updated').textContent=fmtRelative(candidate);
+  }
+}
+
 function renderAlerts(){
   const panel=document.getElementById('alerts-panel');
   document.getElementById('st-alerts').textContent=allAlerts.length;
   if(!allAlerts.length){
-    panel.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:13px">✓ Sin alertas activas</div>';
+    panel.innerHTML='<div class="loading-empty">Sin alertas activas por ahora.</div>';
     return;
   }
-  panel.innerHTML=`
-    <div style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto">
-      ${allAlerts.map(a=>`
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:${a.level==='red'?'#FFF5F5':'#FFFBEB'};border-left:3px solid ${a.level==='red'?'#DC2626':'#CA8A04'}">
-          <div style="flex:1;min-width:0">
-            <div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.nombre}</div>
-            <div style="font-size:10px;color:var(--muted);margin-top:2px">${a.detalle}</div>
-          </div>
-          <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap;background:${a.level==='red'?'#FEE2E2':'#FEF3C7'};color:${a.level==='red'?'#991B1B':'#92400E'};flex-shrink:0">${a.inventario}</span>
-          <a href="${a.link}" style="font-size:11px;color:var(--accent);font-weight:600;text-decoration:none;flex-shrink:0">Ver →</a>
-        </div>`).join('')}
-    </div>`;
+  panel.innerHTML=allAlerts
+    .slice()
+    .sort((a,b)=>(a.level==='red'?0:1)-(b.level==='red'?0:1))
+    .slice(0,8)
+    .map(a=>`
+      <div class="alert-item-home ${a.level}">
+        <span class="alert-dot ${a.level}"></span>
+        <div>
+          <div class="alert-title">${a.nombre}</div>
+          <div class="alert-meta">${a.detalle} · ${a.inventario}</div>
+        </div>
+        <a class="alert-link" href="${a.link}">Ver</a>
+      </div>
+    `).join('');
+}
+
+function setLiveStatus(ok){
+  const dot=document.getElementById('live-dot');
+  const txt=document.getElementById('live-txt');
+  const label=document.getElementById('st-live');
+  if(ok){
+    dot.classList.remove('offline');
+    txt.textContent='En vivo';
+    label.textContent='En linea';
+  }else{
+    dot.classList.add('offline');
+    txt.textContent='Local';
+    label.textContent='Sin sync';
+  }
 }
 
 async function loadData(){
@@ -319,58 +483,85 @@ async function loadData(){
     await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js');
     if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
     const db=firebase.firestore();
+    setLiveStatus(true);
 
     db.collection('inventario').onSnapshot(snap=>{
-      const inv=snap.docs.map(d=>d.data());
-      const total=inv.reduce((s,r)=>s+(r.qty||0),0);
-      const b7=inv.filter(r=>r.loc==='BODEGA 7').reduce((s,r)=>s+(r.qty||0),0);
-      const tp=inv.filter(r=>r.loc==='EN TAPANCO').reduce((s,r)=>s+(r.qty||0),0);
-      const tipos=[...new Set(inv.map(r=>r.medida))].length;
-      const zeros=inv.filter(r=>(r.qty||0)===0);
+      const inv=snap.docs.map(d=>({id:d.id,...d.data()}));
+      const total=inv.reduce((sum,row)=>sum+(row.qty||0),0);
+      const b7=inv.filter(row=>row.loc==='BODEGA 7').reduce((sum,row)=>sum+(row.qty||0),0);
+      const tp=inv.filter(row=>row.loc==='EN TAPANCO').reduce((sum,row)=>sum+(row.qty||0),0);
+      const types=new Set(inv.map(row=>row.medida)).size;
+      const zeros=inv.filter(row=>(row.qty||0)===0);
       document.getElementById('st-tarimas').textContent=total;
-      document.getElementById('ic-b7').textContent=b7+' pz';
-      document.getElementById('ic-tp').textContent=tp+' pz';
-      document.getElementById('ic-tipos').textContent=tipos;
-      const tarAlerts=zeros.map(r=>({nombre:r.medida,detalle:'Sin stock',level:'red',link:'tarimas.html',inventario:'Tarimas'}));
-      allAlerts=allAlerts.filter(a=>a.link!=='tarimas.html').concat(tarAlerts);
-      document.getElementById('ic-tar-alert').textContent=zeros.length?zeros.length+' sin stock':'✓ OK';
-      document.getElementById('ic-tar-alert').className='alert-pill '+(zeros.length?'red':'green');
+      document.getElementById('ic-b7').textContent=`${b7} pz`;
+      document.getElementById('ic-tp').textContent=`${tp} pz`;
+      document.getElementById('ic-tipos').textContent=String(types);
+      document.getElementById('ic-tar-alert').textContent=zeros.length?`${zeros.length} sin stock`:'OK';
+      zeros.forEach(row=>updateLastUpdated(row.updatedAt||row.lastMovAt));
+      allAlerts=allAlerts.filter(item=>item.link!=='tarimas.html').concat(
+        zeros.map(row=>({
+          nombre:row.medida||'Tarima sin medida',
+          detalle:'Sin stock en inventario',
+          level:'red',
+          link:'tarimas.html',
+          inventario:'Tarimas'
+        }))
+      );
       renderAlerts();
     });
 
     db.collection('tintas').onSnapshot(snap=>{
-      const inv=snap.docs.map(d=>d.data());
-      const kg=inv.filter(r=>r.unidad!=='ml').reduce((s,r)=>s+(r.qty||0),0);
-      const zeros=inv.filter(r=>(r.qty||0)===0);
+      const inv=snap.docs.map(d=>({id:d.id,...d.data()}));
+      const kg=inv.filter(row=>row.unidad!=='ml').reduce((sum,row)=>sum+(row.qty||0),0);
+      const zeros=inv.filter(row=>(row.qty||0)===0);
       document.getElementById('st-tintas').textContent=kg.toFixed(0);
-      document.getElementById('ic-tint-total').textContent=inv.length+' lotes';
-      document.getElementById('ic-tint-kg').textContent=kg.toFixed(1)+' kg';
-      document.getElementById('ic-tint-zero').textContent=zeros.length;
-      document.getElementById('ic-tint-alert').textContent=zeros.length>0?zeros.length+' en cero':'✓ OK';
-      document.getElementById('ic-tint-alert').className='alert-pill '+(zeros.length>10?'red':zeros.length>0?'amber':'green');
+      document.getElementById('ic-tint-total').textContent=`${inv.length} lotes`;
+      document.getElementById('ic-tint-kg').textContent=`${kg.toFixed(1)} kg`;
+      document.getElementById('ic-tint-zero').textContent=String(zeros.length);
+      document.getElementById('ic-tint-alert').textContent=zeros.length?`${zeros.length} en cero`:'OK';
+      inv.forEach(row=>updateLastUpdated(row.updatedAt||row.lastMovAt));
+      allAlerts=allAlerts.filter(item=>item.link!=='tintas.html').concat(
+        zeros.map(row=>({
+          nombre:row.desc||row.clave||'Tinta sin nombre',
+          detalle:`Lote ${row.lote||'sin lote'} en cero`,
+          level:'amber',
+          link:'tintas.html',
+          inventario:'Tintas'
+        }))
+      );
       renderAlerts();
     });
 
     db.collection('indirectos').onSnapshot(snap=>{
-      const inv=snap.docs.map(d=>d.data());
-      const ok=inv.filter(r=>(r.qty||0)>=(r.min||0)).length;
-      const low=inv.filter(r=>(r.min||0)>0&&(r.qty||0)<(r.min||0));
-      document.getElementById('st-indir').textContent=ok;
-      document.getElementById('ic-ind-total').textContent=inv.length+' productos';
-      document.getElementById('ic-ind-ok').textContent=ok;
-      document.getElementById('ic-ind-low').textContent=low.length;
-      const indAlerts=low.map(r=>({nombre:r.nombre,detalle:`${r.qty} ${r.unidad} · mín. ${r.min}`,level:(r.qty||0)===0?'red':'amber',link:'indirectos.html',inventario:'Indirectos'}));
-      allAlerts=allAlerts.filter(a=>a.link!=='indirectos.html').concat(indAlerts);
-      document.getElementById('ic-ind-alert').textContent=low.length?low.length+' bajo mínimo':'✓ OK';
-      document.getElementById('ic-ind-alert').className='alert-pill '+(low.length?'amber':'green');
+      const inv=snap.docs.map(d=>({id:d.id,...d.data()}));
+      const ok=inv.filter(row=>(row.qty||0)>=(row.min||0)).length;
+      const low=inv.filter(row=>(row.min||0)>0&&(row.qty||0)<(row.min||0));
+      document.getElementById('st-indir').textContent=String(ok);
+      document.getElementById('ic-ind-total').textContent=`${inv.length} productos`;
+      document.getElementById('ic-ind-ok').textContent=String(ok);
+      document.getElementById('ic-ind-low').textContent=String(low.length);
+      document.getElementById('ic-ind-alert').textContent=low.length?`${low.length} bajo minimo`:'OK';
+      inv.forEach(row=>updateLastUpdated(row.updatedAt||row.lastMovAt));
+      allAlerts=allAlerts.filter(item=>item.link!=='indirectos.html').concat(
+        low.map(row=>({
+          nombre:row.nombre||'Material sin nombre',
+          detalle:`${row.qty||0} ${row.unidad||'PZ'} · min ${row.min||0}`,
+          level:(row.qty||0)===0?'red':'amber',
+          link:'indirectos.html',
+          inventario:'Indirectos'
+        }))
+      );
       renderAlerts();
     });
-
-  }catch(e){
-    console.warn('Firebase no disponible:',e);
-    document.getElementById('alerts-panel').innerHTML='<div style="text-align:center;padding:1rem;color:var(--muted);font-size:12px">Configura Firebase para ver datos.</div>';
+  }catch(err){
+    console.warn('Firebase no disponible:',err);
+    setLiveStatus(false);
+    document.getElementById('alerts-panel').innerHTML='<div class="loading-empty">Configura Firebase para ver datos en vivo en el portal.</div>';
   }
 }
+
+setInterval(tick,1000);
+tick();
 loadData();
 </script>
 </body>

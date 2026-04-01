@@ -1,210 +1,26 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#F2E8D9">
-<title>Inventario Indirectos — DIMSA</title>
+<title>Inventario Indirectos &mdash; DIMSA</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-<style>
-    :root {
-    --bg: #f5f0e8;
-    --surface: #fdf8f2;
-    --surface2: #ede8de;
-    --header-bg: #fdf8f2;
-    --accent: #9e2a2b;
-    --accent-hover: #7b1d1e;
-    --accent-light: #f9eded;
-    --green: #4a7a5a;
-    --danger: #e53e3e;
-    --amber: #92400E;
-    --text: #2c1f0f;
-    --muted: #8a7070;
-    --border: #d9cfc0;
-    --border-strong: #c4b090;
-    --radius: 10px;
-    --radius-sm: 6px;
-    --shadow: 0 1px 3px rgba(44,31,15,.08);
-    --shadow-md: 0 4px 16px rgba(44,31,15,.14);
-  }
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  html{font-size:14px}
-    body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--bg); color: var(--text); min-height: 100vh;
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4a882' fill-opacity='0.07'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
-  
-
-  .header{background:var(--header-bg);padding:0 1.5rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:3px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.08)}
-  .header-left{display:flex;align-items:center;gap:14px}
-  .header-divider{width:1px;height:24px;background:var(--border)}
-  .logo{color:var(--text);font-size:14px;font-weight:600;letter-spacing:-.3px;font-family:'IBM Plex Mono',monospace}
-  .logo span{color:var(--accent);font-weight:400}
-  .header-nav{display:flex;gap:4px}
-  .header-nav a{font-size:12px;font-weight:600;padding:4px 10px;border-radius:5px;text-decoration:none;color:var(--muted)}
-  .header-nav a:hover{background:var(--border);color:var(--text)}
-  .header-nav a.active{background:var(--accent);color:#fff}
-  .header-right{display:flex;align-items:center;gap:12px}
-  .live-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
-  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
-  .live-dot.offline{background:#aaa}
-  .clock-txt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
-  .edit-chip{font-size:11px;padding:3px 10px;border-radius:20px;cursor:pointer;border:1px solid;font-family:'IBM Plex Sans',sans-serif;font-weight:600}
-  .edit-chip.locked{background:#FEF3C7;color:#92400E;border-color:#FDE68A}
-  .edit-chip.unlocked{background:var(--accent-light);color:var(--accent-hover);border-color:#93C5FD}
-
-  .edit-bar{background:var(--accent-hover);color:#fff;padding:0 1.5rem;height:0;overflow:hidden;display:flex;align-items:center;justify-content:space-between;transition:height .2s;font-size:13px}
-  .edit-bar.visible{height:44px}
-  .edit-bar-left{display:flex;align-items:center;gap:10px}
-  .edit-bar-dot{width:8px;height:8px;border-radius:50%;background:#93C5FD;animation:pulse 1.5s infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-  .edit-bar-sub{font-size:11px;color:#BFDBFE}
-  .end-btn{font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:700;padding:7px 16px;border-radius:6px;border:none;background:#fff;color:var(--accent-hover);cursor:pointer}
-  .end-btn:hover{background:var(--accent-light)}
-
-  .setup-banner{background:#1e3a5f;color:#93C5FD;font-size:12px;padding:8px 1.5rem;display:flex;align-items:center;gap:8px;position:relative;z-index:1}
-  .setup-banner.hidden{display:none}
-
-  .pin-overlay{position:fixed;inset:0;background:rgba(20,20,18,.75);z-index:500;display:none;align-items:center;justify-content:center}
-  .pin-overlay.show{display:flex}
-  .pin-card{background:var(--surface);border-radius:14px;padding:2rem 1.75rem;width:100%;max-width:320px;box-shadow:var(--shadow-md);text-align:center}
-  .pin-title{font-size:15px;font-weight:600;margin-bottom:4px}
-  .pin-sub{font-size:12px;color:var(--muted);margin-bottom:1.25rem}
-  .pin-input{font-family:'IBM Plex Mono',monospace;font-size:22px;letter-spacing:6px;text-align:center;padding:10px 16px;border:1.5px solid var(--border);border-radius:var(--radius);width:100%;outline:none;margin-bottom:10px}
-  .pin-input:focus{border-color:var(--accent)}
-  .pin-input.error{border-color:var(--danger);animation:shake .3s}
-  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-  .pin-btn{width:100%;font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:600;padding:10px;border-radius:var(--radius);border:none;background:var(--accent);color:#fff;cursor:pointer}
-  .pin-cancel{font-size:12px;color:var(--muted);margin-top:10px;cursor:pointer;display:block}
-
-  .main{max-width:1200px;margin:0 auto;padding:1.25rem 1.5rem;position:relative;z-index:1}
-
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem}
-  .stat{background:var(--surface);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
-  .stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px}
-  .stat-value{font-size:28px;font-weight:700;color:var(--text);line-height:1;font-family:'IBM Plex Mono',monospace}
-  .stat-value.blue{color:var(--accent)}
-  .stat-value.green{color:var(--green)}
-  .stat-value.red{color:var(--danger)}
-  .stat-value.amber{color:#D97706}
-  .stat-sub{font-size:10px;color:var(--muted);margin-top:4px}
-
-  .alert-bar{background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:1rem;font-size:12px;color:#92400E;display:none}
-  .alert-bar.show{display:block}
-
-  .card{background:var(--surface);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);margin-bottom:1rem;position:relative;z-index:1}
-  .card-title{font-size:13px;font-weight:600;margin-bottom:1rem}
-
-  .tabs{display:flex;gap:4px;margin-bottom:1rem;background:var(--surface);padding:4px;border-radius:var(--radius);box-shadow:var(--shadow);position:relative;z-index:1;overflow-x:auto}
-  .tab-btn{font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;padding:6px 16px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--muted);white-space:nowrap;transition:all .15s}
-  .tab-btn.active{background:var(--accent);color:#fff}
-
-  .toolbar{display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
-  .search-input{font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);width:260px;outline:none}
-  .search-input:focus{border-color:var(--accent);background:#fff}
-  .filter-btn{font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;color:var(--muted);white-space:nowrap}
-  .filter-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .spacer{flex:1}
-  .add-btn{font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;padding:7px 14px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;cursor:pointer}
-  .add-btn:hover{background:var(--accent-hover)}
-
-  .tbl-wrap{overflow-x:auto;max-height:560px;overflow-y:auto;border-radius:var(--radius-sm);border:1px solid var(--border)}
-  .tbl-wrap table{width:100%;border-collapse:collapse}
-  .tbl-wrap thead th{position:sticky;top:0;background:var(--surface);z-index:2;box-shadow:0 1px 0 var(--border-strong)}
-  thead th{font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;color:var(--muted);padding:8px 12px;text-align:left;white-space:nowrap}
-  tbody td{padding:7px 12px;border-bottom:1px solid var(--bg);font-size:12px;vertical-align:middle}
-  tbody tr:hover td{background:#F5F3FF}
-
-  .nombre-cell{font-weight:600;font-size:12px}
-  .tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;display:inline-block;white-space:nowrap}
-  .tag-plan{background:#EFF6FF;color:#8a6a1a}
-  .tag-alm{background:#f0f9f3;color:var(--green)}
-
-  /* stock color on qty box */
-  .qty-ctrl{display:flex;align-items:center;gap:5px}
-  .qty-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text);touch-action:manipulation}
-  .qty-btn:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
-  .qty-input{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;width:62px;text-align:center;padding:3px 4px;border:1px solid var(--border);border-radius:5px;background:var(--bg);color:var(--text);outline:none;-moz-appearance:textfield}
-  .qty-input::-webkit-outer-spin-button,.qty-input::-webkit-inner-spin-button{-webkit-appearance:none}
-  .qty-input:focus{border-color:var(--accent);background:#fff}
-  .qty-input.stock-zero{border-color:var(--danger);background:#FFF5F5;color:var(--danger)}
-  .qty-input.stock-low{border-color:#CA8A04;background:#FEFCE8;color:#854D0E}
-  .qty-input.stock-ok{border-color:var(--green);background:#f0f9f3;color:var(--green)}
-
-  .obs-input{font-family:'IBM Plex Sans',sans-serif;font-size:12px;width:100%;padding:4px 7px;border:1px solid transparent;border-radius:4px;background:transparent;color:var(--text);outline:none}
-  .obs-input:hover{border-color:var(--border);background:var(--bg)}
-  .obs-input:focus{border-color:var(--accent);background:#fff}
-  .obs-input::placeholder{color:#BBBBBB;font-style:italic}
-
-  .locked .obs-input{pointer-events:none;color:var(--muted);background:transparent;border-color:transparent}
-  .locked .qty-btn{pointer-events:none;opacity:.4}
-  .locked .qty-input{pointer-events:none}
-  .locked .del-btn{display:none}
-  .locked .add-btn{display:none}
-  .locked .btn.primary{display:none}
-
-  .del-btn{font-size:14px;background:none;border:none;cursor:pointer;color:#CCC;padding:2px 6px;border-radius:4px}
-  .del-btn:hover{color:var(--danger);background:#FEE2E2}
-
-  .min-badge{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted)}
-
-  .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
-  .form-col{display:flex;flex-direction:column;gap:4px}
-  label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
-  input[type=text],input[type=number],select,textarea{font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);outline:none;width:100%}
-  input:focus,select:focus{border-color:var(--accent);background:#fff}
-  .btn-row{display:flex;gap:8px;margin-top:4px}
-  .btn{font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;padding:8px 18px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text)}
-  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .btn.primary:hover{background:var(--accent-hover)}
-
-  .log-list{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto}
-  .log-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border-radius:var(--radius-sm);font-size:12px}
-  .log-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;white-space:nowrap}
-  .lb-entrada{background:#EFF6FF;color:#8a6a1a}
-  .lb-salida{background:#FEE2E2;color:#991B1B}
-  .lb-ajuste{background:#FEF3C7;color:#92400E}
-  .lb-new{background:#f0f9f3;color:var(--green)}
-  .log-desc{font-weight:500;color:var(--text)}
-  .log-meta{font-size:10px;color:var(--muted)}
-  .log-qty{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;margin-left:auto}
-  .log-qty.pos{color:var(--green)}
-  .log-qty.neg{color:var(--danger)}
-  .log-qty.neu{color:var(--muted)}
-  .empty{text-align:center;padding:2rem;color:var(--muted)}
-
-  .toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;font-size:13px;padding:10px 18px;border-radius:8px;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;z-index:999;max-width:280px;box-shadow:var(--shadow-md)}
-  .toast.show{opacity:1;transform:translateY(0)}
-
-  @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr 1fr}}
-  @media(max-width:640px){
-    .header{padding:0 1rem;height:auto;flex-direction:column;align-items:stretch;padding:8px 1rem}
-    .header-left{margin-bottom:4px}
-    .header-nav{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:2px;margin-bottom:4px}
-    .header-nav a{font-size:10px;padding:4px 8px;white-space:nowrap}
-    .header-right{justify-content:flex-end}
-    .clock-txt{display:none}
-    .main{padding:.75rem}
-    .stats{grid-template-columns:repeat(2,1fr);gap:8px}
-    .form-grid{grid-template-columns:1fr}
-    .search-input{width:100%}
-    .tbl-wrap{max-height:380px}
-    thead th:nth-child(n+5){display:none}
-    tbody td:nth-child(n+5){display:none}
-    .edit-bar.visible{height:auto;min-height:44px;padding:8px 1rem;flex-direction:column;align-items:flex-start;gap:6px}
-    .end-btn{width:100%;text-align:center}
-  }
-</style>
+<link rel="stylesheet" href="enterprise-2026.css">
 </head>
-<body>
+<body class="page-indirectos">
 
 <!-- PIN MODAL -->
 <div class="pin-overlay" id="pin-overlay">
   <div class="pin-card">
     <div class="pin-title">Modo edición</div>
     <div class="pin-sub">Ingresa el código para editar el inventario.</div>
-    <input class="pin-input" id="pin-input" type="password" maxlength="6" placeholder="• • • •" autocomplete="off">
-    <button class="pin-btn" onclick="verificarPin()">Entrar</button>
-    <span class="pin-cancel" onclick="cerrarPin()">Cancelar</span>
+    <input class="pin-input" id="pin-input" type="password" maxlength="6" placeholder="&bull; &bull; &bull; &bull;" autocomplete="off">
+    <div class="pin-actions">
+      <button class="pin-btn" onclick="verificarPin()">Entrar</button>
+      <span class="pin-cancel" onclick="cerrarPin()">Cancelar</span>
+    </div>
   </div>
 </div>
 
@@ -216,7 +32,7 @@
     <div class="logo">INDIRECTOS <span>/ inventario</span></div>
   </div>
   <nav class="header-nav">
-    <a href="index.html">← Inicio</a>
+    <a href="index.html">&larr; Inicio</a>
     <a href="tarimas.html">Tarimas</a>
     <a href="tintas.html">Tintas</a>
     <a href="indirectos.html" class="active">Indirectos</a>
@@ -224,7 +40,7 @@
   <div class="header-right">
     <div class="live-badge"><div class="live-dot offline" id="live-dot"></div><span id="live-txt">conectando...</span></div>
     <span class="clock-txt" id="clock"></span>
-    <div class="edit-chip locked" id="edit-chip" onclick="clickEditChip()">🔒 Solo lectura</div>
+    <div class="edit-chip locked" id="edit-chip" onclick="clickEditChip()">&#128274; Solo lectura</div>
   </div>
 </header>
 
@@ -233,29 +49,26 @@
   <div class="edit-bar-left">
     <div class="edit-bar-dot"></div>
     <div>
-      <div style="font-weight:500">Sesión activa — <span id="edit-bar-user">Aduana</span></div>
+      <div class="edit-bar-text">Sesión activa &mdash; <span id="edit-bar-user">Aduana</span></div>
       <div class="edit-bar-sub">Cambios guardados en tiempo real</div>
     </div>
   </div>
-  <button class="end-btn" onclick="bloquear()">✓ Terminar edición</button>
+  <button class="end-btn" onclick="bloquear()">&#10003; Terminar edición</button>
 </div>
 
 <div class="setup-banner hidden" id="setup-banner">
-  ⚡ Modo local — sin sincronización en tiempo real.
+  &#9889; Modo local &mdash; sin sincronización en tiempo real.
 </div>
 
 <main class="main locked" id="main-content">
 
   <!-- STATS -->
   <div class="stats">
-    <div class="stat"><div class="stat-label">Total productos</div><div class="stat-value blue" id="s-total">—</div><div class="stat-sub">registros</div></div>
-    <div class="stat"><div class="stat-label">Sobre el mínimo</div><div class="stat-value green" id="s-ok">—</div><div class="stat-sub">con stock suficiente</div></div>
-    <div class="stat"><div class="stat-label">Bajo el mínimo</div><div class="stat-value amber" id="s-low">—</div><div class="stat-sub">requieren reposición</div></div>
-    <div class="stat"><div class="stat-label">Sin stock</div><div class="stat-value red" id="s-zero">—</div><div class="stat-sub">en cero</div></div>
+    <div class="stat"><div class="stat-label">Total productos</div><div class="stat-value blue" id="s-total">&mdash;</div><div class="stat-sub">registros</div></div>
+    <div class="stat"><div class="stat-label">Sobre el mínimo</div><div class="stat-value green" id="s-ok">&mdash;</div><div class="stat-sub">con stock suficiente</div></div>
+    <div class="stat"><div class="stat-label">Bajo el mínimo</div><div class="stat-value amber" id="s-low">&mdash;</div><div class="stat-sub">requieren reposición</div></div>
+    <div class="stat"><div class="stat-label">Sin stock</div><div class="stat-value red" id="s-zero">&mdash;</div><div class="stat-sub">en cero</div></div>
   </div>
-
-  <!-- ALERT BAR -->
-  <div class="alert-bar" id="alert-bar"></div>
 
   <!-- TABS -->
   <div class="tabs">
@@ -266,7 +79,7 @@
   <!-- TAB: INVENTARIO -->
   <div id="tab-inventario">
     <div class="card">
-      <div class="toolbar">
+      <div class="toolbar toolbar-sticky">
         <input class="search-input" id="search" placeholder="Buscar producto..." oninput="renderTable()">
         <button class="filter-btn on" data-f="todos" onclick="setFilter(this,'todos')">Todos</button>
         <button class="filter-btn" data-f="PLANEACION" onclick="setFilter(this,'PLANEACION')">Planeación</button>
@@ -284,7 +97,6 @@
               <th>Existencia</th>
               <th>Mínimo</th>
               <th>Observaciones</th>
-              <th>Últ. movimiento</th>
               <th></th>
             </tr>
           </thead>
@@ -298,7 +110,7 @@
       <div class="card-title">Agregar producto</div>
       <div class="form-grid">
         <div class="form-col"><label>Nombre</label><input id="a-nombre" placeholder="ej. CAJA RM-60" type="text"></div>
-        <div class="form-col"><label>Área</label><select id="a-quien"><option value="PLANEACION">Planeación</option><option value="ALMACEN">Almacén</option></select></div>
+        <div class="form-col"><label>Área</label><div class="select-wrap"><select id="a-quien"><option value="PLANEACION">Planeación</option><option value="ALMACEN">Almacén</option></select></div></div>
         <div class="form-col"><label>Existencia inicial</label><input id="a-qty" type="number" min="0" step="1" value="0"></div>
         <div class="form-col"><label>Mínimo requerido</label><input id="a-min" type="number" min="0" step="1" value="0"></div>
         <div class="form-col"><label>Unidad</label><input id="a-unidad" placeholder="PZ, CAJAS, ROLLO, TAMBO..." type="text" value="PZ"></div>
@@ -311,25 +123,41 @@
     </div>
 
     <!-- HISTORIAL COLAPSABLE -->
-    <div style="margin-top:1rem">
-      <button onclick="toggleHistorial()" style="font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-light);border:1px solid var(--accent);border-radius:6px;cursor:pointer;padding:6px 14px;display:inline-flex;align-items:center;gap:6px">
+    <div class="inline-action">
+      <button class="action-link-btn" onclick="toggleHistorial()">
         ⬇ Exportar historial de movimientos (Excel)
       </button>
+    </div>
+
+    <div class="card recent-card">
+      <div class="section-title">Últimos 10 movimientos</div>
+      <div class="section-subtitle">Referencia rápida para planeación y captura en piso.</div>
+      <div class="log-list" id="log-list"></div>
     </div>
   </div>
 
   <!-- TAB: MOVIMIENTOS -->
-  <div id="tab-movimientos" style="display:none">
+  <div id="tab-movimientos" class="movement-overlay" onclick="if(event.target===this) setTab(document.querySelector('.tab-btn'),'inventario')">
+    <div class="movement-panel">
     <div class="card">
-      <div class="card-title">Registrar entrada / salida</div>
+      <div class="movement-head">
+        <div>
+          <div class="movement-kicker">Movimiento</div>
+          <div class="movement-title">Registrar entrada / salida</div>
+          <div class="movement-sub">Completa el movimiento sin perder de vista el inventario detrás.</div>
+        </div>
+        <button class="movement-close" type="button" onclick="setTab(document.querySelector('.tab-btn'),'inventario')">&times;</button>
+      </div>
       <div class="form-grid">
         <div class="form-col">
           <label>Tipo</label>
-          <select id="m-tipo">
-            <option value="entrada">Entrada — llegó material</option>
-            <option value="salida">Salida — se utilizó</option>
-            <option value="ajuste">Ajuste de inventario</option>
-          </select>
+          <div class="select-wrap">
+            <select id="m-tipo">
+              <option value="entrada">Entrada &mdash; llegó material</option>
+              <option value="salida">Salida &mdash; se utilizó</option>
+              <option value="ajuste">Ajuste de inventario</option>
+            </select>
+          </div>
         </div>
         <div class="form-col">
           <label>Producto</label>
@@ -347,42 +175,38 @@
       </div>
 
       <!-- AVISO MATERIAL NUEVO -->
-      <div id="nuevo-material-aviso" style="display:none;margin:10px 0;padding:10px 14px;background:#FEF3C7;border:1px solid #FDE68A;border-left:4px solid #CA8A04;border-radius:var(--radius-sm)">
-        <div style="font-size:12px;font-weight:600;color:#78350F;margin-bottom:8px">⚠ Material nuevo — completa los datos para registrarlo en el inventario</div>
-        <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr">
-          <div class="form-col"><label>Área</label><select id="a-quien"><option value="PLANEACION">Planeación</option><option value="ALMACEN">Almacén</option></select></div>
-          <div class="form-col"><label>Mínimo requerido</label><input id="a-min" type="number" min="0" value="0"></div>
-          <div class="form-col"><label>Unidad</label><input id="a-unidad" placeholder="PZ, TAMBO, ROLLO..." type="text" value="PZ"></div>
+      <div id="nuevo-material-aviso" class="panel-note warning" style="display:none">
+        <strong>Material nuevo</strong>
+        <div class="form-grid">
+          <div class="form-col"><label>Área</label><div class="select-wrap"><select id="mnew-quien"><option value="PLANEACION">Planeación</option><option value="ALMACEN">Almacén</option></select></div></div>
+          <div class="form-col"><label>Mínimo requerido</label><input id="mnew-min" type="number" min="0" value="0"></div>
+          <div class="form-col"><label>Unidad</label><input id="mnew-unidad" placeholder="PZ, TAMBO, ROLLO..." type="text" value="PZ"></div>
+        </div>
+      </div>
+
+      <div class="form-col">
+        <label>Atajos de cantidad</label>
+        <div class="quick-qty">
+          <button class="quick-btn" type="button" onclick="setQuickQty('m-qty',1)">1</button>
+          <button class="quick-btn" type="button" onclick="setQuickQty('m-qty',5)">5</button>
+          <button class="quick-btn" type="button" onclick="setQuickQty('m-qty',10)">10</button>
+          <button class="quick-btn" type="button" onclick="adjustQty('m-qty',-1)">-1</button>
+          <button class="quick-btn" type="button" onclick="adjustQty('m-qty',1)">+1</button>
         </div>
       </div>
 
       <div class="btn-row">
         <button class="btn primary" onclick="registrarMovimiento()">Registrar</button>
         <button class="btn" onclick="limpiarMov()">Limpiar</button>
+        <button class="btn" onclick="setTab(document.querySelector('.tab-btn'),'inventario')">Cerrar</button>
       </div>
+    </div>
     </div>
   </div>
 
 </main>
 
-<!-- FOOTER PATTERN -->
-<div style="margin-top:3rem;overflow:hidden;height:120px;position:relative;opacity:0.2;z-index:0">
-  <svg width="100%" height="120" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <pattern id="box-pattern" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-        <rect width="60" height="60" fill="none" stroke="#1D4ED8" stroke-width="1.5" opacity="0.5"/>
-        <line x1="0" y1="0" x2="60" y2="60" stroke="#1D4ED8" stroke-width=".5" opacity="0.3"/>
-        <line x1="60" y1="0" x2="0" y2="60" stroke="#1D4ED8" stroke-width=".5" opacity="0.3"/>
-      </pattern>
-      <linearGradient id="fadeBoxTop" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#E8E8E6" stop-opacity="1"/>
-        <stop offset="60%" stop-color="#E8E8E6" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-    <rect width="100%" height="120" fill="url(#box-pattern)"/>
-    <rect width="100%" height="120" fill="url(#fadeBoxTop)"/>
-  </svg>
-</div>
+<div class="page-footer"></div>
 
 <div class="toast" id="toast"></div>
 
@@ -497,7 +321,7 @@ function bloquear(){
   modoEdicion=false;modoMaestro=false;usuario='';
   document.getElementById('main-content').classList.add('locked');
   document.getElementById('edit-bar').classList.remove('visible');
-  const c=document.getElementById('edit-chip');c.textContent='🔒 Solo lectura';c.className='edit-chip locked';
+  const c=document.getElementById('edit-chip');c.textContent='\uD83D\uDD12 Solo lectura';c.className='edit-chip locked';
   const m=document.querySelector('#tab-mov-btn');if(m&&m.classList.contains('active'))setTab(document.querySelector('.tab-btn'),'inventario');
 }
 function requirePin(btn,tab){modoEdicion?setTab(btn,tab):abrirPin(()=>setTab(btn,tab))}
@@ -584,7 +408,7 @@ function loadLocal(){
 }
 function saveLocal(){localStorage.setItem('dimsa-indirectos-inv',JSON.stringify(inv))}
 function addLogLocal(tipo,nombre,qty,nota){
-  logs.unshift({tipo,nombre,qty,nota,quien:usuario||'—',fecha:fmt(new Date()),ts:Date.now()});
+  logs.unshift({tipo,nombre,qty,nota,quien:usuario||'&mdash;',fecha:fmt(new Date()),ts:Date.now()});
   if(logs.length>200)logs=logs.slice(0,200);
   localStorage.setItem('dimsa-indirectos-log',JSON.stringify(logs));
 }
@@ -596,7 +420,7 @@ async function cambiarQty(id,delta){
   const now=new Date().toISOString();
   if(useFirebase){
     await db.collection('indirectos').doc(id).update({qty:nv,updatedAt:now,updatedBy:usuario,lastMovAt:now});
-    await db.collection('indirectos_mov').add({tipo:delta>0?'entrada':'salida',nombre:inv[idx].nombre,qty:Math.abs(delta),quien:usuario,nota:`Ajuste rápido (${old}→${nv})`,ts:Date.now(),fecha:fmt(new Date())});
+    await db.collection('indirectos_mov').add({tipo:delta>0?'entrada':'salida',nombre:inv[idx].nombre,qty:Math.abs(delta),quien:usuario,nota:`Ajuste rápido (${old}&rarr;${nv})`,ts:Date.now(),fecha:fmt(new Date())});
   }else{inv[idx].qty=nv;inv[idx].lastMovAt=now;addLogLocal(delta>0?'entrada':'salida',inv[idx].nombre,Math.abs(delta),`Ajuste rápido`);saveLocal();renderAll();}
   toast(`${inv[idx].nombre}: ${nv} ${inv[idx].unidad||'PZ'}`);
 }
@@ -608,7 +432,7 @@ async function setQtyDirecto(id,input){
   const now=new Date().toISOString();
   if(useFirebase){
     await db.collection('indirectos').doc(id).update({qty:nv,updatedAt:now,updatedBy:usuario,lastMovAt:now});
-    await db.collection('indirectos_mov').add({tipo:nv>old?'entrada':'salida',nombre:inv[idx].nombre,qty:Math.abs(nv-old),quien:usuario,nota:`Cambio directo (${old}→${nv})`,ts:Date.now(),fecha:fmt(new Date())});
+    await db.collection('indirectos_mov').add({tipo:nv>old?'entrada':'salida',nombre:inv[idx].nombre,qty:Math.abs(nv-old),quien:usuario,nota:`Cambio directo (${old}&rarr;${nv})`,ts:Date.now(),fecha:fmt(new Date())});
   }else{inv[idx].qty=nv;inv[idx].lastMovAt=now;addLogLocal(nv>old?'entrada':'salida',inv[idx].nombre,Math.abs(nv-old),`Cambio directo`);saveLocal();renderAll();}
   toast('Guardado.');
 }
@@ -625,7 +449,7 @@ async function guardarCampo(id,campo,valor){
     if(campo==='obs'){
       const nombre=inv[idx].nombre;
       const qty=inv[idx].qty||0;
-      const nota=valorAnterior?`Observación modificada: "${valorAnterior}" → "${valorNuevo}"`:`Observación agregada: "${valorNuevo}"`;
+      const nota=valorAnterior?`Observación modificada: "${valorAnterior}" &rarr; "${valorNuevo}"`:`Observación agregada: "${valorNuevo}"`;
       await db.collection('movimientos-indirectos').add({tipo:'edicion-obs',producto:nombre,qty,quien:usuario,nota,ts:Date.now(),fecha:fmt(new Date())});
     }
   }
@@ -633,7 +457,7 @@ async function guardarCampo(id,campo,valor){
     if(campo==='obs'){
       const nombre=inv[idx].nombre;
       const qty=inv[idx].qty||0;
-      const nota=valorAnterior?`Observación modificada: "${valorAnterior}" → "${valorNuevo}"`:`Observación agregada: "${valorNuevo}"`;
+      const nota=valorAnterior?`Observación modificada: "${valorAnterior}" &rarr; "${valorNuevo}"`:`Observación agregada: "${valorNuevo}"`;
       addLogLocal('edicion-obs',nombre,qty,nota);
     }
     saveLocal();
@@ -679,9 +503,9 @@ async function registrarMovimiento(){
   if(esNuevo){
     const aviso=document.getElementById('nuevo-material-aviso');
     if(aviso.style.display==='none'){aviso.style.display='block';toast('Es un material nuevo — completa los datos y da clic en Registrar otra vez.');return;}
-    const quien=document.getElementById('a-quien').value;
-    const min=parseFloat(document.getElementById('a-min').value)||0;
-    const unidad=document.getElementById('a-unidad').value.trim()||'PZ';
+    const quien=document.getElementById('mnew-quien').value;
+    const min=parseFloat(document.getElementById('mnew-min').value)||0;
+    const unidad=document.getElementById('mnew-unidad').value.trim()||'PZ';
     const now=new Date().toISOString();
     const item={nombre,quien,qty,min,unidad,obs:'',updatedAt:now,updatedBy:usuario,lastMovAt:now};
     if(useFirebase){
@@ -724,12 +548,6 @@ function renderAll(){
   document.getElementById('s-ok').textContent=ok;
   document.getElementById('s-low').textContent=low;
   document.getElementById('s-zero').textContent=zero;
-  const alertItems=inv.filter(r=>(r.min||0)>0&&(r.qty||0)<(r.min||0));
-  const ab=document.getElementById('alert-bar');
-  if(alertItems.length){
-    ab.textContent=`Bajo mínimo: ${alertItems.slice(0,4).map(r=>r.nombre).join(', ')}${alertItems.length>4?' y '+(alertItems.length-4)+' más':''}`;
-    ab.classList.add('show');
-  }else ab.classList.remove('show');
   renderTable();
   renderLog();
   updateNombresList();
@@ -745,48 +563,55 @@ function renderTable(){
     return true;
   });
   const body=document.getElementById('tbl-body');
-  if(!rows.length){body.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:2rem;color:#888">Sin resultados.</td></tr>`;return;}
+  if(!rows.length){body.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:2rem;color:#888">Sin resultados.</td></tr>`;return;}
   body.innerHTML=rows.map(r=>{
     const qty=r.qty||0;const min=r.min||0;
     const stockCls=qty===0&&min>0?'stock-zero':min>0&&qty<min?'stock-low':'stock-ok';
     const areaTag=r.quien==='ALMACEN'?'<span class="tag tag-alm">Almacén</span>':'<span class="tag tag-plan">Planeación</span>';
     const obsVal=(r.obs||'').replace(/"/g,'&quot;');
-    const lastMov=r.lastMovAt?fmtRelative(r.lastMovAt):'<span style="color:#ccc">—</span>';
+    const lastMov=r.lastMovAt?fmtRelative(r.lastMovAt):'&mdash;';
+    const audit=getAuditLine(r.updatedBy,r.updatedAt);
     return `<tr>
-      <td><span class="nombre-cell">${r.nombre}</span></td>
-      <td>${areaTag}</td>
-      <td>
+      <td data-label="Producto">
+        <div class="table-main">
+          <span class="nombre-cell">${r.nombre}</span>
+          <div class="mobile-meta">${r.quien} · Min ${min} ${r.unidad||'PZ'} · ${lastMov}</div>
+          ${audit}
+        </div>
+      </td>
+      <td data-label="Área">${areaTag}</td>
+      <td data-label="Existencia">
         ${modoMaestro
-          ? `<div class="qty-ctrl"><button class="qty-btn" onclick="cambiarQty('${r.id}',-1)">−</button><input class="qty-input ${stockCls}" type="number" value="${qty}" min="0" step="1" onchange="setQtyDirecto('${r.id}',this)" onkeydown="if(event.key==='Enter')this.blur()"><button class="qty-btn" onclick="cambiarQty('${r.id}',1)">+</button><span style="font-size:10px;color:var(--muted);white-space:nowrap">${r.unidad||'PZ'}</span></div>`
-          : `<span class="qty-input ${stockCls}" style="display:inline-block;padding:4px 8px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;border:1px solid">${qty}</span> <span style="font-size:10px;color:var(--muted)">${r.unidad||'PZ'}</span>`
+          ? `<div class="qty-ctrl"><button class="qty-btn" onclick="cambiarQty('${r.id}',-1)">−</button><input class="qty-input ${stockCls}" type="number" value="${qty}" min="0" step="1" onchange="setQtyDirecto('${r.id}',this)" onkeydown="if(event.key==='Enter')this.blur()"><button class="qty-btn" onclick="cambiarQty('${r.id}',1)">+</button><span class="unit-inline">${r.unidad||'PZ'}</span></div>`
+          : `<span class="qty-input ${stockCls}" style="display:inline-block;padding:4px 8px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;border:1px solid">${qty}</span> <span class="unit-inline">${r.unidad||'PZ'}</span>`
         }
       </td>
-      <td>
+      <td data-label="Mínimo">
         <input class="obs-input" type="number" value="${min}" min="0" step="1" style="width:60px;font-family:'IBM Plex Mono',monospace;font-size:12px"
           onchange="guardarCampo('${r.id}','min',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
-        <span style="font-size:10px;color:var(--muted)">${r.unidad||'PZ'}</span>
+        <span class="unit-inline">${r.unidad||'PZ'}</span>
       </td>
-      <td><input class="obs-input" type="text" value="${obsVal}" placeholder="Agregar nota..."
+      <td data-label="Observaciones"><input class="obs-input" type="text" value="${obsVal}" placeholder="Agregar nota..."
         onchange="guardarCampo('${r.id}','obs',this.value)" onkeydown="if(event.key==='Enter')this.blur()"></td>
-      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${lastMov}</td>
-      <td><button class="del-btn" onclick="eliminar('${r.id}')">×</button></td>
+      <td data-label="Acción"><button class="del-btn" onclick="eliminar('${r.id}')">×</button></td>
     </tr>`;
   }).join('');
 }
 
 function renderLog(){
   const list=document.getElementById('log-list');
+  if(!list)return;
   if(!logs.length){list.innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>Sin movimientos.</p></div>';return;}
   const labels={'entrada':'Entrada','salida':'Salida','ajuste':'Ajuste','nuevo-registro':'Nuevo'};
   const clsMap={'entrada':'lb-entrada','salida':'lb-salida','ajuste':'lb-ajuste','nuevo-registro':'lb-new'};
-  list.innerHTML=logs.slice(0,100).map(l=>{
+  list.innerHTML=logs.slice(0,10).map(l=>{
     const cls=clsMap[l.tipo]||'lb-ajuste';
     const isPos=l.tipo==='entrada'||l.tipo==='nuevo-registro';
     const isNeg=l.tipo==='salida';
     return `<div class="log-item">
       <span class="log-badge ${cls}">${labels[l.tipo]||l.tipo}</span>
-      <div><div class="log-desc">${l.nombre}</div><div class="log-meta">${l.nota||''} · ${l.quien||'—'} · ${l.fecha||''}</div></div>
-      <span class="log-qty ${isPos?'pos':isNeg?'neg':'neu'}">${isPos?'+':isNeg?'-':'±'}${l.qty}</span>
+      <div><div class="log-desc">${l.nombre}</div><div class="log-meta">${l.nota||''} &middot; ${l.quien||'&mdash;'} &middot; ${l.fecha||''}</div></div>
+      <span class="log-qty ${isPos?'pos':isNeg?'neg':'neu'}">${isPos?'+':isNeg?'-':'&plusmn;'}${l.qty}</span>
     </div>`;
   }).join('');
 }
@@ -799,7 +624,7 @@ function updateNombresList(){
 function fmt(d){return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`}
 function todayStr(){const n=new Date();return`${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`}
 function fmtRelative(iso){
-  if(!iso)return'—';
+  if(!iso)return'&mdash;';
   const diff=Date.now()-new Date(iso).getTime();
   const mins=Math.floor(diff/60000);
   if(mins<1)return'Hace un momento';
@@ -814,7 +639,17 @@ function fmtRelative(iso){
 function setTab(btn,tab){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   if(btn&&btn.classList)btn.classList.add('active');
-  ['inventario','movimientos'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===tab?'':'none';});
+  const inv=document.getElementById('tab-inventario');
+  const mov=document.getElementById('tab-movimientos');
+  if(tab==='movimientos'){
+    inv.style.display='';
+    mov.classList.add('show');
+    document.body.classList.add('movement-open');
+  }else{
+    inv.style.display='';
+    mov.classList.remove('show');
+    document.body.classList.remove('movement-open');
+  }
 }
 function setFilter(btn,f){
   filtro=f;
@@ -843,6 +678,25 @@ function toggleHistorial(){
 function limpiarMov(){
   ['m-nombre','m-nota'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('m-qty').value='1';document.getElementById('m-tipo').value='entrada';
+  document.getElementById('mnew-quien').value='PLANEACION';
+  document.getElementById('mnew-min').value='0';
+  document.getElementById('mnew-unidad').value='PZ';
+  document.getElementById('nuevo-material-aviso').style.display='none';
+}
+function setQuickQty(id,value){
+  const input=document.getElementById(id);
+  if(input)input.value=String(value);
+}
+function adjustQty(id,delta){
+  const input=document.getElementById(id);
+  if(!input)return;
+  const current=parseFloat(input.value)||0;
+  input.value=String(Math.max(0,current+delta));
+}
+function getAuditLine(user,iso){
+  const userTxt=user||'Sin usuario';
+  const when=iso?fmtRelative(iso):'Sin fecha';
+  return `<div class="audit-line"><span class="audit-pill"><strong>${userTxt}</strong></span><span>${when}</span></div>`;
 }
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 function tick(){const n=new Date(),p=x=>String(x).padStart(2,'0');document.getElementById('clock').textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;}
@@ -851,3 +705,9 @@ init();
 </script>
 </body>
 </html>
+
+
+
+
+
+

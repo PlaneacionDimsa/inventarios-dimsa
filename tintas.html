@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -8,233 +8,20 @@
 <meta name="theme-color" content="#F2E8D9">
 <title>Inventario Tintas - DIMSA</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-<style>
-    :root {
-    --bg: #f5f0e8;
-    --surface: #fdf8f2;
-    --surface2: #ede8de;
-    --header-bg: #fdf8f2;
-    --accent: #9e2a2b;
-    --accent-hover: #7b1d1e;
-    --accent-light: #f9eded;
-    --green: #4a7a5a;
-    --danger: #e53e3e;
-    --amber: #92400E;
-    --text: #2c1f0f;
-    --muted: #8a7070;
-    --border: #d9cfc0;
-    --border-strong: #c4b090;
-    --radius: 10px;
-    --radius-sm: 6px;
-    --shadow: 0 1px 3px rgba(44,31,15,.08);
-    --shadow-md: 0 4px 16px rgba(44,31,15,.14);
-  }
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  html{font-size:14px}
-    body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--bg); color: var(--text); min-height: 100vh;
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4a882' fill-opacity='0.07'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
-  
-
-  /* ── HEADER ── */
-  .header{background:var(--header-bg);padding:0 1.5rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:3px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.08)}
-  .header-left{display:flex;align-items:center;gap:14px}
-  .header-divider{width:1px;height:24px;background:var(--border)}
-  .logo{color:var(--text);font-size:14px;font-weight:600;letter-spacing:-.3px;font-family:'IBM Plex Mono',monospace}
-  .logo span{color:var(--accent);font-weight:400}
-  .header-right{display:flex;align-items:center;gap:12px}
-  .live-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
-  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
-  .live-dot.offline{background:#aaa}
-  .clock-txt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
-  .edit-chip{font-size:11px;padding:3px 10px;border-radius:20px;cursor:pointer;border:1px solid;font-family:'IBM Plex Sans',sans-serif;font-weight:600}
-  .edit-chip.locked{background:#FEF3C7;color:#92400E;border-color:#FDE68A}
-  .edit-chip.unlocked{background:var(--accent-light);color:var(--accent-hover);border-color:#E0A0A0}
-
-  /* ── EDIT BAR ── */
-  .edit-bar{background:var(--accent-hover);color:#fff;padding:0 1.5rem;height:0;overflow:hidden;display:flex;align-items:center;justify-content:space-between;transition:height .2s;font-size:13px}
-  .edit-bar.visible{height:44px}
-  .edit-bar-left{display:flex;align-items:center;gap:10px}
-  .edit-bar-dot{width:8px;height:8px;border-radius:50%;background:#F9C3C3;animation:pulse 1.5s infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-  .edit-bar-sub{font-size:11px;color:#F9C3C3}
-  .end-btn{font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:700;padding:7px 16px;border-radius:6px;border:none;background:#fff;color:var(--accent-hover);cursor:pointer}
-  .end-btn:hover{background:var(--accent-light)}
-
-  /* ── SETUP BANNER ── */
-  .setup-banner{background:#1e3a5f;color:#93C5FD;font-size:12px;padding:8px 1.5rem;display:flex;align-items:center;gap:8px;position:relative;z-index:1}
-  .setup-banner a{color:#60A5FA}
-  .setup-banner.hidden{display:none}
-
-  /* ── MAIN ── */
-  .main{max-width:1300px;margin:0 auto;padding:1.25rem 1.5rem;position:relative;z-index:1}
-
-  /* ── STATS ── */
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem}
-  .stat{background:var(--surface);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
-  .stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px}
-  .stat-value{font-size:28px;font-weight:700;color:var(--text);line-height:1;font-family:'IBM Plex Mono',monospace}
-  .stat-value.accent{color:var(--accent)}
-  .stat-value.green{color:var(--green)}
-  .stat-sub{font-size:10px;color:var(--muted);margin-top:4px}
-
-  /* ── ALERT BAR ── */
-  .alert-bar{background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:1rem;font-size:12px;color:#92400E;display:none}
-  .alert-bar.show{display:block}
-
-  /* ── CARD ── */
-  .card{background:var(--surface);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);margin-bottom:1rem;position:relative;z-index:1}
-  .card-title{font-size:13px;font-weight:600;margin-bottom:1rem;color:var(--text)}
-
-  /* ── TABS ── */
-  .tabs{display:flex;gap:4px;margin-bottom:1rem;background:var(--surface);padding:4px;border-radius:var(--radius);box-shadow:var(--shadow);position:relative;z-index:1;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .tab-btn{font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;padding:6px 16px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--muted);white-space:nowrap;transition:all .15s}
-  .tab-btn:hover{background:var(--bg);color:var(--text)}
-  .tab-btn.active{background:var(--accent);color:#fff}
-
-  /* ── TOOLBAR ── */
-  .toolbar{display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
-  .search-input{font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);width:280px;outline:none}
-  .search-input:focus{border-color:var(--accent);background:#fff}
-  .filter-btn{font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;color:var(--muted);white-space:nowrap}
-  .filter-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .spacer{flex:1}
-  .add-btn{font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;padding:7px 14px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;cursor:pointer}
-  .add-btn:hover{background:var(--accent-hover)}
-
-  /* ── TABLE ── */
-  .tbl-wrap{overflow-x:auto;max-height:520px;overflow-y:auto;border-radius:var(--radius-sm);border:1px solid var(--border)}
-  .tbl-wrap table{width:100%;border-collapse:collapse}
-  .tbl-wrap thead th{position:sticky;top:0;background:var(--surface);z-index:2;box-shadow:0 1px 0 var(--border-strong)}
-  thead th{font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;color:var(--muted);padding:8px 12px;text-align:left;white-space:nowrap}
-  tbody td{padding:7px 12px;border-bottom:1px solid var(--bg);font-size:12px;vertical-align:middle}
-  .group-row:hover td{background:#F0EDE8 !important}
-  .lote-row:hover td{background:#F5F2EF !important}
-  tbody tr.group-row td{border-bottom:1px solid var(--border)}
-  tbody tr:hover td{background:#FAF8F5}
-  .medida-cell{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600}
-  .lote-cell{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted)}
-  .tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;display:inline-block;white-space:nowrap}
-  .tag-cat{background:#EDE9FE;color:#5B21B6}
-  .tag-ml{background:#FEF3C7;color:#92400E}
-  .tag-kg{background:#E0F2FE;color:#075985}
-  .del-btn{font-size:14px;background:none;border:none;cursor:pointer;color:#CCC;padding:2px 6px;border-radius:4px}
-  .del-btn:hover{color:var(--danger);background:#FEE2E2}
-
-  /* ── QTY CONTROL ── */
-  .qty-ctrl{display:flex;align-items:center;gap:5px}
-  .qty-btn{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--text);transition:all .1s;font-family:monospace;line-height:1;touch-action:manipulation}
-  .qty-btn:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
-  .qty-input{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;width:58px;text-align:center;padding:3px 4px;border:1px solid var(--border);border-radius:5px;background:var(--bg);color:var(--text);outline:none;-moz-appearance:textfield}
-  .qty-input:focus{border-color:var(--accent);background:#fff}
-  .qty-input::-webkit-outer-spin-button,.qty-input::-webkit-inner-spin-button{-webkit-appearance:none}
-  .qty-input.stock-zero{border-color:var(--danger);background:#FFF5F5;color:var(--danger)}
-  .qty-input.stock-low{border-color:#CA8A04;background:#FEFCE8;color:#854D0E}
-  .qty-input.stock-ok{border-color:var(--green);background:#f0f9f3;color:var(--green)}
-  .qty-input.stock-zero:focus{border-color:var(--danger)}
-  .qty-input.stock-low:focus{border-color:#CA8A04}
-  .qty-input.stock-ok:focus{border-color:var(--green)}
-
-  /* ── OBS INLINE EDIT ── */
-  .obs-input{font-family:'IBM Plex Sans',sans-serif;font-size:12px;width:100%;min-width:100px;padding:4px 7px;border:1px solid transparent;border-radius:4px;background:transparent;color:var(--text);outline:none;cursor:text}
-  .obs-input:hover{border-color:var(--border);background:var(--bg)}
-  .obs-input:focus{border-color:var(--accent);background:#fff}
-  .obs-input::placeholder{color:#BBBBBB;font-style:italic}
-
-  /* ── LOCKED STATE ── */
-  .locked .obs-input{pointer-events:none;color:var(--muted);background:transparent;border-color:transparent;cursor:default}
-  .locked .qty-btn{pointer-events:none;opacity:.4;cursor:default}
-  .locked .qty-input{pointer-events:none}
-  .locked .del-btn{display:none}
-  .locked .add-btn{display:none}
-  .locked .btn.primary{display:none}
-
-  /* ── FORM ── */
-  .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
-  .form-col{display:flex;flex-direction:column;gap:4px}
-  label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
-  input[type=text],input[type=number],select,textarea{font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);outline:none;width:100%}
-  input:focus,select:focus,textarea:focus{border-color:var(--accent);background:#fff}
-  textarea{resize:vertical;min-height:60px}
-  .btn-row{display:flex;gap:8px;margin-top:4px}
-  .btn{font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;padding:8px 18px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text)}
-  .btn:hover{background:var(--bg)}
-  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .btn.primary:hover{background:var(--accent-hover)}
-
-  /* ── LOG ── */
-  .log-list{display:flex;flex-direction:column;gap:6px;max-height:460px;overflow-y:auto}
-  .log-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border-radius:var(--radius-sm);font-size:12px}
-  .log-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;white-space:nowrap}
-  .lb-entrada{background:var(--accent-light);color:var(--accent-hover)}
-  .lb-salida{background:#FEE2E2;color:#991B1B}
-  .lb-ajuste{background:#FEF3C7;color:#92400E}
-  .lb-new{background:#E0F2FE;color:#075985}
-  .lb-dev{background:#f0f9f3;color:var(--green)}
-  .log-desc{font-weight:500;color:var(--text)}
-  .log-meta{font-size:10px;color:var(--muted)}
-  .log-qty{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;margin-left:auto;white-space:nowrap}
-  .log-qty.pos{color:var(--green)}
-  .log-qty.neg{color:var(--danger)}
-  .log-qty.neu{color:var(--muted)}
-  .empty{text-align:center;padding:2rem;color:var(--muted)}
-  .empty-icon{font-size:2rem;margin-bottom:.5rem}
-
-  /* ── PIN MODAL ── */
-  .pin-overlay{position:fixed;inset:0;background:rgba(20,20,18,.75);z-index:500;display:none;align-items:center;justify-content:center}
-  .pin-overlay.show{display:flex}
-  .pin-card{background:var(--surface);border-radius:14px;padding:2rem 1.75rem;width:100%;max-width:320px;box-shadow:var(--shadow-md);text-align:center}
-  .pin-title{font-size:15px;font-weight:600;margin-bottom:4px}
-  .pin-sub{font-size:12px;color:var(--muted);margin-bottom:1.25rem}
-  .pin-input{font-family:'IBM Plex Mono',monospace;font-size:22px;letter-spacing:6px;text-align:center;padding:10px 16px;border:1.5px solid var(--border);border-radius:var(--radius);width:100%;outline:none;margin-bottom:10px}
-  .pin-input:focus{border-color:var(--accent)}
-  .pin-input.error{border-color:var(--danger);animation:shake .3s}
-  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-  .pin-btn{width:100%;font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:600;padding:10px;border-radius:var(--radius);border:none;background:var(--accent);color:#fff;cursor:pointer}
-  .pin-btn:hover{background:var(--accent-hover)}
-  .pin-cancel{font-size:12px;color:var(--muted);margin-top:10px;cursor:pointer;display:block}
-  .pin-cancel:hover{color:var(--text)}
-
-  /* ── TOAST ── */
-  .toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;font-size:13px;padding:10px 18px;border-radius:8px;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;z-index:999;max-width:280px;box-shadow:var(--shadow-md)}
-  .toast.show{opacity:1;transform:translateY(0)}
-
-  /* ── RESPONSIVE ── */
-  @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr 1fr}}
-  @media(max-width:640px){
-    .header{padding:0 1rem;height:auto;flex-direction:column;align-items:stretch;padding:8px 1rem}
-    .header-left{margin-bottom:4px}
-    .header-nav{overflow-x:auto;-webkit-overflow-scrolling:touch;gap:2px;margin-bottom:4px}
-    .header-nav a{font-size:10px;padding:4px 8px;white-space:nowrap}
-    .header-right{justify-content:flex-end}
-    .header img{height:26px}
-    .logo{font-size:12px}
-    .clock-txt{display:none}
-    .main{padding:.75rem}
-    .stats{grid-template-columns:repeat(2,1fr);gap:8px}
-    .form-grid{grid-template-columns:1fr}
-    .search-input{width:100%}
-    .tbl-wrap{max-height:360px}
-    thead th:nth-child(n+5){display:none}
-    tbody td:nth-child(n+5){display:none}
-    .edit-bar.visible{height:auto;min-height:44px;padding:8px 1rem;flex-direction:column;align-items:flex-start;gap:6px}
-    .end-btn{width:100%;text-align:center}
-  }
-  @media(max-width:380px){
-    .header img{display:none}
-    .header-divider{display:none}
-  }
-</style>
+<link rel="stylesheet" href="enterprise-2026.css">
 </head>
-<body>
+<body class="page-tintas">
 
 <!-- PIN MODAL -->
 <div class="pin-overlay" id="pin-overlay">
   <div class="pin-card">
     <div class="pin-title">Modo edición</div>
     <div class="pin-sub">Ingresa tu código (4 dígitos para aduaneros, 6 para jefe).</div>
-    <input class="pin-input" id="pin-input" type="password" maxlength="6" placeholder="• • • •" autocomplete="off">
-    <button class="pin-btn" onclick="verificarPin()">Entrar</button>
-    <span class="pin-cancel" onclick="cerrarPin()">Cancelar — solo quiero ver</span>
+    <input class="pin-input" id="pin-input" type="password" maxlength="6" placeholder="&bull; &bull; &bull; &bull;" autocomplete="off">
+    <div class="pin-actions">
+      <button class="pin-btn" onclick="verificarPin()">Entrar</button>
+      <span class="pin-cancel" onclick="cerrarPin()">Cancelar &mdash; solo quiero ver</span>
+    </div>
   </div>
 </div>
 
@@ -245,15 +32,16 @@
     <div class="header-divider"></div>
     <div class="logo">TINTAS <span>/ inventario</span></div>
   </div>
-  <nav class="header-nav" style="display:flex;gap:4px">
-    <a href="index.html" style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:5px;text-decoration:none;color:var(--muted)">← Inicio</a>
-    <a href="tarimas.html" style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:5px;text-decoration:none;color:var(--muted)">Tarimas</a>
-    <a href="indirectos.html" style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:5px;text-decoration:none;color:var(--muted)">Indirectos</a>
+  <nav class="header-nav">
+    <a href="index.html">&larr; Inicio</a>
+    <a href="tarimas.html">Tarimas</a>
+    <a href="tintas.html" class="active">Tintas</a>
+    <a href="indirectos.html">Indirectos</a>
   </nav>
   <div class="header-right">
     <div class="live-badge"><div class="live-dot offline" id="live-dot"></div><span id="live-txt">conectando...</span></div>
     <span class="clock-txt" id="clock"></span>
-    <div class="edit-chip locked" id="edit-chip" onclick="clickEditChip()">🔒 Solo lectura</div>
+    <div class="edit-chip locked" id="edit-chip" onclick="clickEditChip()">&#128274; Solo lectura</div>
   </div>
 </header>
 
@@ -262,30 +50,27 @@
   <div class="edit-bar-left">
     <div class="edit-bar-dot"></div>
     <div>
-      <div style="font-weight:500">Sesión activa — <span id="edit-bar-user">Aduana</span></div>
+      <div class="edit-bar-text">Sesión activa &mdash; <span id="edit-bar-user">Aduana</span></div>
       <div class="edit-bar-sub">Todos los cambios se guardan en tiempo real</div>
     </div>
   </div>
-  <button class="end-btn" onclick="bloquear()">✓ Terminar edición</button>
+  <button class="end-btn" onclick="bloquear()">&#10003; Terminar edición</button>
 </div>
 
 <!-- SETUP BANNER -->
 <div class="setup-banner hidden" id="setup-banner">
-  ⚡ Modo local (sin sincronización). Configura Firebase para ver en tiempo real con otras personas.
+  &#9889; Modo local (sin sincronización). Configura Firebase para ver en tiempo real con otras personas.
 </div>
 
 <main class="main locked" id="main-content">
 
   <!-- STATS -->
   <div class="stats">
-    <div class="stat"><div class="stat-label">Total registros</div><div class="stat-value" id="s-total">—</div><div class="stat-sub">lotes en inventario</div></div>
-    <div class="stat"><div class="stat-label">Total kg</div><div class="stat-value green" id="s-kg">—</div><div class="stat-sub">kilogramos</div></div>
-    <div class="stat"><div class="stat-label">Sin stock</div><div class="stat-value accent" id="s-zero">—</div><div class="stat-sub">lotes en cero</div></div>
-    <div class="stat"><div class="stat-label">Hoy</div><div class="stat-value" id="s-hoy">—</div><div class="stat-sub">movimientos</div></div>
+    <div class="stat"><div class="stat-label">Total registros</div><div class="stat-value" id="s-total">&mdash;</div><div class="stat-sub">lotes en inventario</div></div>
+    <div class="stat"><div class="stat-label">Total kg</div><div class="stat-value green" id="s-kg">&mdash;</div><div class="stat-sub">kilogramos</div></div>
+    <div class="stat"><div class="stat-label">Sin stock</div><div class="stat-value accent" id="s-zero">&mdash;</div><div class="stat-sub">lotes en cero</div></div>
+    <div class="stat"><div class="stat-label">Hoy</div><div class="stat-value" id="s-hoy">&mdash;</div><div class="stat-sub">movimientos</div></div>
   </div>
-
-  <!-- ALERT BAR -->
-  <div class="alert-bar" id="alert-bar"></div>
 
   <!-- TABS -->
   <div class="tabs">
@@ -296,7 +81,7 @@
   <!-- TAB: INVENTARIO -->
   <div id="tab-inventario">
     <div class="card">
-      <div class="toolbar">
+      <div class="toolbar toolbar-sticky">
         <input class="search-input" id="search" placeholder="Buscar descripción, clave, lote..." oninput="renderTable()">
         <button class="filter-btn on" data-f="todos" onclick="setSheet(this,'todos')">Todos</button>
         <button class="filter-btn" data-f="TINTAS 1" onclick="setSheet(this,'TINTAS 1')">Tintas 1</button>
@@ -313,7 +98,6 @@
               <th>Lotes / Categoría</th>
               <th>Existencia total</th>
               <th>Ubicación</th>
-              <th>Últ. movimiento</th>
               <th></th>
             </tr>
           </thead>
@@ -330,10 +114,10 @@
         <div class="form-col"><label>Descripción</label><input id="a-desc" placeholder="ej. Tinta Azul Selecta" type="text"></div>
         <div class="form-col"><label>Lote / Pedimento</label><input id="a-lote" placeholder="ej. T-1-16339" type="text"></div>
         <div class="form-col"><label>Existencia</label><input id="a-qty" type="number" min="0" step="0.01" value="0"></div>
-        <div class="form-col"><label>Unidad</label><select id="a-unidad"><option value="kg">kg — kilogramos</option><option value="ml">ml — mililitros</option></select></div>
+        <div class="form-col"><label>Unidad</label><div class="select-wrap"><select id="a-unidad"><option value="kg">kg &mdash; kilogramos</option><option value="ml">ml &mdash; mililitros</option></select></div></div>
         <div class="form-col"><label>Ubicación</label><input id="a-ubic" placeholder="ej. TIN-1-2" type="text"></div>
         <div class="form-col"><label>Categoría</label><input id="a-cat" placeholder="ej. Tintas Azules" type="text"></div>
-        <div class="form-col"><label>Hoja</label><select id="a-sheet"><option value="TINTAS 1">Tintas 1</option><option value="TINTAS 2">Tintas 2</option><option value="TINTAS 3">Tintas 3</option></select></div>
+        <div class="form-col"><label>Hoja</label><div class="select-wrap"><select id="a-sheet"><option value="TINTAS 1">Tintas 1</option><option value="TINTAS 2">Tintas 2</option><option value="TINTAS 3">Tintas 3</option></select></div></div>
       </div>
       <div class="btn-row">
         <button class="btn primary" onclick="agregarRegistro()">Guardar</button>
@@ -342,49 +126,65 @@
     </div>
 
     <!-- HISTORIAL COLAPSABLE -->
-    <div style="margin-top:1rem">
-      <button onclick="toggleHistorial()" style="font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-light);border:1px solid var(--accent);border-radius:6px;cursor:pointer;padding:6px 14px;display:inline-flex;align-items:center;gap:6px">
+    <div class="inline-action">
+      <button class="action-link-btn" onclick="toggleHistorial()">
         ⬇ Exportar historial de movimientos (Excel)
       </button>
+    </div>
+
+    <div class="card recent-card">
+      <div class="section-title">Últimos 10 movimientos</div>
+      <div class="section-subtitle">Sirve para confirmar salidas, devoluciones y ajustes sin exportar.</div>
+      <div class="log-list" id="log-list"></div>
     </div>
   </div>
 
   <!-- TAB: MOVIMIENTOS -->
-  <div id="tab-movimientos" style="display:none">
+  <div id="tab-movimientos" class="movement-overlay" onclick="if(event.target===this) setTab(document.querySelector('.tab-btn'),'inventario')">
+    <div class="movement-panel">
     <div class="card">
-      <div class="card-title">Registrar entrada / salida de tinta</div>
+      <div class="movement-head">
+        <div>
+          <div class="movement-kicker">Movimiento</div>
+          <div class="movement-title">Registrar entrada / salida de tinta</div>
+          <div class="movement-sub">El inventario queda visible detrás mientras capturas el movimiento.</div>
+        </div>
+        <button class="movement-close" type="button" onclick="setTab(document.querySelector('.tab-btn'),'inventario')">&times;</button>
+      </div>
       <div class="form-grid">
         <div class="form-col">
           <label>Tipo de movimiento</label>
-          <select id="m-tipo">
-            <option value="entrada">Entrada — llegó tinta</option>
-            <option value="salida">Salida — a producción</option>
-            <option value="devolucion">Devolución — regresó sobrante</option>
-            <option value="ajuste">Ajuste de inventario</option>
-          </select>
+          <div class="select-wrap">
+            <select id="m-tipo">
+              <option value="entrada">Entrada &mdash; llegó tinta</option>
+              <option value="salida">Salida &mdash; a producción</option>
+              <option value="devolucion">Devolución &mdash; regresó sobrante</option>
+              <option value="ajuste">Ajuste de inventario</option>
+            </select>
+          </div>
         </div>
         <div class="form-col" style="position:relative">
           <label>Descripción / Tinta</label>
           <input id="m-desc" placeholder="Escribe para buscar..." type="text" autocomplete="off"
             oninput="filtrarLotes();checkTintaNueva();showDescDropdown()"
             onblur="setTimeout(()=>hideDescDropdown(),200)">
-          <div id="desc-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);max-height:220px;overflow-y:auto;margin-top:2px"></div>
+          <div id="desc-dropdown" class="dropdown-panel"></div>
         </div>
         <div class="form-col">
           <label>Lote específico</label>
-          <select id="m-lote"><option value="">— selecciona primero la tinta —</option></select>
+          <div class="select-wrap"><select id="m-lote"><option value="">&mdash; selecciona primero la tinta &mdash;</option></select></div>
         </div>
       </div>
 
       <!-- AVISO TINTA NUEVA -->
-      <div id="nueva-tinta-aviso" style="display:none;margin:10px 0;padding:10px 14px;background:#FEF3C7;border:1px solid #FDE68A;border-left:4px solid #CA8A04;border-radius:var(--radius-sm)">
-        <div style="font-size:12px;font-weight:600;color:#78350F;margin-bottom:8px">⚠ Tinta nueva — completa los datos para registrarla en el inventario</div>
-        <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
-          <div class="form-col"><label>Clave</label><input id="a-clave" placeholder="ej. 80-002-108" type="text"></div>
-          <div class="form-col"><label>Lote / Pedimento</label><input id="a-lote-nuevo" placeholder="ej. T-1-16339" type="text"></div>
-          <div class="form-col"><label>Ubicación</label><input id="a-ubic" placeholder="ej. TIN-1-2" type="text"></div>
-          <div class="form-col"><label>Categoría</label><input id="a-cat" placeholder="ej. Tintas Azules" type="text"></div>
-          <div class="form-col"><label>Hoja</label><select id="a-sheet"><option value="TINTAS 1">Tintas 1</option><option value="TINTAS 2">Tintas 2</option><option value="TINTAS 3">Tintas 3</option></select></div>
+      <div id="nueva-tinta-aviso" class="panel-note warning" style="display:none">
+        <strong>Tinta nueva</strong>
+        <div class="form-grid">
+          <div class="form-col"><label>Clave</label><input id="mnew-clave" placeholder="ej. 80-002-108" type="text"></div>
+          <div class="form-col"><label>Lote / Pedimento</label><input id="mnew-lote" placeholder="ej. T-1-16339" type="text"></div>
+          <div class="form-col"><label>Ubicación</label><input id="mnew-ubic" placeholder="ej. TIN-1-2" type="text"></div>
+          <div class="form-col"><label>Categoría</label><input id="mnew-cat" placeholder="ej. Tintas Azules" type="text"></div>
+          <div class="form-col"><label>Hoja</label><div class="select-wrap"><select id="mnew-sheet"><option value="TINTAS 1">Tintas 1</option><option value="TINTAS 2">Tintas 2</option><option value="TINTAS 3">Tintas 3</option></select></div></div>
         </div>
       </div>
 
@@ -393,16 +193,23 @@
           <label>Cantidad</label>
           <div style="display:flex;gap:6px;align-items:center">
             <input id="m-qty" type="number" min="0.01" step="0.01" value="1" style="flex:1">
-            <select id="m-unidad" style="width:70px;flex-shrink:0"><option value="kg">kg</option><option value="ml">ml</option></select>
+            <div class="select-wrap" style="width:84px;flex-shrink:0"><select id="m-unidad" style="width:100%"><option value="kg">kg</option><option value="ml">ml</option></select></div>
+          </div>
+          <div class="quick-qty">
+            <button class="quick-btn" type="button" onclick="setQuickQty('m-qty',0.5)">0.5</button>
+            <button class="quick-btn" type="button" onclick="setQuickQty('m-qty',1)">1</button>
+            <button class="quick-btn" type="button" onclick="setQuickQty('m-qty',5)">5</button>
+            <button class="quick-btn" type="button" onclick="adjustQty('m-qty',-0.5)">-0.5</button>
+            <button class="quick-btn" type="button" onclick="adjustQty('m-qty',0.5)">+0.5</button>
           </div>
         </div>
         <div class="form-col">
           <label>Turno</label>
-          <select id="m-turno">
+          <div class="select-wrap"><select id="m-turno">
             <option value="1">Turno 1</option>
             <option value="2">Turno 2</option>
             <option value="3">Turno 3</option>
-          </select>
+          </select></div>
         </div>
         <div class="form-col">
           <label>Máquina</label>
@@ -424,42 +231,21 @@
       <div class="btn-row">
         <button class="btn primary" onclick="registrarMovimiento()">Registrar movimiento</button>
         <button class="btn" onclick="limpiarMov()">Limpiar</button>
+        <button class="btn" onclick="setTab(document.querySelector('.tab-btn'),'inventario')">Cerrar</button>
       </div>
+    </div>
     </div>
   </div>
 
 </main>
 
-<!-- PALLET FOOTER -->
-<div style="margin-top:3rem;overflow:hidden;height:120px;position:relative;opacity:0.25;z-index:0">
-  <svg width="100%" height="120" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <pattern id="ink-pattern" x="0" y="0" width="80" height="120" patternUnits="userSpaceOnUse">
-        <rect width="80" height="120" fill="var(--accent)" opacity="0.3"/>
-        <rect x="0" y="0" width="80" height="18" fill="var(--accent-hover)" opacity="0.5"/>
-        <rect x="0" y="20" width="80" height="18" fill="var(--accent)" opacity="0.4"/>
-        <rect x="0" y="40" width="80" height="18" fill="var(--accent-hover)" opacity="0.5"/>
-        <rect x="0" y="60" width="80" height="18" fill="var(--accent)" opacity="0.3"/>
-        <rect x="0" y="80" width="80" height="18" fill="var(--accent-hover)" opacity="0.4"/>
-        <rect x="0" y="100" width="80" height="18" fill="var(--accent)" opacity="0.5"/>
-        <line x1="0" y1="0" x2="0" y2="120" stroke="#4A0A28" stroke-width="1" opacity="0.5"/>
-        <line x1="79" y1="0" x2="79" y2="120" stroke="#4A0A28" stroke-width="1" opacity="0.5"/>
-      </pattern>
-      <linearGradient id="fadeTop2" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#E8E8E6" stop-opacity="1"/>
-        <stop offset="50%" stop-color="#E8E8E6" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-    <rect width="100%" height="120" fill="url(#ink-pattern)"/>
-    <rect width="100%" height="120" fill="url(#fadeTop2)"/>
-  </svg>
-</div>
+<div class="page-footer"></div>
 
 <div class="toast" id="toast"></div>
 
 <script>
 /* ══════════════════════════════════════════════
-   FIREBASE CONFIG — mismo proyecto que tarimas
+   FIREBASE CONFIG &mdash; mismo proyecto que tarimas
 ═══════════════════════════════════════════════ */
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyDLMBZMpjY4vHIvPPm-sge_NRqAKk_rcTQ",
@@ -1580,7 +1366,7 @@ function bloquear(){
   modoEdicion=false;modoMaestro=false;usuario='';
   document.getElementById('main-content').classList.add('locked');
   document.getElementById('edit-bar').classList.remove('visible');
-  const c=document.getElementById('edit-chip');c.textContent='🔒 Solo lectura';c.className='edit-chip locked';
+  const c=document.getElementById('edit-chip');c.textContent='\uD83D\uDD12 Solo lectura';c.className='edit-chip locked';
   const movTab=document.querySelector('#tab-mov-btn');
   if(movTab&&movTab.classList.contains('active'))setTab(document.querySelector('.tab-btn'),'inventario');
 }
@@ -1656,7 +1442,7 @@ async function fbSetQty(id,newQty,desc,lote,oldQty){
   const tipo=newQty>oldQty?'entrada':'salida';
   await db.collection('tintas_mov').add({
     tipo,desc,lote,qty:Math.abs(newQty-oldQty),quien:usuario,
-    nota:`Ajuste rápido (${oldQty}→${newQty})`,ts:Date.now(),fecha:fmt(new Date())
+    nota:`Ajuste rápido (${oldQty}&rarr;${newQty})`,ts:Date.now(),fecha:fmt(new Date())
   });
 }
 
@@ -1670,7 +1456,7 @@ function loadLocal(){
 }
 function saveLocal(){localStorage.setItem('dimsa-tintas-inv',JSON.stringify(inv))}
 function addLogLocal(tipo,desc,lote,qty,nota){
-  logs.unshift({tipo,desc,lote,qty,nota,quien:usuario||'—',fecha:fmt(new Date()),ts:Date.now()});
+  logs.unshift({tipo,desc,lote,qty,nota,quien:usuario||'&mdash;',fecha:fmt(new Date()),ts:Date.now()});
   if(logs.length>200)logs=logs.slice(0,200);
   localStorage.setItem('dimsa-tintas-log',JSON.stringify(logs));
 }
@@ -1689,7 +1475,7 @@ async function setQtyDirecto(id,input){
   const idx=inv.findIndex(r=>r.id===id);if(idx<0)return;
   const old=inv[idx].qty||0;if(nv===old)return;
   if(useFirebase){await fbSetQty(id,nv,inv[idx].desc,inv[idx].lote,old);}
-  else{inv[idx].qty=nv;addLogLocal(nv>old?'entrada':'salida',inv[idx].desc,inv[idx].lote,Math.abs(nv-old),`Cambio directo (${old}→${nv})`);saveLocal();renderAll();}
+  else{inv[idx].qty=nv;addLogLocal(nv>old?'entrada':'salida',inv[idx].desc,inv[idx].lote,Math.abs(nv-old),`Cambio directo (${old}&rarr;${nv})`);saveLocal();renderAll();}
   toast(`Guardado: ${nv} ${inv[idx]?.unidad||'kg'}`);
 }
 
@@ -1705,14 +1491,14 @@ async function guardarCampo(id,campo,valor){
     if(campo==='obs'){
       const desc=inv[idx].desc||inv[idx].clave;
       const qty=inv[idx].qty||0;
-      const nota=valorAnterior?`Observación modificada: "${valorAnterior}" → "${valorNuevo}"`:`Observación agregada: "${valorNuevo}"`;
+      const nota=valorAnterior?`Observación modificada: "${valorAnterior}" &rarr; "${valorNuevo}"`:`Observación agregada: "${valorNuevo}"`;
       await db.collection('movimientos-tintas').add({tipo:'edicion-obs',producto:desc,qty,quien:usuario,nota,ts:Date.now(),fecha:fmt(new Date())});
     }
   }else{
     if(campo==='obs'){
       const desc=inv[idx].desc||inv[idx].clave;
       const qty=inv[idx].qty||0;
-      const nota=valorAnterior?`Observación modificada: "${valorAnterior}" → "${valorNuevo}"`:`Observación agregada: "${valorNuevo}"`;
+      const nota=valorAnterior?`Observación modificada: "${valorAnterior}" &rarr; "${valorNuevo}"`:`Observación agregada: "${valorNuevo}"`;
       addLogLocal('edicion-obs',desc,qty,nota);
     }
     saveLocal();
@@ -1788,11 +1574,11 @@ async function registrarMovimiento(){
     const aviso=document.getElementById('nueva-tinta-aviso');
     if(aviso.style.display==='none'){aviso.style.display='block';toast('Es una tinta nueva — completa los datos y da clic en Registrar movimiento otra vez.');return;}
     // Register as new tinta
-    const clave=document.getElementById('a-clave').value.trim()||'S/C';
-    const loteNuevo=document.getElementById('a-lote-nuevo').value.trim();
-    const ubic=document.getElementById('a-ubic').value.trim();
-    const cat=document.getElementById('a-cat').value.trim();
-    const sheet=document.getElementById('a-sheet').value;
+    const clave=document.getElementById('mnew-clave').value.trim()||'S/C';
+    const loteNuevo=document.getElementById('mnew-lote').value.trim();
+    const ubic=document.getElementById('mnew-ubic').value.trim();
+    const cat=document.getElementById('mnew-cat').value.trim();
+    const sheet=document.getElementById('mnew-sheet').value;
     if(!loteNuevo){toast('Ingresa el número de lote.');return;}
     const now=new Date().toISOString();
     const item={clave,desc,lote:loteNuevo,qty,unidad,ubic,cat,sheet,updatedAt:now,updatedBy:usuario,lastMovAt:now};
@@ -1806,14 +1592,14 @@ async function registrarMovimiento(){
       saveLocal();renderAll();
     }
     document.getElementById('nueva-tinta-aviso').style.display='none';
-    ['a-clave','a-lote-nuevo','a-ubic','a-cat'].forEach(id=>document.getElementById(id).value='');
+    ['mnew-clave','mnew-lote','mnew-ubic','mnew-cat'].forEach(id=>document.getElementById(id).value='');
     limpiarMov();
     toast(`Tinta "${desc}" registrada con ${qty} ${unidad}.`);
     return;
   }
 
   const now=new Date().toISOString();
-  const nota2=`T${turno}${maq?' · '+maq:''}${op?' · OP:'+op:''}${subop?' · Sub:'+subop:''}${nota?' · '+nota:''}`;
+  const nota2=`T${turno}${maq?' &middot; '+maq:''}${op?' &middot; OP:'+op:''}${subop?' &middot; Sub:'+subop:''}${nota?' &middot; '+nota:''}`;
   if(loteId){
     const idx=inv.findIndex(r=>r.id===loteId);
     if(idx>=0){
@@ -1825,7 +1611,7 @@ async function registrarMovimiento(){
       }else{inv[idx].qty=nv;inv[idx].lastMovAt=now;saveLocal();}
     }
   }
-  const mov={tipo,desc,lote:loteId?inv.find(r=>r.id===loteId)?.lote||'—':'—',qty,unidad,turno,maq,op,subop,nota:nota2,quien:usuario,ts:Date.now(),fecha:fmt(new Date())};
+  const mov={tipo,desc,lote:loteId?inv.find(r=>r.id===loteId)?.lote||'&mdash;':'&mdash;',qty,unidad,turno,maq,op,subop,nota:nota2,quien:usuario,ts:Date.now(),fecha:fmt(new Date())};
   if(useFirebase){await db.collection('tintas_mov').add(mov);}
   else{addLogLocal(tipo,desc,mov.lote,qty,nota2);renderAll();}
   toast('Movimiento registrado.');
@@ -1842,11 +1628,6 @@ function renderAll(){
   document.getElementById('s-kg').textContent=kg.toFixed(1);
   document.getElementById('s-zero').textContent=zeros.length;
   document.getElementById('s-hoy').textContent=hoy;
-  if(zeros.length){
-    const ab=document.getElementById('alert-bar');
-    ab.textContent=`Sin stock: ${zeros.slice(0,4).map(r=>r.desc).join(', ')}${zeros.length>4?' y '+(zeros.length-4)+' más':''}`;
-    ab.classList.add('show');
-  }else{document.getElementById('alert-bar').classList.remove('show');}
   renderTable();
   renderLog();
   updateDescList();
@@ -1865,11 +1646,11 @@ function renderTable(){
   const q=(document.getElementById('search').value||'').toLowerCase();
   let rows=inv.filter(r=>{
     if(sheetFilter!=='todos'&&r.sheet!==sheetFilter)return false;
-    if(q&&!r.desc.toLowerCase().includes(q)&&!(r.clave||'').toLowerCase().includes(q)&&!(r.lote||'').toLowerCase().includes(q)&&!(r.ubic||'').toLowerCase().includes(q))return false;
+    if(q&&!r.desc.toLowerCase().includes(q)&&!(r.clave||'').toLowerCase().includes(q)&&!(r.lote||'').toLowerCase().includes(q)&&!(r.ubic||'').toLowerCase().includes(q)&&!(r.cat||'').toLowerCase().includes(q))return false;
     return true;
   });
   const body=document.getElementById('tbl-body');
-  if(!rows.length){body.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:2rem;color:#888">Sin resultados.</td></tr>`;return;}
+  if(!rows.length){body.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:2rem;color:#888">Sin resultados.</td></tr>`;return;}
 
   // Group by description
   const groups = new Map();
@@ -1890,11 +1671,12 @@ function renderTable(){
     const someZero = zeroCount > 0 && !allZero;
     const groupCls = allZero?'stock-zero':someZero?'stock-low':'stock-ok';
     const isExpanded = expandedGroups.has(desc) || q; // auto-expand on search
-    const arrow = isExpanded ? '▼' : '▶';
+    const arrow = isExpanded ? '&#9660;' : '&#9654;';
     const unidTag = unidad==='ml'?'<span class="tag tag-ml">ml</span>':'<span class="tag tag-kg">kg</span>';
     const catTag = cat?`<span class="tag tag-cat">${cat}</span>`:'';
     const loteBadge = `<span style="font-size:10px;background:var(--bg);color:var(--muted);padding:1px 7px;border-radius:10px;font-weight:600">${lotes.length} lote${lotes.length>1?'s':''}</span>`;
     const safeKey = desc.replace(/'/g,"\\'");
+    const audit = getAuditLine(lotes[0].updatedBy, lotes[0].updatedAt);
 
     // Group header row
     html += `<tr class="group-row" onclick="toggleGroup('${safeKey}')" style="cursor:pointer;background:#FAFAFA">
@@ -1902,6 +1684,8 @@ function renderTable(){
         <span style="font-size:13px;margin-right:6px;color:var(--muted)">${arrow}</span>
         <span class="medida-cell" style="font-size:12px">${desc}</span>
         <span class="lote-cell" style="margin-left:6px">${clave}</span>
+        <div class="mobile-meta">${lotes.length} lote${lotes.length>1?'s':''} · ${totalQty.toFixed(1)} ${unidad} · ${zeroCount>0?zeroCount+' en cero':'sin faltantes'}</div>
+        ${audit}
       </td>
       <td>${loteBadge} ${catTag}</td>
       <td>
@@ -1909,7 +1693,7 @@ function renderTable(){
         ${unidTag}
         ${zeroCount>0?`<span style="font-size:10px;color:var(--danger);margin-left:4px">${zeroCount} en cero</span>`:''}
       </td>
-      <td colspan="3" style="color:var(--muted);font-size:11px">${isExpanded?'Clic para colapsar':'Clic para ver lotes'}</td>
+      <td colspan="2" style="color:var(--muted);font-size:11px">${isExpanded?'Clic para colapsar':'Clic para ver lotes'}</td>
     </tr>`;
 
     // Individual lot rows (shown when expanded)
@@ -1918,11 +1702,12 @@ function renderTable(){
         const qty=r.qty||0;
         const stockCls=qty===0?'stock-zero':qty<=2?'stock-low':'stock-ok';
         const ubicVal=(r.ubic||'').replace(/"/g,'&quot;');
-        const lastMov=r.lastMovAt?fmtRelative(r.lastMovAt):'—';
+        const lastMov=r.lastMovAt?fmtRelative(r.lastMovAt):'&mdash;';
         html += `<tr class="lote-row" style="background:#F8F6F4">
           <td style="padding:6px 12px 6px 36px">
             <span style="color:var(--muted);font-size:11px;margin-right:4px">└</span>
-            <span class="lote-cell" style="font-size:11px">${r.lote||'—'}</span>
+            <span class="lote-cell" style="font-size:11px">${r.lote||'&mdash;'}</span>
+            <div class="mobile-meta">${r.ubic||'Sin ubicación'} · ${lastMov} · ${r.updatedBy||'Sin usuario'}</div>
           </td>
           <td></td>
           <td>
@@ -1934,7 +1719,6 @@ function renderTable(){
           <td><input class="obs-input" type="text" value="${ubicVal}" placeholder="Ubicación"
             onchange="guardarCampo('${r.id}','ubic',this.value)" onkeydown="if(event.key==='Enter')this.blur()"
             onclick="event.stopPropagation()" style="font-size:11px"></td>
-          <td style="font-size:11px;color:var(--muted)">${lastMov}</td>
           <td><button class="del-btn" onclick="event.stopPropagation();eliminar('${r.id}')">×</button></td>
         </tr>`;
       });
@@ -1946,20 +1730,21 @@ function renderTable(){
 
 function renderLog(){
   const list=document.getElementById('log-list');
+  if(!list)return;
   if(!logs.length){list.innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>Sin movimientos.</p></div>';return;}
   const labels={'entrada':'Entrada','salida':'Salida','devolucion':'Devolución','ajuste':'Ajuste','nuevo-registro':'Nuevo'};
   const clsMap={'entrada':'lb-entrada','salida':'lb-salida','devolucion':'lb-dev','ajuste':'lb-ajuste','nuevo-registro':'lb-new'};
-  list.innerHTML=logs.slice(0,100).map(l=>{
+  list.innerHTML=logs.slice(0,10).map(l=>{
     const cls=clsMap[l.tipo]||'lb-ajuste';
     const isPos=l.tipo==='entrada'||l.tipo==='devolucion'||l.tipo==='nuevo-registro';
     const isNeg=l.tipo==='salida';
-    const sign=isPos?'+':isNeg?'-':'±';
+    const sign=isPos?'+':isNeg?'-':'&plusmn;';
     const qcls=isPos?'pos':isNeg?'neg':'neu';
     return `<div class="log-item">
       <span class="log-badge ${cls}">${labels[l.tipo]||l.tipo}</span>
       <div>
-        <div class="log-desc">${l.desc}${l.lote&&l.lote!=='—'?' · <span class="lote-cell">'+l.lote+'</span>':''}</div>
-        <div class="log-meta">${l.nota||''} · ${l.quien||'—'} · ${l.fecha||''}</div>
+        <div class="log-desc">${l.desc}${l.lote&&l.lote!=='&mdash;'?' &middot; <span class="lote-cell">'+l.lote+'</span>':''}</div>
+        <div class="log-meta">${l.nota||''} &middot; ${l.quien||'&mdash;'} &middot; ${l.fecha||''}</div>
       </div>
       <span class="log-qty ${qcls}">${sign}${l.qty} ${l.unidad||'kg'}</span>
     </div>`;
@@ -1967,7 +1752,7 @@ function renderLog(){
 }
 
 function updateDescList(){
-  // no-op — dropdown uses showDescDropdown
+  // no-op &mdash; dropdown uses showDescDropdown
 }
 
 function showDescDropdown(){
@@ -1980,9 +1765,7 @@ function showDescDropdown(){
   if(!matches.length){dd.style.display='none';return;}
   const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   dd.innerHTML=matches.map(d=>`
-    <div onclick="selectDesc(${JSON.stringify(d)})"
-      style="padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--bg);color:var(--text)"
-      onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">
+    <div class="dropdown-item" onclick="selectDesc(${JSON.stringify(d)})">
       ${d.replace(new RegExp(esc(q),'gi'),m=>`<strong style="color:var(--accent)">${m}</strong>`)}
     </div>`).join('');
   dd.style.display='block';
@@ -2004,12 +1787,12 @@ function filtrarLotes(){
   const lotes=inv.filter(r=>r.desc.toLowerCase().includes(desc));
   const sel=document.getElementById('m-lote');
   if(lotes.length){
-    sel.innerHTML=`<option value="">— elige lote —</option>`+lotes.map(r=>`<option value="${r.id}">${r.lote} (${r.qty} ${r.unidad||'kg'}) ${r.ubic?'· '+r.ubic:''}</option>`).join('');
+    sel.innerHTML=`<option value="">&mdash; elige lote &mdash;</option>`+lotes.map(r=>`<option value="${r.id}">${r.lote} (${r.qty} ${r.unidad||'kg'}) ${r.ubic?'&middot; '+r.ubic:''}</option>`).join('');
     // Auto-set unidad
     if(lotes[0].unidad==='ml')document.getElementById('m-unidad').value='ml';
     else document.getElementById('m-unidad').value='kg';
   }else{
-    sel.innerHTML='<option value="">— selecciona primero la tinta —</option>';
+    sel.innerHTML='<option value="">&mdash; selecciona primero la tinta &mdash;</option>';
   }
 }
 
@@ -2017,7 +1800,7 @@ function filtrarLotes(){
 function fmt(d){return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`}
 function todayStr(){const n=new Date();return`${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`}
 function fmtRelative(iso){
-  if(!iso)return'—';
+  if(!iso)return'&mdash;';
   const diff=Date.now()-new Date(iso).getTime();
   const mins=Math.floor(diff/60000);
   if(mins<1)return'Hace un momento';
@@ -2033,7 +1816,17 @@ function fmtRelative(iso){
 function setTab(btn,tab){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   if(btn&&btn.classList)btn.classList.add('active');
-  ['inventario','movimientos'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===tab?'':'none';});
+  const inv=document.getElementById('tab-inventario');
+  const mov=document.getElementById('tab-movimientos');
+  if(tab==='movimientos'){
+    inv.style.display='';
+    mov.classList.add('show');
+    document.body.classList.add('movement-open');
+  }else{
+    inv.style.display='';
+    mov.classList.remove('show');
+    document.body.classList.remove('movement-open');
+  }
 }
 function setSheet(btn,sheet){
   sheetFilter=sheet;
@@ -2066,8 +1859,25 @@ function limpiarMov(){
   ['m-desc','m-maq','m-op','m-subop','m-nota'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('m-qty').value='1';
   document.getElementById('m-tipo').value='entrada';
-  document.getElementById('m-lote').innerHTML='<option value="">— selecciona primero la tinta —</option>';
+  document.getElementById('m-lote').innerHTML='<option value="">&mdash; selecciona primero la tinta &mdash;</option>';
   document.getElementById('nueva-tinta-aviso').style.display='none';
+  ['mnew-clave','mnew-lote','mnew-ubic','mnew-cat'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mnew-sheet').value='TINTAS 1';
+}
+function setQuickQty(id,value){
+  const input=document.getElementById(id);
+  if(input)input.value=String(value);
+}
+function adjustQty(id,delta){
+  const input=document.getElementById(id);
+  if(!input)return;
+  const current=parseFloat(input.value)||0;
+  input.value=String(Math.max(0,Math.round((current+delta)*100)/100));
+}
+function getAuditLine(user,iso){
+  const userTxt=user||'Sin usuario';
+  const when=iso?fmtRelative(iso):'Sin fecha';
+  return `<div class="audit-line"><span class="audit-pill"><strong>${userTxt}</strong></span><span>${when}</span></div>`;
 }
 function toast(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
@@ -2082,3 +1892,11 @@ init();
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
