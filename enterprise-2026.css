@@ -1318,7 +1318,10 @@ body.page-indirectos .header-nav a[href="indirectos.html"]{
   .stat-sub{font-size:10px}
   .form-grid{grid-template-columns:1fr}
   .search-input{width:100%}
-  .tbl-wrap{max-height:none}
+  .tbl-wrap{
+    max-height:360px;
+    overflow:auto;
+  }
   .tabs{
     gap:5px;
     padding:5px;
@@ -1412,34 +1415,6 @@ body.page-indirectos .header-nav a[href="indirectos.html"]{
     width:100%;
     justify-content:center;
   }
-  body.page-tarimas thead th:nth-child(4),
-  body.page-tarimas thead th:nth-child(5),
-  body.page-tarimas thead th:nth-child(6),
-  body.page-tarimas thead th:nth-child(7),
-  body.page-tarimas tbody td:nth-child(4),
-  body.page-tarimas tbody td:nth-child(5),
-  body.page-tarimas tbody td:nth-child(6),
-  body.page-tarimas tbody td:nth-child(7){
-    display:none;
-  }
-  body.page-tintas thead th:nth-child(4),
-  body.page-tintas thead th:nth-child(5),
-  body.page-tintas thead th:nth-child(6),
-  body.page-tintas tbody td:nth-child(4),
-  body.page-tintas tbody td:nth-child(5),
-  body.page-tintas tbody td:nth-child(6){
-    display:none;
-  }
-  body.page-indirectos thead th:nth-child(4),
-  body.page-indirectos thead th:nth-child(5),
-  body.page-indirectos thead th:nth-child(6),
-  body.page-indirectos thead th:nth-child(7),
-  body.page-indirectos tbody td:nth-child(4),
-  body.page-indirectos tbody td:nth-child(5),
-  body.page-indirectos tbody td:nth-child(6),
-  body.page-indirectos tbody td:nth-child(7){
-    display:none;
-  }
   .pin-card{padding:1.5rem 1.2rem}
   .pin-btn,
   .pin-cancel{
@@ -1452,79 +1427,9 @@ body.page-indirectos .header-nav a[href="indirectos.html"]{
   .sol-panel-header{align-items:flex-start}
   .sol-card,
   .sol-item{grid-template-columns:1fr;flex-direction:column}
-  body.page-indirectos .tbl-wrap,
-  body.page-tarimas .tbl-wrap{
-    background:transparent;
-    border:none;
-    box-shadow:none;
-    padding:0;
-    overflow:visible;
-  }
-  body.page-indirectos .tbl-wrap table,
-  body.page-tarimas .tbl-wrap table,
-  body.page-indirectos .tbl-wrap tbody,
-  body.page-tarimas .tbl-wrap tbody{
-    display:block;
-  }
-  body.page-indirectos .tbl-wrap thead,
-  body.page-tarimas .tbl-wrap thead{
-    display:none;
-  }
-  body.page-indirectos .tbl-wrap tr,
-  body.page-tarimas .tbl-wrap tr{
-    display:block;
-    margin-bottom:.7rem;
-    background:#fffaf4;
-    border:1px solid rgba(196,176,144,.68);
-    border-radius:16px;
-    overflow:hidden;
-    box-shadow:0 4px 14px rgba(44,31,15,.05);
-  }
-  body.page-indirectos .tbl-wrap td,
-  body.page-tarimas .tbl-wrap td{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:12px;
-    border-bottom:1px solid rgba(217,207,192,.38);
-  }
-  body.page-indirectos .tbl-wrap td::before,
-  body.page-tarimas .tbl-wrap td::before{
-    content:attr(data-label);
-    flex:0 0 88px;
-    font-size:10px;
-    font-weight:800;
-    letter-spacing:.06em;
-    text-transform:uppercase;
-    color:var(--muted);
-  }
-  body.page-indirectos .tbl-wrap td:first-child,
-  body.page-tarimas .tbl-wrap td:first-child{
-    display:block;
-    padding-bottom:8px;
-  }
-  body.page-indirectos .tbl-wrap td:first-child::before,
-  body.page-tarimas .tbl-wrap td:first-child::before{
-    display:none;
-  }
-  body.page-indirectos .tbl-wrap td:last-child,
-  body.page-tarimas .tbl-wrap td:last-child{
-    border-bottom:none;
-  }
-  body.page-indirectos .tbl-wrap .del-btn,
-  body.page-tarimas .tbl-wrap .del-btn{
-    margin-left:auto;
-  }
-  body.page-indirectos .mobile-meta,
-  body.page-tarimas .mobile-meta{
-    display:block;
-    margin-top:8px;
-  }
-  body.page-indirectos .last-mov,
-  body.page-tarimas .last-mov{
-    text-align:right;
-    align-items:flex-end;
-  }
+  body.page-tarimas .tbl-wrap table{min-width:860px}
+  body.page-tintas .tbl-wrap table{min-width:980px}
+  body.page-indirectos .tbl-wrap table{min-width:760px}
 }
 
 @media (max-width:380px){
@@ -1558,13 +1463,5 @@ body.page-indirectos .header-nav a[href="indirectos.html"]{
   .edit-chip{
     padding:7px 10px;
     font-size:10px;
-  }
-  body.page-tarimas thead th:nth-child(3),
-  body.page-tarimas tbody td:nth-child(3),
-  body.page-tintas thead th:nth-child(3),
-  body.page-tintas tbody td:nth-child(3),
-  body.page-indirectos thead th:nth-child(3),
-  body.page-indirectos tbody td:nth-child(3){
-    display:none;
   }
 }
