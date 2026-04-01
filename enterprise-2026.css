@@ -714,9 +714,27 @@ textarea:focus,
 
 .tbl-wrap{
   overflow:auto;
+  overflow-y:auto;
+  overflow-x:auto;
   max-height:560px;
   border-radius:14px;
   -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(158,42,43,.28) rgba(237,232,222,.7);
+  touch-action:pan-x pan-y;
+}
+.tbl-wrap::-webkit-scrollbar{
+  width:10px;
+  height:10px;
+}
+.tbl-wrap::-webkit-scrollbar-track{
+  background:rgba(237,232,222,.72);
+  border-radius:999px;
+}
+.tbl-wrap::-webkit-scrollbar-thumb{
+  background:rgba(158,42,43,.26);
+  border-radius:999px;
+  border:2px solid rgba(237,232,222,.72);
 }
 .tbl-wrap table,
 table{
@@ -1319,7 +1337,8 @@ body.page-indirectos .header-nav a[href="indirectos.html"]{
   .form-grid{grid-template-columns:1fr}
   .search-input{width:100%}
   .tbl-wrap{
-    max-height:360px;
+    max-height:52vh;
+    min-height:260px;
     overflow:auto;
   }
   .tabs{
