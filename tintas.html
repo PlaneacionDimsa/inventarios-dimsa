@@ -166,8 +166,7 @@
         <div class="form-col" style="position:relative">
           <label>Descripción / Tinta</label>
           <input id="m-desc" placeholder="Escribe para buscar..." type="text" autocomplete="off"
-            oninput="filtrarLotes();checkTintaNueva();showDescDropdown()"
-            onblur="setTimeout(()=>hideDescDropdown(),200)">
+            oninput="filtrarLotes();checkTintaNueva();showDescDropdown()">
           <div id="desc-dropdown" class="dropdown-panel"></div>
         </div>
         <div class="form-col">
@@ -1755,6 +1754,13 @@ function updateDescList(){
   // no-op &mdash; dropdown uses showDescDropdown
 }
 
+// Close dropdown when clicking outside
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#desc-dropdown')&&e.target.id!=='m-desc'){
+    hideDescDropdown();
+  }
+});
+
 function showDescDropdown(){
   const input=document.getElementById('m-desc');
   const q=(input.value||'').trim().toLowerCase();
@@ -1766,10 +1772,9 @@ function showDescDropdown(){
   if(!matches.length){dd.style.display='none';return;}
   const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   dd.innerHTML=matches.map(d=>`
-    <div class="dropdown-item" onmousedown="event.preventDefault();selectDesc(${JSON.stringify(d)})">
+    <div class="dropdown-item" onclick="selectDesc(${JSON.stringify(d)})">
       ${d.replace(new RegExp(esc(q),'gi'),m=>`<strong style="color:var(--accent)">${m}</strong>`)}
     </div>`).join('');
-  // Position dropdown using fixed coordinates based on input position
   const rect=input.getBoundingClientRect();
   dd.style.top=(rect.bottom+2)+'px';
   dd.style.left=rect.left+'px';
