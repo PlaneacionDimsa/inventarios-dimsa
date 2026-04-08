@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -86,6 +86,7 @@
         <button class="filter-btn" data-f="ALMACEN" onclick="setFilter(this,'ALMACEN')">Almacén</button>
         <button class="filter-btn" data-f="alertas" onclick="setFilter(this,'alertas')">⚠ Alertas</button>
         <div class="spacer"></div>
+        <button class="filter-btn" onclick="abrirModalExcel()" title="Importar desde Excel">📤 Subir Excel</button>
         <button class="add-btn" onclick="showAddForm()">+ Agregar</button>
       </div>
       <div class="tbl-wrap">
@@ -207,6 +208,64 @@
 </main>
 
 <div class="page-footer"></div>
+
+<!-- EXCEL UPLOAD MODAL -->
+<div id="excel-modal" class="excel-overlay" onclick="if(event.target===this)cerrarModalExcel()">
+  <div class="excel-panel">
+    <div class="excel-header">
+      <div>
+        <div class="movement-kicker">Importación masiva</div>
+        <div class="movement-title">Subir archivo Excel</div>
+        <div class="movement-sub">Actualiza el inventario desde tu archivo INVENTARIO INDIRECTOS (.xlsx)</div>
+      </div>
+      <button class="movement-close" type="button" onclick="cerrarModalExcel()">&times;</button>
+    </div>
+    <div id="excel-drop" class="excel-drop"
+         ondragover="event.preventDefault();this.classList.add('drag-over')"
+         ondragleave="this.classList.remove('drag-over')"
+         ondrop="event.preventDefault();this.classList.remove('drag-over');handleExcelDrop(event)">
+      <div class="excel-drop-icon">📊</div>
+      <div>Arrastra tu archivo Excel aquí</div>
+      <div class="excel-drop-sub">o</div>
+      <label class="add-btn" style="cursor:pointer">
+        📂 Seleccionar archivo
+        <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelFile(this.files[0])">
+      </label>
+      <div class="excel-drop-hint">Detecta hoja <strong>INVENTARIO</strong><br>Columnas: QUIEN SOLICITA · MINIMOS · UNIDADES · NOMBRE · EXISTENCIA</div>
+    </div>
+    <div id="excel-preview" style="display:none">
+      <div id="excel-summary" class="panel-note info" style="margin-bottom:10px"></div>
+      <div class="excel-preview-table-wrap">
+        <table id="excel-preview-table"></table>
+      </div>
+    </div>
+    <div id="excel-actions" style="display:none">
+      <div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px">Modo de actualización</div>
+        <div class="excel-modes">
+          <label class="excel-mode-option">
+            <input type="radio" name="excel-mode" value="actualizar" checked>
+            <div>
+              <div style="font-weight:700;font-size:13px">Actualizar existencias</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Busca cada producto por nombre y actualiza solo la existencia. Los productos no encontrados no se modifican.</div>
+            </div>
+          </label>
+          <label class="excel-mode-option">
+            <input type="radio" name="excel-mode" value="reemplazar">
+            <div>
+              <div style="font-weight:700;font-size:13px">⚠ Reemplazar inventario completo</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Borra todo el inventario actual y lo reemplaza con los datos del Excel. No se puede deshacer.</div>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" onclick="aplicarExcel()">✓ Aplicar importación</button>
+        <button class="btn" onclick="cerrarModalExcel()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -701,6 +760,152 @@ function getAuditLine(user,iso){
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 function tick(){const n=new Date(),p=x=>String(x).padStart(2,'0');document.getElementById('clock').textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;}
 setInterval(tick,1000);tick();
+
+// ── EXCEL IMPORT (INDIRECTOS) ──
+let excelRows=[];
+
+function abrirModalExcel(){
+  if(!modoEdicion){abrirPin(()=>abrirModalExcel());return;}
+  document.getElementById('excel-modal').classList.add('show');
+  resetExcelModal();
+}
+function cerrarModalExcel(){
+  document.getElementById('excel-modal').classList.remove('show');
+  excelRows=[];
+}
+function resetExcelModal(){
+  document.getElementById('excel-drop').style.display='';
+  document.getElementById('excel-preview').style.display='none';
+  document.getElementById('excel-actions').style.display='none';
+  excelRows=[];
+  const inp=document.getElementById('excel-file-input');
+  if(inp)inp.value='';
+}
+function handleExcelDrop(e){const f=e.dataTransfer.files[0];if(f)handleExcelFile(f);}
+async function handleExcelFile(file){
+  if(!file)return;
+  toast('Leyendo archivo…');
+  try{
+    if(!window.XLSX){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+        s.onload=res;s.onerror=()=>rej(new Error('No se pudo cargar el lector de Excel.'));
+        document.head.appendChild(s);
+      });
+    }
+    const data=await file.arrayBuffer();
+    const wb=XLSX.read(new Uint8Array(data),{type:'array'});
+    parseExcelWorkbook(wb,file.name);
+  }catch(err){toast('Error: '+err.message);}
+}
+function parseExcelWorkbook(wb,filename){
+  excelRows=[];
+  const norm=s=>String(s).trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const isShortUnit=s=>/^[A-Z\/]{1,15}$/.test(String(s).trim());
+  for(const sheetName of wb.SheetNames){
+    if(!norm(sheetName).includes('INVENTARIO'))continue;
+    const ws=wb.Sheets[sheetName];
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    // Find header row: has QUIEN SOLICITA or MINIMOS
+    let headerIdx=-1;
+    for(let i=0;i<Math.min(rows.length,5);i++){
+      const row=rows[i].map(c=>norm(String(c)));
+      const hasQuien=row.some(c=>c.includes('QUIEN')||c.includes('SOLICITA'));
+      const hasMin=row.some(c=>c.includes('MINIM'));
+      if(hasQuien||hasMin){headerIdx=i;break;}
+    }
+    const startRow=Math.max(headerIdx+1,1);
+    for(let i=startRow;i<rows.length;i++){
+      const row=rows[i];
+      const rawQuien=String(row[0]??'').trim();
+      const rawMin=parseFloat(row[1])||0;
+      const rawC=String(row[2]??'').trim();
+      const rawNombre=String(row[3]??'').trim();
+      const rawQty=parseFloat(row[4]);
+      // Skip if nombre is empty or qty is not a number
+      if(!rawNombre||isNaN(rawQty))continue;
+      // Skip header-like rows
+      const nN=norm(rawNombre);
+      if(nN==='NOMBRE'||nN.includes('DESCRIPCION')||nN.includes('PRODUCTO'))continue;
+      const unidad=isShortUnit(rawC)?rawC:'PZ';
+      excelRows.push({nombre:rawNombre,quien:rawQuien||'PLANEACION',min:rawMin,unidad,qty:rawQty});
+    }
+    break;
+  }
+  showExcelPreview(filename);
+}
+function showExcelPreview(filename){
+  if(!excelRows.length){toast('No se encontraron datos válidos en la hoja INVENTARIO.');return;}
+  const matched=excelRows.filter(r=>inv.some(i=>i.nombre.toLowerCase()===r.nombre.toLowerCase())).length;
+  document.getElementById('excel-drop').style.display='none';
+  document.getElementById('excel-preview').style.display='';
+  document.getElementById('excel-actions').style.display='';
+  document.getElementById('excel-summary').innerHTML=`
+    <strong>📊 ${filename}</strong> &mdash;
+    <strong>${excelRows.length}</strong> productos leídos &middot;
+    <strong style="color:var(--green)">${matched}</strong> coinciden con inventario actual
+    ${excelRows.length-matched>0?`&middot; <strong style="color:var(--amber)">${excelRows.length-matched}</strong> productos nuevos`:''}
+  `;
+  document.getElementById('excel-preview-table').innerHTML=`
+    <thead><tr><th>Nombre</th><th>Existencia</th><th>Mínimo</th><th>Área</th><th>Unidad</th></tr></thead>
+    <tbody>
+      ${excelRows.slice(0,8).map(r=>`<tr>
+        <td>${r.nombre.length>30?r.nombre.slice(0,28)+'…':r.nombre}</td>
+        <td><strong>${r.qty}</strong></td><td>${r.min}</td><td>${r.quien}</td><td>${r.unidad}</td>
+      </tr>`).join('')}
+      ${excelRows.length>8?`<tr><td colspan="5" style="text-align:center;color:var(--muted);font-style:italic;padding:8px">… y ${excelRows.length-8} más</td></tr>`:''}
+    </tbody>
+  `;
+}
+async function aplicarExcel(){
+  if(!excelRows.length)return;
+  const modo=document.querySelector('input[name="excel-mode"]:checked').value;
+  if(modo==='reemplazar'){
+    if(!confirm(`⚠ ¿Confirmas REEMPLAZAR todo el inventario?\n\n${excelRows.length} productos del Excel reemplazarán los datos actuales.`))return;
+  }
+  const now=new Date().toISOString();
+  let actualizados=0,noEncontrados=0;
+  if(modo==='actualizar'){
+    for(const row of excelRows){
+      const idx=inv.findIndex(r=>r.nombre.toLowerCase()===row.nombre.toLowerCase());
+      if(idx>=0){
+        const old=inv[idx].qty;
+        inv[idx].qty=row.qty;
+        inv[idx].updatedAt=now;
+        inv[idx].updatedBy=usuario+' (Excel)';
+        if(useFirebase){
+          await db.collection('indirectos').doc(inv[idx].id).update({qty:row.qty,updatedAt:now,updatedBy:usuario+' (Excel)'});
+          await db.collection('indirectos_mov').add({tipo:'ajuste',nombre:row.nombre,qty:Math.abs(row.qty-old),quien:usuario,nota:`Actualiz. masiva Excel (${old}→${row.qty})`,ts:Date.now(),fecha:fmt(new Date())});
+        }
+        actualizados++;
+      }else noEncontrados++;
+    }
+    if(!useFirebase){saveLocal();renderAll();}
+    toast(`✓ ${actualizados} existencias actualizadas. ${noEncontrados} productos no encontrados.`);
+  }else{
+    if(useFirebase){
+      const snap=await db.collection('indirectos').get();
+      for(let i=0;i<snap.docs.length;i+=400){
+        const b=db.batch();snap.docs.slice(i,i+400).forEach(d=>b.delete(d.ref));await b.commit();
+      }
+      for(let i=0;i<excelRows.length;i+=400){
+        const b=db.batch();
+        excelRows.slice(i,i+400).forEach(item=>{const ref=db.collection('indirectos').doc();b.set(ref,{...item,obs:'',updatedAt:now,updatedBy:usuario+' (Excel)'});});
+        await b.commit();
+      }
+      await db.collection('indirectos_mov').add({tipo:'ajuste',nombre:'Reemplazo Excel',qty:excelRows.length,quien:usuario,nota:`Inventario reemplazado (${excelRows.length} productos)`,ts:Date.now(),fecha:fmt(new Date())});
+    }else{
+      inv=excelRows.map((r,i)=>({...r,obs:'',id:'loc'+Date.now()+i,updatedAt:now,updatedBy:usuario+' (Excel)'}));
+      inv.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+      addLogLocal('ajuste','Reemplazo Excel',excelRows.length,`Inventario reemplazado (${excelRows.length} productos)`);
+      saveLocal();renderAll();
+    }
+    toast(`✓ Inventario reemplazado con ${excelRows.length} productos.`);
+  }
+  cerrarModalExcel();
+}
+
 init();
 </script>
 </body>
