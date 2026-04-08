@@ -1771,8 +1771,9 @@ function showDescDropdown(){
   )].slice(0,12);
   if(!matches.length){dd.style.display='none';return;}
   const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const htmlEnc=s=>s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   dd.innerHTML=matches.map(d=>`
-    <div class="dropdown-item" onclick="selectDesc(${JSON.stringify(d)})">
+    <div class="dropdown-item" onclick="selectDesc(this.dataset.desc)" data-desc="${htmlEnc(d)}">
       ${d.replace(new RegExp(esc(q),'gi'),m=>`<strong style="color:var(--accent)">${m}</strong>`)}
     </div>`).join('');
   const rect=input.getBoundingClientRect();
