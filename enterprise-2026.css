@@ -1049,18 +1049,14 @@ tbody tr.group-row td{border-bottom:1px solid rgba(196,176,144,.72)}
 }
 .dropdown-panel{
   display:none;
-  position:absolute;
-  top:100%;
-  left:0;
-  right:0;
-  z-index:200;
+  position:fixed;
+  z-index:600;
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:var(--radius-sm);
   box-shadow:0 10px 28px rgba(44,31,15,.12);
   max-height:220px;
   overflow-y:auto;
-  margin-top:2px;
 }
 .dropdown-item{
   padding:8px 12px;

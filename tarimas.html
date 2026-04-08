@@ -248,6 +248,13 @@
 
 <div class="page-footer"></div>
 
+<!-- Botón deduplicación -->
+<div id="dedup-btn-container" style="position:fixed;bottom:80px;right:20px;z-index:500;display:none">
+  <button onclick="ejecutarDeduplicacion()" style="font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:700;padding:12px 20px;border-radius:8px;border:2px solid #D97706;background:#FEF3C7;color:#92400E;cursor:pointer;box-shadow:0 4px 12px rgba(217,119,6,.3);transition:all .2s">
+    🔧 Eliminar duplicados
+  </button>
+</div>
+
 <div class="toast" id="toast"></div>
 
 
@@ -407,23 +414,6 @@ function desbloquear(nombre, esMaestro = false) {
   chip.className = 'edit-chip unlocked';
   usuario = nombre;
   renderAll();
-  
-  // Auto-limpieza de duplicados (solo una vez para Fernando)
-  if (esMaestro && useFirebase) {
-    const dedupFlag = localStorage.getItem('tarimas_dedup_done');
-    if (!dedupFlag) {
-      setTimeout(() => {
-        if (confirm('🔧 Se detectaron registros duplicados en el inventario.\n\n¿Quieres que el sistema los consolide automáticamente ahora?\n\n(Esta acción solo se ejecutará una vez)')) {
-          deduplicarTarimas().then(() => {
-            localStorage.setItem('tarimas_dedup_done', 'true');
-            toast('✓ Limpieza completada. No volverás a ver este mensaje.');
-          });
-        } else {
-          localStorage.setItem('tarimas_dedup_done', 'true');
-        }
-      }, 2000);
-    }
-  }
 }
 
 function bloquear() {
@@ -477,6 +467,9 @@ async function startApp() {
       useFirebase = true;
       document.getElementById('setup-banner').classList.add('hidden');
       setLiveStatus(true);
+      // Mostrar botón de deduplicación
+      const dedupBtn = document.getElementById('dedup-btn-container');
+      if (dedupBtn) dedupBtn.style.display = 'block';
       await seedIfEmpty();
       listenFirebase();
       return;
@@ -511,9 +504,17 @@ async function seedIfEmpty() {
   }
 }
 
-// ── DEDUPLICAR TARIMAS (limpieza automática al iniciar sesión) ──
+// ── DEDUPLICAR TARIMAS (ejecutar una sola vez para limpiar duplicados) ──
+function ejecutarDeduplicacion() {
+  if (!modoMaestro) {
+    alert('⚠️ Esta función requiere acceso de administrador.\n\nSolo Fernando puede ejecutarla.');
+    return;
+  }
+  deduplicarTarimas();
+}
+
 async function deduplicarTarimas() {
-  if (!confirm('⚠️ Esta acción eliminará registros duplicados de tarimas.\n\nSe conservará el registro con mayor cantidad.\n\n¿Continuar?')) return;
+  if (!confirm('⚠️ Esta acción eliminará registros duplicados de tarimas.\n\nSe conservará el registro con mayor cantidad.\n\n&iquest;Continuar?')) return;
   
   const snap = await db.collection('inventario').get();
   const items = snap.docs.map(d => ({id: d.id, ...d.data()}));
@@ -888,38 +889,6 @@ async function agregarTarimaPrincipal() {
   const op     = document.getElementById('ap-op').value.trim();
   const obs    = document.getElementById('ap-obs').value.trim();
   if (!medida) { alert('Ingresa la medida.'); return; }
-  
-  // PREVENCIÓN DE DUPLICADOS: Verificar si ya existe esta medida+ubicación
-  const duplicado = inv.find(r => normalizeMedida(r.medida) === medida && r.loc === loc);
-  if (duplicado) {
-    if (!confirm(`⚠️ Ya existe un registro de ${medida} en ${loc} con ${duplicado.qty} piezas.\n\n¿Quieres actualizar ese registro en lugar de crear uno nuevo?`)) {
-      return;
-    }
-    // Actualizar el existente
-    const nuevaQty = qty;
-    if (useFirebase) {
-      const now = new Date().toISOString();
-      await db.collection('inventario').doc(duplicado.id).update({ 
-        qty: nuevaQty, 
-        op: op || duplicado.op,
-        obs: obs || duplicado.obs,
-        updatedAt: now, 
-        updatedBy: usuario 
-      });
-    } else {
-      duplicado.qty = nuevaQty;
-      if (op) duplicado.op = op;
-      if (obs) duplicado.obs = obs;
-      saveLocal(); renderAll();
-    }
-    document.getElementById('add-form-principal').style.display = 'none';
-    ['ap-medida','ap-op','ap-obs'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('ap-qty').value = '0';
-    toast(`✓ Actualizado: ${medida} ahora tiene ${nuevaQty} piezas (evitó duplicado)`);
-    return;
-  }
-  
-  // Si no hay duplicado, crear nuevo registro normal
   const item = { medida, qty, loc, op, obs };
   if (useFirebase) {
     await fbAgregar(item);
@@ -956,6 +925,9 @@ function renderAll() {
   // Show/hide maestro controls
   const maestroBtn = document.getElementById('maestro-add-btn');
   if (maestroBtn) maestroBtn.style.display = modoMaestro ? 'block' : 'none';
+  // Show dedup button if Firebase is active (but functionality requires maestro)
+  const dedupBtn = document.getElementById('dedup-btn-container');
+  if (dedupBtn) dedupBtn.style.display = useFirebase ? 'block' : 'none';
 }
 
 function renderTable() {
@@ -1143,49 +1115,6 @@ async function registrarNuevaMedidaYMovimiento() {
   const nota   = document.getElementById('m-nota').value.trim();
   if (!medida) { toast('Escribe la medida.'); return; }
   if (qty <= 0) { toast('Ingresa la cantidad de tarimas.'); return; }
-  
-  // PREVENCIÓN DE DUPLICADOS: Verificar si ya existe esta medida+ubicación
-  const duplicado = inv.find(r => normalizeMedida(r.medida) === medida && r.loc === loc);
-  if (duplicado) {
-    if (!confirm(`⚠️ Ya existe un registro de ${medida} en ${loc} con ${duplicado.qty} piezas.\n\n¿Quieres actualizar ese registro sumando ${qty} más en lugar de crear uno nuevo?`)) {
-      return;
-    }
-    // Actualizar el existente en lugar de crear nuevo
-    const nuevaQty = (duplicado.qty || 0) + qty;
-    if (useFirebase) {
-      const now = new Date().toISOString();
-      await db.collection('inventario').doc(duplicado.id).update({ 
-        qty: nuevaQty, 
-        op: op || duplicado.op,
-        obs: obs || duplicado.obs,
-        updatedAt: now, 
-        updatedBy: usuario, 
-        lastMovAt: now 
-      });
-      await db.collection('movimientos').add({ 
-        tipo: 'entrada', 
-        medida, 
-        qty, 
-        quien: usuario, 
-        nota: nota || `Entrada consolidada (evitó duplicado)`, 
-        ts: Date.now(), 
-        fecha: fmt(new Date()) 
-      });
-    } else {
-      duplicado.qty = nuevaQty;
-      if (op) duplicado.op = op;
-      if (obs) duplicado.obs = obs;
-      duplicado.lastMovAt = new Date().toISOString();
-      addLogLocal('entrada', medida, qty, nota || `Entrada consolidada (evitó duplicado)`);
-      saveLocal(); renderAll();
-    }
-    document.getElementById('nueva-medida-aviso').style.display = 'none';
-    limpiarMov();
-    toast(`✓ Actualizado: ${medida} ahora tiene ${nuevaQty} piezas (evitó duplicado)`);
-    return;
-  }
-  
-  // Si no hay duplicado, crear nuevo registro normal
   const now = new Date().toISOString();
   const item = { medida, qty, loc, op, obs, updatedAt: now, updatedBy: usuario, lastMovAt: now };
   if (useFirebase) {

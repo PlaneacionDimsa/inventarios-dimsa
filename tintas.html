@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -1756,7 +1756,8 @@ function updateDescList(){
 }
 
 function showDescDropdown(){
-  const q=(document.getElementById('m-desc').value||'').trim().toLowerCase();
+  const input=document.getElementById('m-desc');
+  const q=(input.value||'').trim().toLowerCase();
   const dd=document.getElementById('desc-dropdown');
   if(!q){dd.style.display='none';return;}
   const matches=[...new Set(
@@ -1765,9 +1766,14 @@ function showDescDropdown(){
   if(!matches.length){dd.style.display='none';return;}
   const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   dd.innerHTML=matches.map(d=>`
-    <div class="dropdown-item" onclick="selectDesc(${JSON.stringify(d)})">
+    <div class="dropdown-item" onmousedown="event.preventDefault();selectDesc(${JSON.stringify(d)})">
       ${d.replace(new RegExp(esc(q),'gi'),m=>`<strong style="color:var(--accent)">${m}</strong>`)}
     </div>`).join('');
+  // Position dropdown using fixed coordinates based on input position
+  const rect=input.getBoundingClientRect();
+  dd.style.top=(rect.bottom+2)+'px';
+  dd.style.left=rect.left+'px';
+  dd.style.width=rect.width+'px';
   dd.style.display='block';
 }
 
