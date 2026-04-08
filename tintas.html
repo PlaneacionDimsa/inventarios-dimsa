@@ -9,6 +9,7 @@
 <title>Inventario Tintas - DIMSA</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="enterprise-2026.css">
+<script>/* SheetJS cargado en demanda */</script>
 </head>
 <body class="page-tintas">
 
@@ -88,6 +89,7 @@
         <button class="filter-btn" data-f="TINTAS 2" onclick="setSheet(this,'TINTAS 2')">Tintas 2</button>
         <button class="filter-btn" data-f="TINTAS 3" onclick="setSheet(this,'TINTAS 3')">Tintas 3</button>
         <div class="spacer"></div>
+        <button class="filter-btn" onclick="abrirModalExcel()" title="Importar desde Excel">📤 Subir Excel</button>
         <button class="add-btn" onclick="showAddForm()">+ Agregar</button>
       </div>
       <div class="tbl-wrap">
@@ -194,13 +196,6 @@
             <input id="m-qty" type="number" min="0.01" step="0.01" value="1" style="flex:1">
             <div class="select-wrap" style="width:84px;flex-shrink:0"><select id="m-unidad" style="width:100%"><option value="kg">kg</option><option value="ml">ml</option></select></div>
           </div>
-          <div class="quick-qty">
-            <button class="quick-btn" type="button" onclick="setQuickQty('m-qty',0.5)">0.5</button>
-            <button class="quick-btn" type="button" onclick="setQuickQty('m-qty',1)">1</button>
-            <button class="quick-btn" type="button" onclick="setQuickQty('m-qty',5)">5</button>
-            <button class="quick-btn" type="button" onclick="adjustQty('m-qty',-0.5)">-0.5</button>
-            <button class="quick-btn" type="button" onclick="adjustQty('m-qty',0.5)">+0.5</button>
-          </div>
         </div>
         <div class="form-col">
           <label>Turno</label>
@@ -239,6 +234,67 @@
 </main>
 
 <div class="page-footer"></div>
+
+<!-- EXCEL UPLOAD MODAL -->
+<div id="excel-modal" class="excel-overlay" onclick="if(event.target===this)cerrarModalExcel()">
+  <div class="excel-panel">
+    <div class="excel-header">
+      <div>
+        <div class="movement-kicker">Importación masiva</div>
+        <div class="movement-title">Subir archivo Excel</div>
+        <div class="movement-sub">Actualiza el inventario desde tu archivo de CUARTO DE TINTAS (.xlsx)</div>
+      </div>
+      <button class="movement-close" type="button" onclick="cerrarModalExcel()">&times;</button>
+    </div>
+
+    <div id="excel-drop" class="excel-drop"
+         ondragover="event.preventDefault();this.classList.add('drag-over')"
+         ondragleave="this.classList.remove('drag-over')"
+         ondrop="event.preventDefault();this.classList.remove('drag-over');handleExcelDrop(event)">
+      <div class="excel-drop-icon">📊</div>
+      <div>Arrastra tu archivo Excel aquí</div>
+      <div class="excel-drop-sub">o</div>
+      <label class="add-btn" style="cursor:pointer">
+        📂 Seleccionar archivo
+        <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelFile(this.files[0])">
+      </label>
+      <div class="excel-drop-hint">Detecta hojas <strong>TINTAS 1 · TINTAS 2 · TINTAS 3</strong><br>Columnas: CLAVE · DESCRIPCION · LOTE · EXISTENCIA · UBICACIÓN</div>
+    </div>
+
+    <div id="excel-preview" style="display:none">
+      <div id="excel-summary" class="panel-note info" style="margin-bottom:10px"></div>
+      <div class="excel-preview-table-wrap">
+        <table id="excel-preview-table"></table>
+      </div>
+    </div>
+
+    <div id="excel-actions" style="display:none">
+      <div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px">Modo de actualización</div>
+        <div class="excel-modes">
+          <label class="excel-mode-option">
+            <input type="radio" name="excel-mode" value="actualizar" checked>
+            <div>
+              <div style="font-weight:700;font-size:13px">Actualizar existencias</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Busca cada lote por número y actualiza solo la existencia. Los registros no encontrados no se modifican.</div>
+            </div>
+          </label>
+          <label class="excel-mode-option">
+            <input type="radio" name="excel-mode" value="reemplazar">
+            <div>
+              <div style="font-weight:700;font-size:13px">⚠ Reemplazar inventario completo</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Borra todo el inventario actual y lo reemplaza con los datos del Excel. No se puede deshacer.</div>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" onclick="aplicarExcel()">✓ Aplicar importación</button>
+        <button class="btn" onclick="cerrarModalExcel()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -1900,7 +1956,186 @@ function tick(){
   document.getElementById('clock').textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
 }
 setInterval(tick,1000);tick();
+
+// ── EXCEL IMPORT ──
+let excelRows=[];
+
+function abrirModalExcel(){
+  if(!modoEdicion){abrirPin(()=>abrirModalExcel());return;}
+  document.getElementById('excel-modal').classList.add('show');
+  resetExcelModal();
+}
+function cerrarModalExcel(){
+  document.getElementById('excel-modal').classList.remove('show');
+  excelRows=[];
+}
+function resetExcelModal(){
+  document.getElementById('excel-drop').style.display='';
+  document.getElementById('excel-preview').style.display='none';
+  document.getElementById('excel-actions').style.display='none';
+  excelRows=[];
+  const inp=document.getElementById('excel-file-input');
+  if(inp)inp.value='';
+}
+function handleExcelDrop(e){
+  const f=e.dataTransfer.files[0];
+  if(f)handleExcelFile(f);
+}
+async function handleExcelFile(file){
+  if(!file)return;
+  toast('Leyendo archivo…');
+  try{
+    if(!window.XLSX){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+        s.onload=res;s.onerror=()=>rej(new Error('No se pudo cargar el lector de Excel. Verifica tu conexión.'));
+        document.head.appendChild(s);
+      });
+    }
+    const data=await file.arrayBuffer();
+    const wb=XLSX.read(new Uint8Array(data),{type:'array'});
+    parseExcelWorkbook(wb,file.name);
+  }catch(err){toast('Error: '+err.message);}
+}
+function parseExcelWorkbook(wb,filename){
+  const targetSheets=['TINTAS 1','TINTAS 2','TINTAS 3'];
+  excelRows=[];
+  let sheetCount=0;
+  const norm=s=>String(s).trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  for(const sheetName of wb.SheetNames){
+    const normalName=norm(sheetName);
+    let matchedSheet=null;
+    for(const t of targetSheets){if(normalName.includes(t)){matchedSheet=t;break;}}
+    if(!matchedSheet)continue;
+    const ws=wb.Sheets[sheetName];
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    if(!rows.length)continue;
+    // Find header row (must have LOTE and EXISTENCIA columns)
+    let headerIdx=-1,colMap={};
+    for(let i=0;i<Math.min(rows.length,6);i++){
+      const row=rows[i].map(c=>norm(String(c)));
+      const loteIdx=row.findIndex(c=>c.includes('LOTE')||c.includes('SERIE')||c.includes('PEDIMENTO'));
+      const qtyIdx=row.findIndex(c=>c.includes('EXISTENCIA')||c==='QTY'||c==='CANTIDAD'||c==='STOCK'||c==='KILOS'||c==='KG');
+      if(loteIdx>=0&&qtyIdx>=0){
+        headerIdx=i;
+        colMap.clave=row.findIndex(c=>c==='CLAVE'||c==='CODIGO');
+        colMap.desc=row.findIndex(c=>c.includes('DESCRIPCION')||c.includes('NOMBRE')||c.includes('TINTA'));
+        colMap.lote=loteIdx;
+        colMap.qty=qtyIdx;
+        colMap.ubic=row.findIndex(c=>c.includes('UBICAC')||c.includes('UBIC'));
+        colMap.obs=row.findIndex(c=>c.includes('OBSERVA'));
+        break;
+      }
+    }
+    if(headerIdx<0)continue;
+    sheetCount++;
+    for(let i=headerIdx+1;i<rows.length;i++){
+      const row=rows[i];
+      const rawLote=String(row[colMap.lote]??'').trim();
+      const rawDesc=colMap.desc>=0?String(row[colMap.desc]??'').trim():'';
+      const rawQty=parseFloat(row[colMap.qty])??0;
+      const rawClave=colMap.clave>=0?String(row[colMap.clave]??'').trim():'S/C';
+      const rawUbic=colMap.ubic>=0?String(row[colMap.ubic]??'').trim():'';
+      // Skip empty / section-title / duplicate-header rows
+      if(!rawLote)continue;
+      const lN=norm(rawLote);
+      if(lN==='LOTE'||lN.includes('SERIE')||lN.includes('PEDIMENTO'))continue;
+      excelRows.push({clave:rawClave||'S/C',desc:rawDesc,lote:rawLote,qty:rawQty||0,unidad:'kg',ubic:rawUbic,cat:'',sheet:matchedSheet});
+    }
+  }
+  showExcelPreview(sheetCount,filename);
+}
+function showExcelPreview(sheetCount,filename){
+  if(!excelRows.length){
+    toast('No se encontraron hojas TINTAS 1/2/3 con datos válidos en el Excel.');
+    return;
+  }
+  const matched=excelRows.filter(r=>inv.some(i=>i.lote===r.lote)).length;
+  const nuevos=excelRows.length-matched;
+  document.getElementById('excel-drop').style.display='none';
+  document.getElementById('excel-preview').style.display='';
+  document.getElementById('excel-actions').style.display='';
+  document.getElementById('excel-summary').innerHTML=`
+    <strong>📊 ${filename}</strong> &mdash;
+    ${sheetCount} hoja${sheetCount>1?'s':''} detectada${sheetCount>1?'s':''} &middot;
+    <strong>${excelRows.length}</strong> registros leídos &middot;
+    <strong style="color:var(--green)">${matched}</strong> coinciden con inventario actual
+    ${nuevos>0?`&middot; <strong style="color:var(--amber)">${nuevos}</strong> lotes nuevos (solo se agregan en modo Reemplazar)`:''}
+  `;
+  const prev=excelRows.slice(0,8);
+  document.getElementById('excel-preview-table').innerHTML=`
+    <thead><tr>
+      <th>Clave</th><th>Descripción</th><th>Lote</th><th>Existencia</th><th>Ubicación</th><th>Hoja</th>
+    </tr></thead>
+    <tbody>
+      ${prev.map(r=>`<tr>
+        <td>${r.clave||'—'}</td>
+        <td title="${r.desc}">${r.desc.length>30?r.desc.slice(0,28)+'…':r.desc||'—'}</td>
+        <td><span class="lote-cell">${r.lote||'—'}</span></td>
+        <td><strong>${r.qty}</strong> kg</td>
+        <td>${r.ubic||'—'}</td>
+        <td><span class="tag tag-kg">${r.sheet}</span></td>
+      </tr>`).join('')}
+      ${excelRows.length>8?`<tr><td colspan="6" style="text-align:center;color:var(--muted);font-style:italic;padding:8px">… y ${excelRows.length-8} registros más</td></tr>`:''}
+    </tbody>
+  `;
+}
+async function aplicarExcel(){
+  if(!excelRows.length)return;
+  const modo=document.querySelector('input[name="excel-mode"]:checked').value;
+  if(modo==='reemplazar'){
+    if(!confirm(`⚠ ¿Confirmas REEMPLAZAR todo el inventario?\n\n${excelRows.length} registros del Excel reemplazarán los datos actuales. Esta acción no se puede deshacer.`))return;
+  }
+  const now=new Date().toISOString();
+  let actualizados=0,noEncontrados=0;
+  if(modo==='actualizar'){
+    for(const row of excelRows){
+      const idx=inv.findIndex(r=>r.lote===row.lote);
+      if(idx>=0){
+        const old=inv[idx].qty;
+        inv[idx].qty=row.qty;
+        inv[idx].updatedAt=now;
+        inv[idx].updatedBy=usuario+' (Excel)';
+        if(useFirebase){
+          await db.collection('tintas').doc(inv[idx].id).update({qty:row.qty,updatedAt:now,updatedBy:usuario+' (Excel)'});
+          await db.collection('tintas_mov').add({tipo:'ajuste',desc:inv[idx].desc,lote:row.lote,qty:Math.abs(row.qty-old),unidad:'kg',quien:usuario,nota:`Actualiz. masiva Excel (${old}→${row.qty})`,ts:Date.now(),fecha:fmt(new Date())});
+        }
+        actualizados++;
+      }else noEncontrados++;
+    }
+    if(!useFirebase){saveLocal();renderAll();}
+    toast(`✓ ${actualizados} existencias actualizadas. ${noEncontrados} lotes no encontrados en inventario.`);
+  }else{
+    if(useFirebase){
+      const snap=await db.collection('tintas').get();
+      for(let i=0;i<snap.docs.length;i+=400){
+        const b=db.batch();
+        snap.docs.slice(i,i+400).forEach(d=>b.delete(d.ref));
+        await b.commit();
+      }
+      for(let i=0;i<excelRows.length;i+=400){
+        const b=db.batch();
+        excelRows.slice(i,i+400).forEach(item=>{
+          const ref=db.collection('tintas').doc();
+          b.set(ref,{...item,updatedAt:now,updatedBy:usuario+' (Excel)'});
+        });
+        await b.commit();
+      }
+      await db.collection('tintas_mov').add({tipo:'ajuste',desc:'Reemplazo masivo desde Excel',lote:'—',qty:excelRows.length,unidad:'',quien:usuario,nota:`Inventario reemplazado (${excelRows.length} registros)`,ts:Date.now(),fecha:fmt(new Date())});
+    }else{
+      inv=excelRows.map((r,i)=>({...r,id:'loc'+Date.now()+i,updatedAt:now,updatedBy:usuario+' (Excel)'}));
+      inv.sort((a,b)=>a.desc.localeCompare(b.desc));
+      addLogLocal('ajuste','Reemplazo masivo Excel','—',excelRows.length,`Inventario reemplazado (${excelRows.length} registros)`);
+      saveLocal();renderAll();
+    }
+    toast(`✓ Inventario reemplazado con ${excelRows.length} registros del Excel.`);
+  }
+  cerrarModalExcel();
+}
+
 init();
+
 </script>
 </body>
 </html>

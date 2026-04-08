@@ -1271,6 +1271,72 @@ body.page-indirectos .header-nav a[href="indirectos.html"]{
   box-shadow:0 10px 22px rgba(158,42,43,.24);
 }
 
+
+/* ── EXCEL IMPORT MODAL ── */
+.excel-overlay{
+  position:fixed;inset:0;z-index:320;
+  display:none;align-items:center;justify-content:center;
+  padding:1.25rem;
+  background:rgba(44,31,15,.22);
+}
+.excel-overlay.show{display:flex}
+.excel-panel{
+  width:min(680px,100%);
+  max-height:calc(100vh - 2.5rem);
+  overflow-y:auto;
+  border-radius:22px;
+  background:#fffaf4;
+  border:1px solid rgba(196,176,144,.68);
+  box-shadow:0 18px 34px rgba(44,31,15,.14);
+  padding:1.4rem;
+}
+.excel-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:1rem;margin-bottom:1.2rem;padding-bottom:1rem;
+  border-bottom:1px solid rgba(196,176,144,.45);
+}
+.excel-drop{
+  border:2px dashed var(--border-strong);
+  border-radius:16px;padding:2rem 1rem;
+  text-align:center;
+  background:rgba(255,255,255,.5);
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  font-size:13px;font-weight:600;
+  transition:border-color .2s,background .2s;
+  margin-bottom:1rem;cursor:default;
+}
+.excel-drop.drag-over,.excel-drop:hover{
+  border-color:var(--accent);background:rgba(249,237,237,.4);
+}
+.excel-drop-icon{font-size:2.5rem;line-height:1}
+.excel-drop-sub{color:var(--muted);font-size:11px;font-weight:400}
+.excel-drop-hint{font-size:11px;font-weight:400;color:var(--muted);line-height:1.7;margin-top:4px}
+.excel-modes{display:flex;flex-direction:column;gap:8px}
+.excel-mode-option{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:12px 14px;border-radius:12px;
+  border:1px solid var(--border);cursor:pointer;
+  background:rgba(255,255,255,.6);
+  transition:border-color .16s,background .16s;font-size:13px;
+}
+.excel-mode-option:has(input:checked){
+  border-color:var(--accent);background:var(--accent-light);
+}
+.excel-mode-option input[type=radio]{
+  width:auto;margin-top:3px;accent-color:var(--accent);flex-shrink:0;
+}
+.excel-preview-table-wrap{
+  overflow-x:auto;border-radius:10px;
+  border:1px solid var(--border);margin:10px 0;
+  max-height:200px;overflow-y:auto;
+}
+.excel-preview-table-wrap table{width:100%;font-size:11px}
+.excel-preview-table-wrap thead th{
+  background:rgba(248,241,233,.96);padding:7px 10px;
+  position:sticky;top:0;
+}
+.excel-preview-table-wrap tbody td{padding:6px 10px}
+
 @media (max-width:900px){
   .header{
     height:auto;
