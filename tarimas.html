@@ -414,6 +414,23 @@ function desbloquear(nombre, esMaestro = false) {
   chip.className = 'edit-chip unlocked';
   usuario = nombre;
   renderAll();
+  
+  // Auto-limpieza de duplicados (solo una vez para Fernando)
+  if (esMaestro && useFirebase) {
+    const dedupFlag = localStorage.getItem('tarimas_dedup_done');
+    if (!dedupFlag) {
+      setTimeout(() => {
+        if (confirm('🔧 Se detectaron registros duplicados en el inventario.\n\n¿Quieres que el sistema los consolide automáticamente ahora?\n\n(Esta acción solo se ejecutará una vez)')) {
+          deduplicarTarimas().then(() => {
+            localStorage.setItem('tarimas_dedup_done', 'true');
+            toast('✓ Limpieza completada. No volverás a ver este mensaje.');
+          });
+        } else {
+          localStorage.setItem('tarimas_dedup_done', 'true');
+        }
+      }, 2000);
+    }
+  }
 }
 
 function bloquear() {
@@ -889,6 +906,38 @@ async function agregarTarimaPrincipal() {
   const op     = document.getElementById('ap-op').value.trim();
   const obs    = document.getElementById('ap-obs').value.trim();
   if (!medida) { alert('Ingresa la medida.'); return; }
+  
+  // PREVENCIÓN DE DUPLICADOS: Verificar si ya existe esta medida+ubicación
+  const duplicado = inv.find(r => normalizeMedida(r.medida) === medida && r.loc === loc);
+  if (duplicado) {
+    if (!confirm(`⚠️ Ya existe un registro de ${medida} en ${loc} con ${duplicado.qty} piezas.\n\n¿Quieres actualizar ese registro en lugar de crear uno nuevo?`)) {
+      return;
+    }
+    // Actualizar el existente
+    const nuevaQty = qty;
+    if (useFirebase) {
+      const now = new Date().toISOString();
+      await db.collection('inventario').doc(duplicado.id).update({ 
+        qty: nuevaQty, 
+        op: op || duplicado.op,
+        obs: obs || duplicado.obs,
+        updatedAt: now, 
+        updatedBy: usuario 
+      });
+    } else {
+      duplicado.qty = nuevaQty;
+      if (op) duplicado.op = op;
+      if (obs) duplicado.obs = obs;
+      saveLocal(); renderAll();
+    }
+    document.getElementById('add-form-principal').style.display = 'none';
+    ['ap-medida','ap-op','ap-obs'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('ap-qty').value = '0';
+    toast(`✓ Actualizado: ${medida} ahora tiene ${nuevaQty} piezas (evitó duplicado)`);
+    return;
+  }
+  
+  // Si no hay duplicado, crear nuevo registro normal
   const item = { medida, qty, loc, op, obs };
   if (useFirebase) {
     await fbAgregar(item);
@@ -1115,6 +1164,49 @@ async function registrarNuevaMedidaYMovimiento() {
   const nota   = document.getElementById('m-nota').value.trim();
   if (!medida) { toast('Escribe la medida.'); return; }
   if (qty <= 0) { toast('Ingresa la cantidad de tarimas.'); return; }
+  
+  // PREVENCIÓN DE DUPLICADOS: Verificar si ya existe esta medida+ubicación
+  const duplicado = inv.find(r => normalizeMedida(r.medida) === medida && r.loc === loc);
+  if (duplicado) {
+    if (!confirm(`⚠️ Ya existe un registro de ${medida} en ${loc} con ${duplicado.qty} piezas.\n\n¿Quieres actualizar ese registro sumando ${qty} más en lugar de crear uno nuevo?`)) {
+      return;
+    }
+    // Actualizar el existente en lugar de crear nuevo
+    const nuevaQty = (duplicado.qty || 0) + qty;
+    if (useFirebase) {
+      const now = new Date().toISOString();
+      await db.collection('inventario').doc(duplicado.id).update({ 
+        qty: nuevaQty, 
+        op: op || duplicado.op,
+        obs: obs || duplicado.obs,
+        updatedAt: now, 
+        updatedBy: usuario, 
+        lastMovAt: now 
+      });
+      await db.collection('movimientos').add({ 
+        tipo: 'entrada', 
+        medida, 
+        qty, 
+        quien: usuario, 
+        nota: nota || `Entrada consolidada (evitó duplicado)`, 
+        ts: Date.now(), 
+        fecha: fmt(new Date()) 
+      });
+    } else {
+      duplicado.qty = nuevaQty;
+      if (op) duplicado.op = op;
+      if (obs) duplicado.obs = obs;
+      duplicado.lastMovAt = new Date().toISOString();
+      addLogLocal('entrada', medida, qty, nota || `Entrada consolidada (evitó duplicado)`);
+      saveLocal(); renderAll();
+    }
+    document.getElementById('nueva-medida-aviso').style.display = 'none';
+    limpiarMov();
+    toast(`✓ Actualizado: ${medida} ahora tiene ${nuevaQty} piezas (evitó duplicado)`);
+    return;
+  }
+  
+  // Si no hay duplicado, crear nuevo registro normal
   const now = new Date().toISOString();
   const item = { medida, qty, loc, op, obs, updatedAt: now, updatedBy: usuario, lastMovAt: now };
   if (useFirebase) {
