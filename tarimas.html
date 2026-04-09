@@ -307,13 +307,6 @@
   </div>
 </div>
 
-<!-- Botón deduplicación -->
-<div id="dedup-btn-container" style="position:fixed;bottom:80px;right:20px;z-index:500;display:none">
-  <button onclick="ejecutarDeduplicacion()" style="font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:700;padding:12px 20px;border-radius:8px;border:2px solid #D97706;background:#FEF3C7;color:#92400E;cursor:pointer;box-shadow:0 4px 12px rgba(217,119,6,.3);transition:all .2s">
-    🔧 Eliminar duplicados
-  </button>
-</div>
-
 <div class="toast" id="toast"></div>
 
 
@@ -526,9 +519,6 @@ async function startApp() {
       useFirebase = true;
       document.getElementById('setup-banner').classList.add('hidden');
       setLiveStatus(true);
-      // Mostrar botón de deduplicación
-      const dedupBtn = document.getElementById('dedup-btn-container');
-      if (dedupBtn) dedupBtn.style.display = 'block';
       await seedIfEmpty();
       listenFirebase();
       return;
@@ -563,68 +553,7 @@ async function seedIfEmpty() {
   }
 }
 
-// ── DEDUPLICAR TARIMAS (ejecutar una sola vez para limpiar duplicados) ──
-function ejecutarDeduplicacion() {
-  if (!modoMaestro) {
-    alert('⚠️ Esta función requiere acceso de administrador.\n\nSolo Fernando puede ejecutarla.');
-    return;
-  }
-  deduplicarTarimas();
-}
 
-async function deduplicarTarimas() {
-  if (!confirm('⚠️ Esta acción eliminará registros duplicados de tarimas.\n\nSe conservará el registro con mayor cantidad.\n\n&iquest;Continuar?')) return;
-  
-  const snap = await db.collection('inventario').get();
-  const items = snap.docs.map(d => ({id: d.id, ...d.data()}));
-  
-  // Agrupar por medida + ubicación
-  const grupos = {};
-  items.forEach(item => {
-    const key = `${item.medida}|${item.loc || ''}`;
-    if (!grupos[key]) grupos[key] = [];
-    grupos[key].push(item);
-  });
-  
-  // Encontrar duplicados
-  let eliminados = 0;
-  const batch = db.batch();
-  
-  for (const key in grupos) {
-    const grupo = grupos[key];
-    if (grupo.length > 1) {
-      // Ordenar por cantidad descendente
-      grupo.sort((a,b) => (b.qty || 0) - (a.qty || 0));
-      
-      // Consolidar: sumar cantidades si hay diferencias
-      const principal = grupo[0];
-      const totalQty = grupo.reduce((sum, item) => sum + (item.qty || 0), 0);
-      
-      // Actualizar el principal con la suma
-      if (totalQty !== principal.qty) {
-        batch.update(db.collection('inventario').doc(principal.id), {
-          qty: totalQty,
-          obs: (principal.obs || '') + (principal.obs ? ' | ' : '') + `CONSOLIDADO (${grupo.length} duplicados)`,
-          updatedAt: new Date().toISOString(),
-          updatedBy: 'SISTEMA-DEDUP'
-        });
-      }
-      
-      // Eliminar los demás
-      for (let i = 1; i < grupo.length; i++) {
-        batch.delete(db.collection('inventario').doc(grupo[i].id));
-        eliminados++;
-      }
-    }
-  }
-  
-  if (eliminados > 0) {
-    await batch.commit();
-    toast(`\u2713 Se eliminaron ${eliminados} registros duplicados.`);
-  } else {
-    toast('No se encontraron duplicados.');
-  }
-}
 
 function listenFirebase() {
   db.collection('inventario').onSnapshot(snap => {
@@ -798,28 +727,6 @@ async function guardarCampo(id, campo, valor) {
   toast('Guardado.');
 }
 
-async function agregarTarima() {
-  const medida = document.getElementById('a-medida').value.trim().toUpperCase();
-  const qty = parseInt(document.getElementById('a-qty').value) || 0;
-  const loc = document.getElementById('a-loc').value;
-  const op = document.getElementById('a-op').value.trim().toUpperCase();
-  const obs = document.getElementById('a-obs').value.trim().toUpperCase();
-  if (!medida) { toast('Ingresa la medida de la tarima.'); return; }
-  const item = { medida, qty, loc, op, obs };
-  if (useFirebase) {
-    await fbAgregar(item);
-  } else {
-    const id = String(Date.now());
-    inv.push({...item, id});
-    inv.sort((a,b) => a.medida.localeCompare(b.medida));
-    addLogLocal('nuevo-registro', medida, qty, 'Nueva medida agregada');
-    renderAll();
-  }
-  document.getElementById('add-form').style.display = 'none';
-  limpiarAddForm();
-  toast(`Tarima ${medida} agregada al inventario.`);
-}
-
 async function eliminar(id) {
   const idx = inv.findIndex(r => r.id === id);
   if (idx < 0) return;
@@ -948,6 +855,13 @@ async function agregarTarimaPrincipal() {
   const op     = document.getElementById('ap-op').value.trim();
   const obs    = document.getElementById('ap-obs').value.trim();
   if (!medida) { alert('Ingresa la medida.'); return; }
+
+  const existe = inv.some(r => normalizeMedida(r.medida) === medida);
+  if (existe) {
+    alert('⚠ Esta medida ya existe en el inventario. Por favor, cancela y usa "Registrar movimiento" para añadir a la actual o actualiza directamente si eres maestro.');
+    return;
+  }
+
   const item = { medida, qty, loc, op, obs };
   if (useFirebase) {
     await fbAgregar(item);
@@ -984,9 +898,6 @@ function renderAll() {
   // Show/hide maestro controls
   const maestroBtn = document.getElementById('maestro-add-btn');
   if (maestroBtn) maestroBtn.style.display = modoMaestro ? 'block' : 'none';
-  // Show dedup button if Firebase is active (but functionality requires maestro)
-  const dedupBtn = document.getElementById('dedup-btn-container');
-  if (dedupBtn) dedupBtn.style.display = useFirebase ? 'block' : 'none';
 }
 
 function renderTable() {
@@ -1193,12 +1104,6 @@ async function registrarNuevaMedidaYMovimiento() {
 }
 
 
-
-function limpiarAddForm() {
-  ['a-medida','a-op','a-obs'].forEach(id => document.getElementById(id).value='');
-  document.getElementById('a-qty').value='0';
-  document.getElementById('a-loc').value='BODEGA 7';
-}
 
 function limpiarMov() {
   ['m-medida','m-nota','a-op','a-obs'].forEach(id => document.getElementById(id).value='');
