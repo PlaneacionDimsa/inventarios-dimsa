@@ -282,22 +282,22 @@ body.page-home .main{max-width:1280px}
   <section class="stats">
     <div class="stat">
       <div class="stat-label">Tarimas</div>
-      <div class="stat-value green" id="st-tarimas">--</div>
+      <div class="stat-value green" id="st-tarimas"><span class="skeleton" style="width:40px">&nbsp;</span></div>
       <div class="stat-sub">piezas totales registradas</div>
     </div>
     <div class="stat">
       <div class="stat-label">Tintas</div>
-      <div class="stat-value accent" id="st-tintas">--</div>
+      <div class="stat-value accent" id="st-tintas"><span class="skeleton" style="width:40px">&nbsp;</span></div>
       <div class="stat-sub">kilogramos disponibles</div>
     </div>
     <div class="stat">
       <div class="stat-label">Indirectos OK</div>
-      <div class="stat-value amber" id="st-indir">--</div>
+      <div class="stat-value amber" id="st-indir"><span class="skeleton" style="width:40px">&nbsp;</span></div>
       <div class="stat-sub">productos sobre minimo</div>
     </div>
     <div class="stat">
       <div class="stat-label">Ultima actualizacion</div>
-      <div class="stat-value" id="st-updated">--</div>
+      <div class="stat-value" id="st-updated"><span class="skeleton" style="width:40px">&nbsp;</span></div>
       <div class="stat-sub">referencia general del portal</div>
     </div>
   </section>
@@ -309,12 +309,12 @@ body.page-home .main{max-width:1280px}
           <div class="module-title">Tarimas</div>
           <div class="module-sub">Control de pallets en Bodega 7 y Tapanco.</div>
         </div>
-        <span class="module-badge tarimas" id="ic-tar-alert">Cargando</span>
+        <span class="module-badge tarimas" id="ic-tar-alert"><span class="skeleton" style="width:30px">&nbsp;</span></span>
       </div>
       <div class="module-stats">
-        <div class="module-row"><span>Bodega 7</span><strong id="ic-b7">--</strong></div>
-        <div class="module-row"><span>En Tapanco</span><strong id="ic-tp">--</strong></div>
-        <div class="module-row"><span>Medidas distintas</span><strong id="ic-tipos">--</strong></div>
+        <div class="module-row"><span>Bodega 7</span><strong id="ic-b7"><span class="skeleton" style="width:20px">&nbsp;</span></strong></div>
+        <div class="module-row"><span>En Tapanco</span><strong id="ic-tp"><span class="skeleton" style="width:20px">&nbsp;</span></strong></div>
+        <div class="module-row"><span>Medidas distintas</span><strong id="ic-tipos"><span class="skeleton" style="width:20px">&nbsp;</span></strong></div>
       </div>
       <div class="module-footer">
         <span class="module-link">Abrir inventario</span>
@@ -328,12 +328,12 @@ body.page-home .main{max-width:1280px}
           <div class="module-title">Tintas</div>
           <div class="module-sub">Tintas, adhesivos, barnices y aditivos por lote.</div>
         </div>
-        <span class="module-badge tintas" id="ic-tint-alert">Cargando</span>
+        <span class="module-badge tintas" id="ic-tint-alert"><span class="skeleton" style="width:30px">&nbsp;</span></span>
       </div>
       <div class="module-stats">
-        <div class="module-row"><span>Total registros</span><strong id="ic-tint-total">--</strong></div>
-        <div class="module-row"><span>Total kg</span><strong id="ic-tint-kg">--</strong></div>
-        <div class="module-row"><span>Lotes en cero</span><strong id="ic-tint-zero">--</strong></div>
+        <div class="module-row"><span>Total registros</span><strong id="ic-tint-total"><span class="skeleton" style="width:20px">&nbsp;</span></strong></div>
+        <div class="module-row"><span>Total kg</span><strong id="ic-tint-kg"><span class="skeleton" style="width:20px">&nbsp;</span></strong></div>
+        <div class="module-row"><span>Lotes en cero</span><strong id="ic-tint-zero"><span class="skeleton" style="width:20px">&nbsp;</span></strong></div>
       </div>
       <div class="module-footer">
         <span class="module-link">Abrir inventario</span>
@@ -347,12 +347,12 @@ body.page-home .main{max-width:1280px}
           <div class="module-title">Indirectos</div>
           <div class="module-sub">Empaques, flejes, consumibles y materiales de apoyo.</div>
         </div>
-        <span class="module-badge indirectos" id="ic-ind-alert">Cargando</span>
+        <span class="module-badge indirectos" id="ic-ind-alert"><span class="skeleton" style="width:30px">&nbsp;</span></span>
       </div>
       <div class="module-stats">
-        <div class="module-row"><span>Total productos</span><strong id="ic-ind-total">--</strong></div>
-        <div class="module-row"><span>Sobre minimo</span><strong id="ic-ind-ok">--</strong></div>
-        <div class="module-row"><span>Bajo minimo</span><strong id="ic-ind-low">--</strong></div>
+        <div class="module-row"><span>Total productos</span><strong id="ic-ind-total"><span class="skeleton" style="width:20px">&nbsp;</span></strong></div>
+        <div class="module-row"><span>Sobre minimo</span><strong id="ic-ind-ok"><span class="skeleton" style="width:20px">&nbsp;</span></strong></div>
+        <div class="module-row"><span>Bajo minimo</span><strong id="ic-ind-low"><span class="skeleton" style="width:20px">&nbsp;</span></strong></div>
       </div>
       <div class="module-footer">
         <span class="module-link">Abrir inventario</span>
@@ -376,7 +376,16 @@ body.page-home .main{max-width:1280px}
       <div class="section-title">Alertas de Stock</div>
       <div class="section-subtitle">Resumen transversal de lo que merece atención inmediata.</div>
       <div class="alerts-list" id="alerts-panel">
-        <div class="loading-empty">Conectando con inventarios...</div>
+        <div style="padding:4px">
+          <div class="alert-item-home" style="border:none;background:transparent;padding:6px 0;opacity:0.7">
+            <div class="skeleton" style="width:10px;height:10px;border-radius:50%"></div>
+            <div><div class="skeleton" style="width:120px;height:12px;margin-bottom:6px"></div><div class="skeleton" style="width:80px;height:10px"></div></div>
+          </div>
+          <div class="alert-item-home" style="border:none;background:transparent;padding:6px 0;opacity:0.4">
+            <div class="skeleton" style="width:10px;height:10px;border-radius:50%"></div>
+            <div><div class="skeleton" style="width:100px;height:12px;margin-bottom:6px"></div><div class="skeleton" style="width:60px;height:10px"></div></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -446,10 +455,16 @@ function renderAlerts(){
     panel.innerHTML='<div class="loading-empty">Sin alertas activas por ahora.</div>';
     return;
   }
+  let extraHtml = '';
+  const maxVisibles = 8;
+  if(allAlerts.length > maxVisibles){
+    extraHtml = `<div style="text-align:center;padding-top:6px;"><span style="font-size:11px;font-weight:700;color:var(--muted);background:rgba(196,176,144,.2);padding:4px 10px;border-radius:99px;">+ ${allAlerts.length - maxVisibles} alertas silenciadas temporalmente</span></div>`;
+  }
+  
   panel.innerHTML=allAlerts
     .slice()
     .sort((a,b)=>(a.level==='red'?0:1)-(b.level==='red'?0:1))
-    .slice(0,8)
+    .slice(0,maxVisibles)
     .map(a=>`
       <div class="alert-item-home ${a.level}">
         <span class="alert-dot ${a.level}"></span>
@@ -459,7 +474,7 @@ function renderAlerts(){
         </div>
         <a class="alert-link" href="${a.link}">Ver</a>
       </div>
-    `).join('');
+    `).join('') + extraHtml;
 }
 
 function setLiveStatus(ok){

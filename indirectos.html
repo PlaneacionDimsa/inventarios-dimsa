@@ -64,10 +64,10 @@
 
   <!-- STATS -->
   <div class="stats">
-    <div class="stat"><div class="stat-label">Total productos</div><div class="stat-value blue" id="s-total">&mdash;</div><div class="stat-sub">registros</div></div>
-    <div class="stat"><div class="stat-label">Sobre el mínimo</div><div class="stat-value green" id="s-ok">&mdash;</div><div class="stat-sub">con stock suficiente</div></div>
-    <div class="stat"><div class="stat-label">Bajo el mínimo</div><div class="stat-value amber" id="s-low">&mdash;</div><div class="stat-sub">requieren reposición</div></div>
-    <div class="stat"><div class="stat-label">Sin stock</div><div class="stat-value red" id="s-zero">&mdash;</div><div class="stat-sub">en cero</div></div>
+    <div class="stat"><div class="stat-label">Total productos</div><div class="stat-value blue" id="s-total"><span class="skeleton" style="width:40px">&nbsp;</span></div><div class="stat-sub">registros</div></div>
+    <div class="stat"><div class="stat-label">Sobre el mínimo</div><div class="stat-value green" id="s-ok"><span class="skeleton" style="width:40px">&nbsp;</span></div><div class="stat-sub">con stock suficiente</div></div>
+    <div class="stat"><div class="stat-label">Bajo el mínimo</div><div class="stat-value amber" id="s-low"><span class="skeleton" style="width:40px">&nbsp;</span></div><div class="stat-sub">requieren reposición</div></div>
+    <div class="stat"><div class="stat-label">Sin stock</div><div class="stat-value red" id="s-zero"><span class="skeleton" style="width:40px">&nbsp;</span></div><div class="stat-sub">en cero</div></div>
   </div>
 
   <!-- TABS -->
@@ -86,7 +86,7 @@
         <button class="filter-btn" data-f="ALMACEN" onclick="setFilter(this,'ALMACEN')">Almacén</button>
         <button class="filter-btn" data-f="alertas" onclick="setFilter(this,'alertas')">⚠ Alertas</button>
         <div class="spacer"></div>
-        <button class="filter-btn" onclick="abrirModalExcel()" title="Importar desde Excel">📤 Subir Excel</button>
+        <button class="filter-btn" id="btn-excel" onclick="abrirModalExcel()" title="Importar desde Excel" style="display:none">📤 Subir Excel</button>
         <button class="add-btn" onclick="showAddForm()">+ Agregar</button>
       </div>
       <div class="tbl-wrap">
@@ -160,10 +160,10 @@
             </select>
           </div>
         </div>
-        <div class="form-col">
+        <div class="form-col" style="position:relative">
           <label>Producto</label>
-          <input id="m-nombre" placeholder="Buscar producto..." list="nombres-list" type="text" oninput="checkMaterialNuevo()">
-          <datalist id="nombres-list"></datalist>
+          <input id="m-nombre" placeholder="Buscar producto..." type="text" autocomplete="off" oninput="checkMaterialNuevo();showDescDropdown()" onfocus="showDescDropdown()">
+          <div id="desc-dropdown" class="combo-dropdown"></div>
         </div>
         <div class="form-col">
           <label>Cantidad</label>
@@ -244,23 +244,27 @@
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px">Modo de actualización</div>
         <div class="excel-modes">
           <label class="excel-mode-option">
-            <input type="radio" name="excel-mode" value="actualizar" checked>
+            <input type="radio" name="excel-mode" value="actualizar" checked onchange="toggleReemplazarCheck()">
             <div>
               <div style="font-weight:700;font-size:13px">Actualizar existencias</div>
               <div style="font-size:11px;color:var(--muted);margin-top:3px">Busca cada producto por nombre y actualiza solo la existencia. Los productos no encontrados no se modifican.</div>
             </div>
           </label>
           <label class="excel-mode-option">
-            <input type="radio" name="excel-mode" value="reemplazar">
+            <input type="radio" name="excel-mode" value="reemplazar" onchange="toggleReemplazarCheck()">
             <div>
               <div style="font-weight:700;font-size:13px">⚠ Reemplazar inventario completo</div>
               <div style="font-size:11px;color:var(--muted);margin-top:3px">Borra todo el inventario actual y lo reemplaza con los datos del Excel. No se puede deshacer.</div>
             </div>
           </label>
         </div>
+        <div id="reemplazar-check-container" style="display:none;margin-top:12px;padding:12px;background:rgba(229,62,62,.08);border:1px solid rgba(229,62,62,.2);border-radius:12px;">
+           <label style="font-size:12px;font-weight:700;color:var(--danger)">Escribe REEMPLAZAR para confirmar:</label>
+           <input type="text" id="reemplazar-confirm" class="search-input" style="margin-top:6px;width:100%" oninput="checkReemplazarBtn()" placeholder="REEMPLAZAR" autocomplete="off">
+        </div>
       </div>
       <div class="btn-row">
-        <button class="btn primary" onclick="aplicarExcel()">✓ Aplicar importación</button>
+        <button class="btn primary" id="btn-aplicar-excel" onclick="aplicarExcel()">✓ Aplicar importación</button>
         <button class="btn" onclick="cerrarModalExcel()">Cancelar</button>
       </div>
     </div>
@@ -362,7 +366,13 @@ async function verificarPin(){
   const hash=await hashPin(i.value);
   const nombre=USUARIOS[hash];
   if(nombre){cerrarPin();desbloquear(nombre,hash===HASH_MAESTRO);if(pinCallback)pinCallback();}
-  else{i.classList.add('error');i.value='';setTimeout(()=>i.classList.remove('error'),400);}
+  else{
+    i.classList.remove('shake', 'error');
+    void i.offsetWidth;
+    i.classList.add('error', 'shake');
+    i.value='';
+    setTimeout(()=>i.classList.remove('error', 'shake'),400);
+  }
 }
 async function hashPin(pin){
   const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pin));
@@ -375,6 +385,10 @@ function desbloquear(nombre,esMaestro=false){
   document.getElementById('edit-bar').classList.add('visible');
   document.getElementById('edit-bar-user').textContent=nombre+(esMaestro?' ★':'');
   const c=document.getElementById('edit-chip');c.textContent='🔓 '+nombre;c.className='edit-chip unlocked';
+  const btnExcel=document.getElementById('btn-excel');
+  if(btnExcel)btnExcel.style.display=esMaestro?'inline-flex':'none';
+  resetSessionTimeout();
+  renderAll();
 }
 function bloquear(){
   modoEdicion=false;modoMaestro=false;usuario='';
@@ -382,7 +396,26 @@ function bloquear(){
   document.getElementById('edit-bar').classList.remove('visible');
   const c=document.getElementById('edit-chip');c.textContent='\uD83D\uDD12 Solo lectura';c.className='edit-chip locked';
   const m=document.querySelector('#tab-mov-btn');if(m&&m.classList.contains('active'))setTab(document.querySelector('.tab-btn'),'inventario');
+  const btnExcel=document.getElementById('btn-excel');
+  if(btnExcel)btnExcel.style.display='none';
+  resetSessionTimeout();
+  renderAll();
 }
+
+let sessionTimeout = null;
+function resetSessionTimeout() {
+  if(sessionTimeout) clearTimeout(sessionTimeout);
+  if(modoEdicion) {
+    sessionTimeout = setTimeout(() => {
+      bloquear();
+      toast('Sesión cerrada por inactividad (15 min).');
+    }, 15 * 60 * 1000);
+  }
+}
+document.addEventListener('mousemove', resetSessionTimeout);
+document.addEventListener('keydown', resetSessionTimeout);
+document.addEventListener('touchstart', resetSessionTimeout);
+
 function requirePin(btn,tab){modoEdicion?setTab(btn,tab):abrirPin(()=>setTab(btn,tab))}
 
 // ── INIT ──
@@ -676,7 +709,41 @@ function renderLog(){
 }
 
 function updateNombresList(){
-  document.getElementById('nombres-list').innerHTML=inv.map(r=>`<option value="${r.nombre}">`).join('');
+  // no-op, handled by showDescDropdown
+}
+
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#desc-dropdown')&&e.target.id!=='m-nombre'){
+    hideDescDropdown();
+  }
+});
+
+function showDescDropdown(){
+  const input=document.getElementById('m-nombre');
+  const q=(input.value||'').trim().toLowerCase();
+  const dd=document.getElementById('desc-dropdown');
+  if(!q){dd.classList.remove('show');return;}
+  const matches=[...new Set(
+    inv.filter(r=>(r.nombre||'').toLowerCase().includes(q)).map(r=>r.nombre)
+  )].slice(0,12);
+  if(!matches.length){dd.classList.remove('show');return;}
+  const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const htmlEnc=s=>s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  dd.innerHTML=matches.map(d=>`
+    <div class="combo-item" onclick="selectDesc(this.dataset.desc)" data-desc="${htmlEnc(d)}">
+      <div class="combo-title">${d.replace(new RegExp(esc(q),'gi'),m=>`<strong style="color:var(--accent)">${m}</strong>`)}</div>
+    </div>`).join('');
+  dd.classList.add('show');
+}
+
+function hideDescDropdown(){
+  document.getElementById('desc-dropdown').classList.remove('show');
+}
+
+function selectDesc(desc){
+  document.getElementById('m-nombre').value=desc;
+  hideDescDropdown();
+  checkMaterialNuevo();
 }
 
 // ── HELPERS ──
@@ -866,7 +933,7 @@ async function aplicarExcel(){
   if(!excelRows.length)return;
   const modo=document.querySelector('input[name="excel-mode"]:checked').value;
   if(modo==='reemplazar'){
-    if(!confirm(`⚠ ¿Confirmas REEMPLAZAR todo el inventario?\n\n${excelRows.length} productos del Excel reemplazarán los datos actuales.`))return;
+    if(document.getElementById('reemplazar-confirm').value !== 'REEMPLAZAR') return;
   }
   const now=new Date().toISOString();
   let actualizados=0,noEncontrados=0;
@@ -906,8 +973,38 @@ async function aplicarExcel(){
       saveLocal();renderAll();
     }
     toast(`✓ Inventario reemplazado con ${excelRows.length} productos.`);
+    document.querySelector('.stats').classList.add('success-flash');
+    setTimeout(() => document.querySelector('.stats').classList.remove('success-flash'), 1200);
   }
   cerrarModalExcel();
+}
+
+function toggleReemplazarCheck() {
+  const modo = document.querySelector('input[name="excel-mode"]:checked').value;
+  const container = document.getElementById('reemplazar-check-container');
+  const btnAplicar = document.getElementById('btn-aplicar-excel');
+  if (modo === 'reemplazar') {
+    container.style.display = 'block';
+    btnAplicar.disabled = true;
+    btnAplicar.style.opacity = '0.5';
+    document.getElementById('reemplazar-confirm').value = '';
+  } else {
+    container.style.display = 'none';
+    btnAplicar.disabled = false;
+    btnAplicar.style.opacity = '1';
+  }
+}
+
+function checkReemplazarBtn() {
+  const inp = document.getElementById('reemplazar-confirm').value;
+  const btnAplicar = document.getElementById('btn-aplicar-excel');
+  if (inp === 'REEMPLAZAR') {
+    btnAplicar.disabled = false;
+    btnAplicar.style.opacity = '1';
+  } else {
+    btnAplicar.disabled = true;
+    btnAplicar.style.opacity = '0.5';
+  }
 }
 
 init();

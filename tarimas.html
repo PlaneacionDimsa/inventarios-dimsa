@@ -87,10 +87,10 @@
 <!-- MAIN -->
 <main class="main locked" id="main-content">
   <div class="stats">
-    <div class="stat"><div class="stat-label">Total tarimas</div><div class="stat-value" id="s-total">&mdash;</div><div class="stat-sub">en inventario</div></div>
-    <div class="stat"><div class="stat-label">Bodega 7</div><div class="stat-value blue" id="s-b7">&mdash;</div><div class="stat-sub" id="s-b7-sub">piezas</div></div>
-    <div class="stat"><div class="stat-label">Tapanco</div><div class="stat-value amber" id="s-tp">&mdash;</div><div class="stat-sub" id="s-tp-sub">piezas</div></div>
-    <div class="stat"><div class="stat-label">Hoy</div><div class="stat-value green" id="s-hoy">&mdash;</div><div class="stat-sub">movimientos</div></div>
+    <div class="stat"><div class="stat-label">Total tarimas</div><div class="stat-value" id="s-total"><span class="skeleton" style="width:40px">&nbsp;</span></div><div class="stat-sub">en inventario</div></div>
+    <div class="stat"><div class="stat-label">Bodega 7</div><div class="stat-value blue" id="s-b7"><span class="skeleton" style="width:40px">&nbsp;</span></div><div class="stat-sub" id="s-b7-sub">piezas</div></div>
+    <div class="stat"><div class="stat-label">Tapanco</div><div class="stat-value amber" id="s-tp"><span class="skeleton" style="width:40px">&nbsp;</span></div><div class="stat-sub" id="s-tp-sub">piezas</div></div>
+    <div class="stat"><div class="stat-label">Hoy</div><div class="stat-value green" id="s-hoy"><span class="skeleton" style="width:40px">&nbsp;</span></div><div class="stat-sub">movimientos</div></div>
   </div>
 
   <div class="tabs">
@@ -107,7 +107,7 @@
         <button class="filter-btn" data-f="BODEGA 7" onclick="setLoc(this,'BODEGA 7')">Bodega 7</button>
         <button class="filter-btn" data-f="EN TAPANCO" onclick="setLoc(this,'EN TAPANCO')">Tapanco</button>
         <div class="spacer"></div>
-        <button class="filter-btn" onclick="abrirModalExcel()" title="Importar desde Excel">📤 Subir Excel</button>
+        <button class="filter-btn" id="btn-excel" onclick="abrirModalExcel()" title="Importar desde Excel" style="display:none">📤 Subir Excel</button>
         <div id="maestro-add-btn" style="display:none">
           <button class="add-btn" onclick="showAddFormPrincipal()">+ Nueva medida</button>
         </div>
@@ -188,10 +188,10 @@
             </select>
           </div>
         </div>
-        <div class="form-col">
+        <div class="form-col" style="position:relative;">
           <label>Medida de tarima</label>
-          <input id="m-medida" placeholder="ej. 120*100" list="medidas-list" type="text" oninput="checkMedidaNueva()">
-          <datalist id="medidas-list"></datalist>
+          <input id="m-medida" placeholder="ej. 120*100" type="text" oninput="filtrarComboMedida(this.value)" onfocus="filtrarComboMedida(this.value)" autocomplete="off">
+          <div id="medidas-list" class="combo-dropdown"></div>
         </div>
       </div>
 
@@ -284,23 +284,27 @@
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px">Modo de actualización</div>
         <div class="excel-modes">
           <label class="excel-mode-option">
-            <input type="radio" name="excel-mode" value="actualizar" checked>
+            <input type="radio" name="excel-mode" value="actualizar" checked onchange="toggleReemplazarCheck()">
             <div>
               <div style="font-weight:700;font-size:13px">Actualizar cantidades</div>
               <div style="font-size:11px;color:var(--muted);margin-top:3px">Busca cada medida y actualiza solo la cantidad. Las medidas no encontradas no se tocan.</div>
             </div>
           </label>
           <label class="excel-mode-option">
-            <input type="radio" name="excel-mode" value="reemplazar">
+            <input type="radio" name="excel-mode" value="reemplazar" onchange="toggleReemplazarCheck()">
             <div>
               <div style="font-weight:700;font-size:13px">⚠ Reemplazar inventario completo</div>
               <div style="font-size:11px;color:var(--muted);margin-top:3px">Borra todo el inventario actual y lo reemplaza con los datos del Excel. No se puede deshacer.</div>
             </div>
           </label>
         </div>
+        <div id="reemplazar-check-container" style="display:none;margin-top:12px;padding:12px;background:rgba(229,62,62,.08);border:1px solid rgba(229,62,62,.2);border-radius:12px;">
+           <label style="font-size:12px;font-weight:700;color:var(--danger)">Escribe REEMPLAZAR para confirmar:</label>
+           <input type="text" id="reemplazar-confirm" class="search-input" style="margin-top:6px;width:100%" oninput="checkReemplazarBtn()" placeholder="REEMPLAZAR" autocomplete="off">
+        </div>
       </div>
       <div class="btn-row">
-        <button class="btn primary" onclick="aplicarExcel()">✓ Aplicar importación</button>
+        <button class="btn primary" id="btn-aplicar-excel" onclick="aplicarExcel()">✓ Aplicar importación</button>
         <button class="btn" onclick="cerrarModalExcel()">Cancelar</button>
       </div>
     </div>
@@ -445,9 +449,11 @@ async function verificarPin() {
     desbloquear(nombre, esMaestro);
     if (pinCallback) pinCallback();
   } else {
-    input.classList.add('error');
+    input.classList.remove('shake', 'error');
+    void input.offsetWidth;
+    input.classList.add('error', 'shake');
     input.value = '';
-    setTimeout(() => input.classList.remove('error'), 400);
+    setTimeout(() => input.classList.remove('error', 'shake'), 400);
   }
 }
 
@@ -465,6 +471,7 @@ function desbloquear(nombre, esMaestro = false) {
   chip.textContent = '🔓 ' + nombre;
   chip.className = 'edit-chip unlocked';
   usuario = nombre;
+  resetSessionTimeout();
   renderAll();
 }
 
@@ -481,7 +488,23 @@ function bloquear() {
   if (movTab && movTab.classList.contains('active')) {
     setTab(document.querySelector('.tab-btn'), 'inventario');
   }
+  resetSessionTimeout();
+  renderAll();
 }
+
+let sessionTimeout = null;
+function resetSessionTimeout() {
+  if (sessionTimeout) clearTimeout(sessionTimeout);
+  if (modoEdicion) {
+    sessionTimeout = setTimeout(() => {
+      bloquear();
+      toast('Sesión cerrada por inactividad (15 min).');
+    }, 15 * 60 * 1000);
+  }
+}
+document.addEventListener('mousemove', resetSessionTimeout);
+document.addEventListener('keydown', resetSessionTimeout);
+document.addEventListener('touchstart', resetSessionTimeout);
 
 function requirePin(btn, tab) {
   if (modoEdicion) {
@@ -996,8 +1019,48 @@ function renderLog() {
 }
 
 function updateDatalist() {
-  document.getElementById('medidas-list').innerHTML = inv.map(r=>`<option value="${r.medida}">`).join('');
+  // Empty as we use combobox
 }
+
+function filtrarComboMedida(query) {
+  const panel = document.getElementById('medidas-list');
+  panel.classList.add('show');
+  
+  const q = normalizeMedida(query);
+  const rows = inv.filter(r => !q || normalizeMedida(r.medida).includes(q) || (r.op||'').toLowerCase().includes(query.toLowerCase()));
+  
+  if (rows.length === 0) {
+    panel.innerHTML = `<div class="combo-item"><div class="combo-title" style="color:var(--muted)">Sin resultados. Escribe para crear.</div></div>`;
+    checkMedidaNueva();
+    return;
+  }
+  
+  panel.innerHTML = rows.map(r => `
+    <div class="combo-item" onclick="seleccionarComboMedida('${r.medida.replace(/'/g, "\\'")}')">
+      <div>
+        <div class="combo-title">${r.medida}</div>
+        <div class="combo-meta">${r.loc || ''} &middot; ${r.op || ''}</div>
+      </div>
+      <div class="combo-meta" style="font-size:12px">${r.qty} pz</div>
+    </div>
+  `).join('');
+  
+  checkMedidaNueva();
+}
+
+function seleccionarComboMedida(medida) {
+  document.getElementById('m-medida').value = medida;
+  document.getElementById('medidas-list').classList.remove('show');
+  checkMedidaNueva();
+}
+
+document.addEventListener('click', e => {
+  const mMedida = document.getElementById('m-medida');
+  const mList = document.getElementById('medidas-list');
+  if (mMedida && mList && !mMedida.contains(e.target) && !mList.contains(e.target)) {
+    mList.classList.remove('show');
+  }
+});
 
 // ── UI HELPERS ──
 function setTab(btn, tab) {
@@ -1232,7 +1295,7 @@ async function aplicarExcel(){
   if(!excelRows.length)return;
   const modo=document.querySelector('input[name="excel-mode"]:checked').value;
   if(modo==='reemplazar'){
-    if(!confirm(`⚠ ¿Confirmas REEMPLAZAR todo el inventario?\n\n${excelRows.length} medidas del Excel reemplazarán los datos actuales.`))return;
+    if(document.getElementById('reemplazar-confirm').value !== 'REEMPLAZAR') return;
   }
   const now=new Date().toISOString();
   let actualizados=0,noEncontrados=0;
@@ -1272,8 +1335,38 @@ async function aplicarExcel(){
       saveLocal();renderAll();
     }
     toast(`✓ Inventario reemplazado con ${excelRows.length} medidas.`);
+    document.querySelector('.stats').classList.add('success-flash');
+    setTimeout(() => document.querySelector('.stats').classList.remove('success-flash'), 1200);
   }
   cerrarModalExcel();
+}
+
+function toggleReemplazarCheck() {
+  const modo = document.querySelector('input[name="excel-mode"]:checked').value;
+  const container = document.getElementById('reemplazar-check-container');
+  const btnAplicar = document.getElementById('btn-aplicar-excel');
+  if (modo === 'reemplazar') {
+    container.style.display = 'block';
+    btnAplicar.disabled = true;
+    btnAplicar.style.opacity = '0.5';
+    document.getElementById('reemplazar-confirm').value = '';
+  } else {
+    container.style.display = 'none';
+    btnAplicar.disabled = false;
+    btnAplicar.style.opacity = '1';
+  }
+}
+
+function checkReemplazarBtn() {
+  const inp = document.getElementById('reemplazar-confirm').value;
+  const btnAplicar = document.getElementById('btn-aplicar-excel');
+  if (inp === 'REEMPLAZAR') {
+    btnAplicar.disabled = false;
+    btnAplicar.style.opacity = '1';
+  } else {
+    btnAplicar.disabled = true;
+    btnAplicar.style.opacity = '0.5';
+  }
 }
 
 // ── START ──

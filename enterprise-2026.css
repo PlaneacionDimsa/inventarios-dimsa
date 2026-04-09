@@ -209,6 +209,12 @@ footer{
 .edit-bar-text,
 .edit-bar-left > div:first-child{font-weight:600}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.48;transform:scale(.9)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.shake{animation:shake 0.3s ease-in-out;}
+@keyframes pulse-skeleton{0%{background-color:rgba(196,176,144,.2)}50%{background-color:rgba(196,176,144,.4)}100%{background-color:rgba(196,176,144,.2)}}
+.skeleton{animation:pulse-skeleton 1.5s infinite ease-in-out; border-radius:8px; color:transparent!important; min-height:1em; display:inline-block;}
+@keyframes success-flash{0%{background-color:rgba(113,164,128,.3)}100%{background-color:transparent}}
+.success-flash{animation:success-flash 1.2s ease-out;}
 .edit-bar-sub{font-size:11px;color:rgba(255,235,235,.86)}
 .end-btn,
 .pin-btn,
@@ -547,6 +553,36 @@ textarea,
   border-radius:14px;
   padding:10px 12px;
 }
+.combo-dropdown{
+  position:absolute;
+  top:calc(100% + 4px);
+  left:0;
+  right:0;
+  background:#fffaf4;
+  border:1px solid var(--border-strong);
+  border-radius:14px;
+  box-shadow:var(--shadow-md);
+  max-height:240px;
+  overflow-y:auto;
+  z-index:100;
+  display:none;
+}
+.combo-dropdown.show{display:block;}
+.combo-item{
+  padding:10px 14px;
+  cursor:pointer;
+  border-bottom:1px solid rgba(217,207,192,.3);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  transition:background .15s ease;
+}
+.combo-item:last-child{border-bottom:none;}
+.combo-item:hover, .combo-item.active{background:rgba(237,232,222,.8);}
+.combo-title{font-size:13px; font-weight:700; color:var(--text);}
+.combo-meta{font-size:11px; color:var(--muted); font-family:'IBM Plex Mono',monospace;}
+
 select{
   appearance:none;
   -webkit-appearance:none;
@@ -1401,13 +1437,58 @@ body.page-indirectos .header-nav a[href="indirectos.html"]{
   .form-grid{grid-template-columns:1fr}
   .search-input{width:100%}
   .tbl-wrap{
-    max-height:52vh;
-    min-height:260px;
-    overflow:auto;
-    border:1px solid rgba(196,176,144,.72);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.72);
-    background:rgba(255,250,244,.95);
+    max-height:none;
+    min-height:auto;
+    overflow:visible;
+    border:none;
+    box-shadow:none;
+    background:transparent;
   }
+  .tbl-wrap table, .tbl-wrap tbody{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    width:100% !important;
+    min-width:0 !important;
+  }
+  .tbl-wrap thead{display:none;}
+  .tbl-wrap tr{
+    display:flex;
+    flex-direction:column;
+    background:#fffaf4;
+    border:1px solid rgba(196,176,144,.72);
+    border-radius:14px;
+    padding:10px;
+    box-shadow:0 2px 8px rgba(44,31,15,.04);
+  }
+  .tbl-wrap td{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:6px 4px !important;
+    border-bottom:1px solid rgba(217,207,192,.3) !important;
+  }
+  .tbl-wrap tr td:last-child{border-bottom:none !important;}
+  .tbl-wrap td::before{
+    content:attr(data-label);
+    font-size:10px;
+    font-weight:800;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin-right:1rem;
+    flex-shrink:0;
+  }
+  .tbl-wrap td > *{
+    text-align:right;
+    max-width:65%;
+  }
+  .tbl-wrap td > .table-main{
+    text-align:left;
+    max-width:100%;
+    width:100%;
+  }
+  .tbl-wrap td[data-label="Acción"]::before{display:none;}
+  .tbl-wrap td[data-label="Acción"]{justify-content:flex-end;}
   .tbl-wrap::before,
   .tbl-wrap::after{
     content:"";
@@ -1437,8 +1518,6 @@ body.page-indirectos .header-nav a[href="indirectos.html"]{
     padding:9px 14px;
     scroll-snap-align:start;
   }
-  thead th{padding:10px 12px;font-size:9px}
-  tbody td{padding:10px 12px}
   .toolbar{
     align-items:stretch;
     gap:8px;
@@ -1532,9 +1611,6 @@ body.page-indirectos .header-nav a[href="indirectos.html"]{
   .sol-panel-header{align-items:flex-start}
   .sol-card,
   .sol-item{grid-template-columns:1fr;flex-direction:column}
-  body.page-tarimas .tbl-wrap table{min-width:860px}
-  body.page-tintas .tbl-wrap table{min-width:980px}
-  body.page-indirectos .tbl-wrap table{min-width:760px}
 }
 
 @media (max-width:380px){
