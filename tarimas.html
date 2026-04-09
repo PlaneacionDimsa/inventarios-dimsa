@@ -1245,7 +1245,11 @@ tick();
 let excelRows=[];
 
 function abrirModalExcel(){
-  if(!modoEdicion){abrirPin(()=>abrirModalExcel());return;}
+  if(!modoMaestro){
+    if(modoEdicion){toast('⚠ Solo el administrador puede subir archivos Excel.');return;}
+    abrirPin(()=>{if(modoMaestro){document.getElementById('excel-modal').classList.add('show');resetExcelModal();}else toast('⚠ Acceso denegado. Solo el administrador puede subir Excel.');});
+    return;
+  }
   document.getElementById('excel-modal').classList.add('show');
   resetExcelModal();
 }
