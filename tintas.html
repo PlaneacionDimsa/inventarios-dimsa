@@ -2114,30 +2114,68 @@ function showExcelPreview(sheetCount,filename){
     </tbody>
   `;
 }
+function toggleReemplazarCheck() {
+  const modo = document.querySelector('input[name="excel-mode"]:checked').value;
+  const container = document.getElementById('reemplazar-check-container');
+  if (modo === 'reemplazar') {
+    container.style.display = 'block';
+    document.getElementById('reemplazar-confirm').value = '';
+  } else {
+    container.style.display = 'none';
+  }
+}
+
+function checkReemplazarBtn() {
+  // Validamos al hacer click para dar feedback visual
+}
 async function aplicarExcel(){
   if(!excelRows.length)return;
   const modo=document.querySelector('input[name="excel-mode"]:checked').value;
   if(modo==='reemplazar'){
-    if(document.getElementById('reemplazar-confirm').value !== 'REEMPLAZAR') return;
+    const val = document.getElementById('reemplazar-confirm').value.trim().toUpperCase();
+    if(val !== 'REEMPLAZAR') {
+      const inp = document.getElementById('reemplazar-confirm');
+      inp.classList.remove('shake', 'error');
+      void inp.offsetWidth;
+      inp.classList.add('error', 'shake');
+      toast('⚠ Debes escribir la palabra REEMPLAZAR en el recuadro rojo para continuar.');
+      return;
+    }
   }
+  toast('Procesando actualización...');
   const now=new Date().toISOString();
   let actualizados=0,noEncontrados=0;
   if(modo==='actualizar'){
-    for(const row of excelRows){
-      const idx=inv.findIndex(r=>r.lote===row.lote);
-      if(idx>=0){
-        const old=inv[idx].qty;
-        inv[idx].qty=row.qty;
-        inv[idx].updatedAt=now;
-        inv[idx].updatedBy=usuario+' (Excel)';
-        if(useFirebase){
-          await db.collection('tintas').doc(inv[idx].id).update({qty:row.qty,updatedAt:now,updatedBy:usuario+' (Excel)'});
-          await db.collection('tintas_mov').add({tipo:'ajuste',desc:inv[idx].desc,lote:row.lote,qty:Math.abs(row.qty-old),unidad:'kg',quien:usuario,nota:`Actualiz. masiva Excel (${old}→${row.qty})`,ts:Date.now(),fecha:fmt(new Date())});
-        }
-        actualizados++;
-      }else noEncontrados++;
+    if(useFirebase){
+      let b = db.batch();
+      let operations = 0;
+      for(const row of excelRows){
+        const idx = inv.findIndex(r => r.lote === row.lote);
+        if(idx >= 0){
+          const old = inv[idx].qty;
+          inv[idx].qty = row.qty;
+          inv[idx].updatedAt = now;
+          inv[idx].updatedBy = usuario + ' (Excel)';
+          b.update(db.collection('tintas').doc(inv[idx].id), { qty: row.qty, updatedAt: now, updatedBy: usuario + ' (Excel)' });
+          b.set(db.collection('tintas_mov').doc(), { tipo: 'ajuste', desc: inv[idx].desc, lote: row.lote, qty: Math.abs(row.qty - old), unidad: 'kg', quien: usuario, nota: `Actualiz. masiva Excel (${old}→${row.qty})`, ts: Date.now(), fecha: fmt(new Date()) });
+          actualizados++;
+          operations += 2;
+          if (operations >= 400) { await b.commit(); b = db.batch(); operations = 0; }
+        } else noEncontrados++;
+      }
+      if (operations > 0) await b.commit();
+    }else{
+      for(const row of excelRows){
+        const idx = inv.findIndex(r => r.lote === row.lote);
+        if(idx >= 0) {
+          inv[idx].qty = row.qty;
+          inv[idx].updatedAt = now;
+          inv[idx].updatedBy = usuario + ' (Excel)';
+          actualizados++;
+        } else noEncontrados++;
+      }
+      saveLocal();renderAll();
     }
-    if(!useFirebase){saveLocal();renderAll();}
     toast(`✓ ${actualizados} existencias actualizadas. ${noEncontrados} lotes no encontrados en inventario.`);
   }else{
     if(useFirebase){

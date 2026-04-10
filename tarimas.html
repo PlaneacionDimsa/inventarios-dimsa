@@ -1288,26 +1288,50 @@ async function aplicarExcel(){
   if(!excelRows.length)return;
   const modo=document.querySelector('input[name="excel-mode"]:checked').value;
   if(modo==='reemplazar'){
-    if(document.getElementById('reemplazar-confirm').value !== 'REEMPLAZAR') return;
+    const val = document.getElementById('reemplazar-confirm').value.trim().toUpperCase();
+    if(val !== 'REEMPLAZAR') {
+      const inp = document.getElementById('reemplazar-confirm');
+      inp.classList.remove('shake', 'error');
+      void inp.offsetWidth;
+      inp.classList.add('error', 'shake');
+      toast('⚠ Debes escribir la palabra REEMPLAZAR en el recuadro rojo para continuar.');
+      return;
+    }
   }
+  toast('Procesando actualización...');
   const now=new Date().toISOString();
   let actualizados=0,noEncontrados=0;
   if(modo==='actualizar'){
-    for(const row of excelRows){
-      const idx=inv.findIndex(r=>normalizeMedida(r.medida)===normalizeMedida(row.medida));
-      if(idx>=0){
-        const old=inv[idx].qty;
-        inv[idx].qty=row.qty;
-        inv[idx].updatedAt=now;
-        inv[idx].updatedBy=usuario+' (Excel)';
-        if(useFirebase){
-          await db.collection('inventario').doc(inv[idx].id).update({qty:row.qty,updatedAt:now,updatedBy:usuario+' (Excel)'});
-          await db.collection('movimientos').add({tipo:'ajuste',medida:row.medida,qty:Math.abs(row.qty-old),quien:usuario,nota:`Actualiz. masiva Excel (${old}→${row.qty})`,ts:Date.now(),fecha:fmt(new Date())});
-        }
-        actualizados++;
-      }else noEncontrados++;
+    if(useFirebase){
+      let b = db.batch();
+      let operations = 0;
+      for(const row of excelRows){
+        const idx = inv.findIndex(r => normalizeMedida(r.medida) === normalizeMedida(row.medida));
+        if(idx >= 0){
+          const old = inv[idx].qty;
+          inv[idx].qty = row.qty;
+          inv[idx].updatedAt = now;
+          inv[idx].updatedBy = usuario + ' (Excel)';
+          b.update(db.collection('inventario').doc(inv[idx].id), { qty: row.qty, updatedAt: now, updatedBy: usuario + ' (Excel)' });
+          b.set(db.collection('movimientos').doc(), { tipo: 'ajuste', medida: row.medida, qty: Math.abs(row.qty - old), quien: usuario, nota: `Actualiz. masiva Excel (${old}→${row.qty})`, ts: Date.now(), fecha: fmt(new Date()) });
+          actualizados++;
+          operations += 2;
+          if (operations >= 400) { await b.commit(); b = db.batch(); operations = 0; }
+        } else noEncontrados++;
+      }
+      if (operations > 0) await b.commit();
+    }else{
+      for(const row of excelRows){
+        const idx = inv.findIndex(r => normalizeMedida(r.medida) === normalizeMedida(row.medida));
+        if(idx >= 0) {
+          inv[idx].qty = row.qty;
+          inv[idx].updatedAt = now;
+          inv[idx].updatedBy = usuario + ' (Excel)';
+          actualizados++;
+        } else noEncontrados++;
+      }
+      saveLocal();renderAll();
     }
-    if(!useFirebase){saveLocal();renderAll();}
     toast(`✓ ${actualizados} cantidades actualizadas. ${noEncontrados} medidas no encontradas.`);
   }else{
     if(useFirebase){
@@ -1337,29 +1361,16 @@ async function aplicarExcel(){
 function toggleReemplazarCheck() {
   const modo = document.querySelector('input[name="excel-mode"]:checked').value;
   const container = document.getElementById('reemplazar-check-container');
-  const btnAplicar = document.getElementById('btn-aplicar-excel');
   if (modo === 'reemplazar') {
     container.style.display = 'block';
-    btnAplicar.disabled = true;
-    btnAplicar.style.opacity = '0.5';
     document.getElementById('reemplazar-confirm').value = '';
   } else {
     container.style.display = 'none';
-    btnAplicar.disabled = false;
-    btnAplicar.style.opacity = '1';
   }
 }
 
 function checkReemplazarBtn() {
-  const inp = document.getElementById('reemplazar-confirm').value;
-  const btnAplicar = document.getElementById('btn-aplicar-excel');
-  if (inp === 'REEMPLAZAR') {
-    btnAplicar.disabled = false;
-    btnAplicar.style.opacity = '1';
-  } else {
-    btnAplicar.disabled = true;
-    btnAplicar.style.opacity = '0.5';
-  }
+  // Validamos al hacer click para dar feedback visual
 }
 
 // ── START ──
