@@ -68,7 +68,7 @@
   <div class="header-right">
     <div class="live-badge"><div class="live-dot" id="live-dot"></div><span id="live-txt">conectando...</span></div>
     <span class="clock-txt" id="clock"></span>
-    <div class="edit-chip locked" id="edit-chip" onclick="clickEditChip()">&#128274; Solo lectura</div>
+    <div class="edit-chip locked" id="edit-chip" onclick="clickEditChip()">&#128274;</div>
   </div>
 </header>
 
@@ -116,12 +116,12 @@
         <table>
           <thead>
             <tr>
-              <th style="width:220px">Medida (cm)</th>
-              <th style="width:110px">Cantidad</th>
-              <th style="width:120px">Ubicación</th>
-              <th style="width:170px">Cliente / OP</th>
-              <th>Observaciones</th>
-              <th style="width:36px"></th>
+              <th style="width:23%">Medida (cm)</th>
+              <th style="width:10%">Cantidad</th>
+              <th style="width:12%">Ubicación</th>
+              <th style="width:17%">Cliente / OP</th>
+              <th style="width:34%">Observaciones</th>
+              <th style="width:4%"></th>
             </tr>
           </thead>
           <tbody id="tbl-body"></tbody>
@@ -474,7 +474,7 @@ function bloquear() {
   document.getElementById('main-content').classList.add('locked');
   document.getElementById('edit-bar').classList.remove('visible');
   const chip = document.getElementById('edit-chip');
-  chip.textContent = '\uD83D\uDD12 Solo lectura';
+  chip.textContent = '\uD83D\uDD12';
   chip.className = 'edit-chip locked';
   usuario = '';
   const movTab = document.querySelector('#tab-mov-btn');
@@ -1193,14 +1193,6 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 2400);
 }
 
-// ── CLOCK ──
-function tick() {
-  const n = new Date();
-  const p = x => String(x).padStart(2,'0');
-  document.getElementById('clock').textContent = `${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
-}
-setInterval(tick, 1000);
-tick();
 
 // ── EXCEL IMPORT (TARIMAS) ──
 let excelRows=[];

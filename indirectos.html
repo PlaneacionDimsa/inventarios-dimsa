@@ -40,7 +40,7 @@
   <div class="header-right">
     <div class="live-badge"><div class="live-dot offline" id="live-dot"></div><span id="live-txt">conectando...</span></div>
     <span class="clock-txt" id="clock"></span>
-    <div class="edit-chip locked" id="edit-chip" onclick="clickEditChip()">&#128274; Solo lectura</div>
+    <div class="edit-chip locked" id="edit-chip" onclick="clickEditChip()">&#128274;</div>
   </div>
 </header>
 
@@ -384,7 +384,7 @@ function bloquear(){
   modoEdicion=false;modoMaestro=false;usuario='';
   document.getElementById('main-content').classList.add('locked');
   document.getElementById('edit-bar').classList.remove('visible');
-  const c=document.getElementById('edit-chip');c.textContent='\uD83D\uDD12 Solo lectura';c.className='edit-chip locked';
+  const c=document.getElementById('edit-chip');c.textContent='\uD83D\uDD12';c.className='edit-chip locked';
   const m=document.querySelector('#tab-mov-btn');if(m&&m.classList.contains('active'))setTab(document.querySelector('.tab-btn'),'inventario');
   const btnExcel=document.getElementById('btn-excel');
   if(btnExcel)btnExcel.style.display='none';
@@ -815,8 +815,6 @@ function getAuditLine(user,iso){
   return `<div class="audit-line"><span class="audit-pill"><strong>${userTxt}</strong></span><span>${when}</span></div>`;
 }
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
-function tick(){const n=new Date(),p=x=>String(x).padStart(2,'0');document.getElementById('clock').textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;}
-setInterval(tick,1000);tick();
 
 // ── EXCEL IMPORT (INDIRECTOS) ──
 let excelRows=[];
