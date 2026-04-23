@@ -394,9 +394,17 @@ function loadScript(src){
 }
 
 
-function fmtRelative(iso){
-  if(!iso)return'--';
-  const diff=Date.now()-new Date(iso).getTime();
+function toMs(val){
+  if(!val) return 0;
+  if(typeof val==='object' && typeof val.toDate==='function') return val.toDate().getTime();
+  return new Date(val).getTime();
+}
+
+function fmtRelative(val){
+  if(!val)return'--';
+  const ms=toMs(val);
+  if(!ms||isNaN(ms))return'--';
+  const diff=Date.now()-ms;
   const mins=Math.floor(diff/60000);
   if(mins<1)return'Ahora';
   if(mins<60)return`Hace ${mins} min`;
@@ -408,7 +416,7 @@ function fmtRelative(iso){
 }
 
 function updateLastUpdated(candidate, byUser){
-  const value=new Date(candidate||0).getTime();
+  const value=toMs(candidate);
   if(value && value>lastUpdatedAt){
     lastUpdatedAt=value;
     document.getElementById('st-updated').textContent=fmtRelative(candidate);
@@ -480,7 +488,7 @@ async function loadData(){
       document.getElementById('ic-tp').textContent=`${tp} pz`;
       document.getElementById('ic-tipos').textContent=String(types);
       document.getElementById('ic-tar-alert').textContent=zeros.length?`${zeros.length} sin stock`:'OK';
-      zeros.forEach(row=>updateLastUpdated(row.updatedAt||row.lastMovAt, row.updatedBy));
+      inv.forEach(row=>updateLastUpdated(row.updatedAt||row.lastMovAt, row.updatedBy));
       allAlerts=allAlerts.filter(item=>item.link!=='tarimas.html').concat(
         zeros.map(row=>({
           nombre:row.medida||'Tarima sin medida',
