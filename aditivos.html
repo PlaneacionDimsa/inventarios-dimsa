@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#F2E8D9">
+<title>Inventario Aditivos - DIMSA</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="enterprise-2026.css">
+<script>/* SheetJS cargado en demanda */</script>
+</head>
+<body class="page-Aditivos">
+
+<!-- PIN MODAL -->
+<div class="pin-overlay" id="pin-overlay">
+  <div class="pin-card">
+    <div class="pin-title">Modo edición</div>
+    <div class="pin-sub">Ingresa tu código (4 dígitos para aduaneros, 6 para jefe).</div>
+    <input class="pin-input" id="pin-input" type="password" maxlength="6" placeholder="&bull; &bull; &bull; &bull;" autocomplete="off">
+    <div class="pin-actions">
+      <button class="pin-btn" onclick="verificarPin()">Entrar</button>
+      <span class="pin-cancel" onclick="cerrarPin()">Cancelar &mdash; solo quiero ver</span>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <img src="https://www.dim-sa.com.mx/assets/img/LOGODIMSA.png" alt="DIMSA" style="height:34px;object-fit:contain">
+    <div class="header-divider"></div>
+    <div class="logo">Aditivos <span>/ inventario</span></div>
+  </div>
+  <nav class="header-nav">
+    <a href="index.html">&larr; Inicio</a>
+    <a href="tarimas.html">Tarimas</a>
+    <a href="tintas.html">Tintas</a>
+    <a href="aditivos.html" class="active">Aditivos</a>
+    <a href="indirectos.html">Indirectos</a>
+  </nav>
+  <div class="header-right">
+    <div class="live-badge"><div class="live-dot offline" id="live-dot"></div><span id="live-txt">conectando...</span></div>
+    <span class="clock-txt" id="clock"></span>
+    <div class="edit-chip locked" id="edit-chip" onclick="clickEditChip()">&#128274;</div>
+  </div>
+</header>
+
+<!-- EDIT BAR -->
+<div class="edit-bar" id="edit-bar">
+  <div class="edit-bar-left">
+    <div class="edit-bar-dot"></div>
+    <div>
+      <div class="edit-bar-text">Sesión activa &mdash; <span id="edit-bar-user">Aduana</span></div>
+      <div class="edit-bar-sub">Todos los cambios se guardan en tiempo real</div>
+    </div>
+  </div>
+  <button class="end-btn" onclick="bloquear()">&#10003; Terminar edición</button>
+</div>
+
+<!-- SETUP BANNER -->
+<div class="setup-banner hidden" id="setup-banner">
+  &#9889; Modo local (sin sincronización). Configura Firebase para ver en tiempo real con otras personas.
+</div>
+
+<main class="main locked" id="main-content">
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Total registros</div><div class="stat-value" id="s-total"><span class="skeleton" style="width:40px">&nbsp;</span></div><div class="stat-sub">lotes en inventario</div></div>
+    <div class="stat"><div class="stat-label">Total kg</div><div class="stat-value green" id="s-kg"><span class="skeleton" style="width:40px">&nbsp;</span></div><div class="stat-sub">kilogramos</div></div>
+    <div class="stat"><div class="stat-label">Sin stock</div><div class="stat-value accent" id="s-zero"><span class="skeleton" style="width:40px">&nbsp;</span></div><div class="stat-sub">lotes en cero</div></div>
+    <div class="stat"><div class="stat-label">Hoy</div><div class="stat-value" id="s-hoy"><span class="skeleton" style="width:40px">&nbsp;</span></div><div class="stat-sub">movimientos</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="setTab(this,'inventario')">Inventario</button>
+    <button class="tab-btn" id="tab-mov-btn" onclick="requirePin(this,'movimientos')">Registrar movimiento</button>
+  </div>
+
+  <!-- TAB: INVENTARIO -->
+  <div id="tab-inventario">
+    <div class="card">
+      <div class="toolbar toolbar-sticky">
+        <input class="search-input" id="search" placeholder="Buscar descripción, clave, lote..." oninput="renderTable()">
+        <div class="spacer"></div>
+        <button class="filter-btn" id="btn-excel" onclick="abrirModalExcel()" title="Importar desde Excel" style="display:none">📤 Subir Excel</button>
+
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th>Lotes / Categoría</th>
+              <th>Existencia total</th>
+              <th>Ubicación</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbl-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ADD FORM -->
+    <div class="card" id="add-form" style="display:none">
+      <div class="card-title">Agregar nuevo registro</div>
+      <div class="form-grid">
+        <div class="form-col"><label>Clave</label><input id="a-clave" placeholder="ej. 80-002-108" type="text"></div>
+        <div class="form-col"><label>Descripción</label><input id="a-desc" placeholder="ej. Tinta Azul Selecta" type="text"></div>
+        <div class="form-col"><label>Lote / Pedimento</label><input id="a-lote" placeholder="ej. T-1-16339" type="text"></div>
+        <div class="form-col"><label>Existencia</label><input id="a-qty" type="number" min="0" step="0.01" value="0"></div>
+        <div class="form-col"><label>Unidad</label><div class="select-wrap"><select id="a-unidad"><option value="kg">kg &mdash; kilogramos</option><option value="ml">ml &mdash; mililitros</option></select></div></div>
+        <div class="form-col"><label>Ubicación</label><input id="a-ubic" placeholder="ej. TIN-1-2" type="text"></div>
+        <div class="form-col"><label>Categoría</label><input id="a-cat" placeholder="ej. Aditivos Azules" type="text"></div>
+        <input id="a-sheet" type="hidden" value="RACK">
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" onclick="agregarRegistro()">Guardar</button>
+        <button class="btn" onclick="document.getElementById('add-form').style.display='none'">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- HISTORIAL COLAPSABLE -->
+    <div class="inline-action">
+      <button class="action-link-btn" onclick="toggleHistorial()">
+        ⬇ Exportar historial de movimientos (Excel)
+      </button>
+    </div>
+
+    <div class="card recent-card">
+      <div class="section-title">Últimos 10 movimientos</div>
+      <div class="section-subtitle">Sirve para confirmar salidas, devoluciones y ajustes sin exportar.</div>
+      <div class="log-list" id="log-list"></div>
+    </div>
+  </div>
+
+  <!-- TAB: MOVIMIENTOS -->
+  <div id="tab-movimientos" class="movement-overlay" onclick="if(event.target===this) setTab(document.querySelector('.tab-btn'),'inventario')">
+    <div class="movement-panel">
+    <div class="card">
+      <div class="movement-head">
+        <div>
+          <div class="movement-kicker">Movimiento</div>
+          <div class="movement-title">Registrar entrada / salida de tinta</div>
+          <div class="movement-sub">El inventario queda visible detrás mientras capturas el movimiento.</div>
+        </div>
+        <button class="movement-close" type="button" onclick="setTab(document.querySelector('.tab-btn'),'inventario')">&times;</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-col">
+          <label>Tipo de movimiento</label>
+          <div class="select-wrap">
+            <select id="m-tipo">
+              <option value="entrada">Entrada &mdash; llegó tinta</option>
+              <option value="salida">Salida &mdash; a producción</option>
+              <option value="devolucion">Devolución &mdash; regresó sobrante</option>
+              <option value="ajuste">Ajuste de inventario</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-col" style="position:relative">
+          <label>Descripción / Tinta</label>
+          <input id="m-desc" placeholder="Escribe para buscar..." type="text" autocomplete="off"
+            oninput="filtrarLotes();checkTintaNueva();showDescDropdown()" onfocus="showDescDropdown()">
+          <div id="desc-dropdown" class="combo-dropdown"></div>
+        </div>
+        <div class="form-col">
+          <label>Lote específico</label>
+          <div class="select-wrap"><select id="m-lote"><option value="">&mdash; selecciona primero la tinta &mdash;</option></select></div>
+        </div>
+      </div>
+
+      <!-- AVISO TINTA NUEVA -->
+      <div id="nueva-tinta-aviso" class="panel-note warning" style="display:none">
+        <strong>Tinta nueva</strong>
+        <div class="form-grid">
+          <div class="form-col"><label>Clave</label><input id="mnew-clave" placeholder="ej. 80-002-108" type="text"></div>
+          <div class="form-col"><label>Lote / Pedimento</label><input id="mnew-lote" placeholder="ej. T-1-16339" type="text"></div>
+          <div class="form-col"><label>Ubicación</label><input id="mnew-ubic" placeholder="ej. TIN-1-2" type="text"></div>
+          <div class="form-col"><label>Categoría</label><input id="mnew-cat" placeholder="ej. Aditivos Azules" type="text"></div>
+          <input id="mnew-sheet" type="hidden" value="RACK">
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-col">
+          <label>Cantidad</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="m-qty" type="number" min="0.01" step="0.01" value="1" style="flex:1">
+            <div class="select-wrap" style="width:84px;flex-shrink:0"><select id="m-unidad" style="width:100%"><option value="kg">kg</option><option value="ml">ml</option></select></div>
+          </div>
+        </div>
+        <div class="form-col">
+          <label>Turno</label>
+          <div class="select-wrap"><select id="m-turno">
+            <option value="1">Turno 1</option>
+            <option value="2">Turno 2</option>
+            <option value="3">Turno 3</option>
+          </select></div>
+        </div>
+        <div class="form-col">
+          <label>Máquina</label>
+          <input id="m-maq" placeholder="ej. F-6" type="text">
+        </div>
+        <div class="form-col">
+          <label>OP</label>
+          <input id="m-op" placeholder="ej. 75981" type="text">
+        </div>
+        <div class="form-col">
+          <label>Sub OP</label>
+          <input id="m-subop" placeholder="ej. 24675" type="text">
+        </div>
+        <div class="form-col">
+          <label>Observaciones</label>
+          <input id="m-nota" placeholder="Notas adicionales" type="text">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" onclick="registrarMovimiento()">Registrar movimiento</button>
+        <button class="btn" onclick="limpiarMov()">Limpiar</button>
+        <button class="btn" onclick="setTab(document.querySelector('.tab-btn'),'inventario')">Cerrar</button>
+      </div>
+    </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="page-footer"></div>
+
+<!-- EXCEL UPLOAD MODAL -->
+<div id="excel-modal" class="excel-overlay" onclick="if(event.target===this)cerrarModalExcel()">
+  <div class="excel-panel">
+    <div class="excel-header">
+      <div>
+        <div class="movement-kicker">Importación masiva</div>
+        <div class="movement-title">Subir archivo Excel</div>
+        <div class="movement-sub">Actualiza el inventario desde tu archivo de CUARTO DE Aditivos (.xlsx)</div>
+      </div>
+      <button class="movement-close" type="button" onclick="cerrarModalExcel()">&times;</button>
+    </div>
+
+    <div id="excel-drop" class="excel-drop"
+         ondragover="event.preventDefault();this.classList.add('drag-over')"
+         ondragleave="this.classList.remove('drag-over')"
+         ondrop="event.preventDefault();this.classList.remove('drag-over');handleExcelDrop(event)">
+      <div class="excel-drop-icon">📊</div>
+      <div>Arrastra tu archivo Excel aquí</div>
+      <div class="excel-drop-sub">o</div>
+      <label class="add-btn" style="cursor:pointer">
+        📂 Seleccionar archivo
+        <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelFile(this.files[0])">
+      </label>
+      <div class="excel-drop-hint">Detecta hojas <strong>Aditivos 1 · Aditivos 2 · Aditivos 3 · RACK</strong><br>Columnas: CLAVE · DESCRIPCION · LOTE (o ROLLO) · EXISTENCIA (o PESO) · UBICACIÓN</div>
+    </div>
+
+    <div id="excel-preview" style="display:none">
+      <div id="excel-summary" class="panel-note info" style="margin-bottom:10px"></div>
+      <div class="excel-preview-table-wrap">
+        <table id="excel-preview-table"></table>
+      </div>
+    </div>
+
+    <div id="excel-actions" style="display:none">
+      <div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px">Modo de actualización</div>
+        <div class="excel-modes">
+          <label class="excel-mode-option">
+            <input type="radio" name="excel-mode" value="actualizar" checked onchange="toggleReemplazarCheck()">
+            <div>
+              <div style="font-weight:700;font-size:13px">Actualizar existencias</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Busca cada lote por número y actualiza solo la existencia. Los registros no encontrados no se modifican.</div>
+            </div>
+          </label>
+          <label class="excel-mode-option">
+            <input type="radio" name="excel-mode" value="reemplazar" onchange="toggleReemplazarCheck()">
+            <div>
+              <div style="font-weight:700;font-size:13px">⚠ Reemplazar inventario completo</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Borra todo el inventario actual y lo reemplaza con los datos del Excel. No se puede deshacer.</div>
+            </div>
+          </label>
+        </div>
+        <div id="reemplazar-check-container" style="display:none;margin-top:12px;padding:12px;background:rgba(229,62,62,.08);border:1px solid rgba(229,62,62,.2);border-radius:12px;">
+           <label style="font-size:12px;font-weight:700;color:var(--danger)">Escribe REEMPLAZAR para confirmar:</label>
+           <input type="text" id="reemplazar-confirm" class="search-input" style="margin-top:6px;width:100%" oninput="checkReemplazarBtn()" placeholder="REEMPLAZAR" autocomplete="off">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" id="btn-aplicar-excel" onclick="aplicarExcel()">✓ Aplicar importación</button>
+        <button class="btn" onclick="cerrarModalExcel()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════
+   FIREBASE CONFIG &mdash; mismo proyecto que tarimas
+═══════════════════════════════════════════════ */
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDLMBZMpjY4vHIvPPm-sge_NRqAKk_rcTQ",
+  authDomain:        "inventario-tarimas---dimsa.firebaseapp.com",
+  projectId:         "inventario-tarimas---dimsa",
+  storageBucket:     "inventario-tarimas---dimsa.firebasestorage.app",
+  messagingSenderId: "585720335508",
+  appId:             "1:585720335508:web:4a5818ce201ccf9e263881"
+};
+/* ════════════════════════════════════════════ */
+
+const USUARIOS = {
+  "8698616a6419549cd9c035d5e250c81c6cefff11ff31c9602bf2ff5aa3e06b7f": "Noe",
+  "68732e61c9a20e1c9ae05bc99a950847d3731293978ae442fe50323044c6a095": "Abel",
+  "bc20a2aa08022b0ac9cc09039c57de9500b8498918e3b15d01e8a409d5b04e71": "Nataly",
+  "95d4362bd3cd4315d0bbe38dfa5d7fb8f0aed5f1a31d98d510907279194e3000": "Nancy",
+  "25dcece36ebd3d3c75a932af879be419196ceb3a26ebbcf1d719c839d9997702": "Daniel",
+  "de8736cc048486e16dcd174d8f5f0bc3e19aa4f0b0c26a19572b4cfafa5b31ca": "Erick",
+  "110e600290fd88a5817d6d6cc2f3c8495bb881d3b8487f1ee93603b1b0d3c1b5": "Josue",
+  "1a0774b36ea2885f90e416c8e53be40bfd731bb21118c0b43de829e267a3cabb": "Fernando"
+};
+const HASH_MAESTRO = "1a0774b36ea2885f90e416c8e53be40bfd731bb21118c0b43de829e267a3cabb";
+let modoMaestro = false;
+let db, useFirebase = false;
+let inv = [], logs = [];
+let sheetFilter = 'todos';
+let modoEdicion = false;
+let usuario = '';
+let pinCallback = null;
+
+// ── SEED DATA ──
+const SEED = [];
+// ── PIN / AUTH ──
+function clickEditChip(){modoEdicion?bloquear():abrirPin(null)}
+function abrirPin(cb){
+  pinCallback=cb;
+  const o=document.getElementById('pin-overlay'),i=document.getElementById('pin-input');
+  o.classList.add('show');i.value='';i.classList.remove('error');
+  setTimeout(()=>i.focus(),100);
+}
+function cerrarPin(){document.getElementById('pin-overlay').classList.remove('show');pinCallback=null}
+async function hashPin(pin){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pin));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function verificarPin(){
+  const i=document.getElementById('pin-input');
+  const hash=await hashPin(i.value);
+  const nombre=USUARIOS[hash];
+  if(nombre){cerrarPin();desbloquear(nombre,hash===HASH_MAESTRO);if(pinCallback)pinCallback();}
+  else{
+    i.classList.remove('shake', 'error');
+    void i.offsetWidth;
+    i.classList.add('error', 'shake');
+    i.value='';
+    setTimeout(()=>i.classList.remove('error', 'shake'),400);
+  }
+}
+document.getElementById('pin-input').addEventListener('keydown',e=>{if(e.key==='Enter')verificarPin()});
+function desbloquear(nombre,esMaestro=false){
+  modoEdicion=true;modoMaestro=esMaestro;usuario=nombre;
+  document.getElementById('main-content').classList.remove('locked');
+  document.getElementById('edit-bar').classList.add('visible');
+  document.getElementById('edit-bar-user').textContent=nombre+(esMaestro?' ★':'');
+  const c=document.getElementById('edit-chip');c.textContent='🔓 '+nombre;c.className='edit-chip unlocked';
+  const btnExcel=document.getElementById('btn-excel');
+  if(btnExcel)btnExcel.style.display=esMaestro?'inline-flex':'none';
+  resetSessionTimeout();
+  renderAll();
+}
+function bloquear(){
+  modoEdicion=false;modoMaestro=false;usuario='';
+  document.getElementById('main-content').classList.add('locked');
+  document.getElementById('edit-bar').classList.remove('visible');
+  const c=document.getElementById('edit-chip');c.textContent='\uD83D\uDD12';c.className='edit-chip locked';
+  const movTab=document.querySelector('#tab-mov-btn');
+  if(movTab&&movTab.classList.contains('active'))setTab(document.querySelector('.tab-btn'),'inventario');
+  const btnExcel=document.getElementById('btn-excel');
+  if(btnExcel)btnExcel.style.display='none';
+  resetSessionTimeout();
+  renderAll();
+}
+
+let sessionTimeout = null;
+function resetSessionTimeout() {
+  if(sessionTimeout) clearTimeout(sessionTimeout);
+  if(modoEdicion) {
+    sessionTimeout = setTimeout(() => {
+      bloquear();
+      toast('Sesión cerrada por inactividad (15 min).');
+    }, 15 * 60 * 1000);
+  }
+}
+document.addEventListener('mousemove', resetSessionTimeout);
+document.addEventListener('keydown', resetSessionTimeout);
+document.addEventListener('touchstart', resetSessionTimeout);
+
+function requirePin(btn,tab){modoEdicion?setTab(btn,tab):abrirPin(()=>setTab(btn,tab))}
+
+// ── INIT ──
+async function init(){startApp()}
+
+function loadScript(src){
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function startApp(){
+  const isPlaceholder=FIREBASE_CONFIG.apiKey.includes('PASTE')||FIREBASE_CONFIG.projectId.includes('tu-proyecto');
+  if(!isPlaceholder){
+    try{
+      await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js');
+      if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+      db=firebase.firestore();useFirebase=true;
+      document.getElementById('setup-banner').classList.add('hidden');
+      setLiveStatus(true);
+      await seedIfEmpty();
+      listenFirebase();
+      return;
+    }catch(e){console.warn('Firebase no disponible:',e)}
+  }
+  document.getElementById('setup-banner').style.display='flex';
+  setLiveStatus(false);loadLocal();
+}
+
+function setLiveStatus(online){
+  const dot=document.getElementById('live-dot'),txt=document.getElementById('live-txt');
+  if(online){dot.classList.remove('offline');txt.textContent='En vivo';}
+  else{dot.classList.add('offline');txt.textContent='Local';}
+}
+
+// ── FIREBASE ──
+async function seedIfEmpty(){
+  const snap=await db.collection('Aditivos').limit(1).get();
+  if(snap.empty){
+    const now=new Date().toISOString();
+    // Batch in chunks of 400
+    for(let i=0;i<SEED.length;i+=400){
+      const batch=db.batch();
+      SEED.slice(i,i+400).forEach(item=>{
+        const ref=db.collection('Aditivos').doc();
+        batch.set(ref,{...item,updatedAt:now,updatedBy:'Sistema'});
+      });
+      await batch.commit();
+    }
+  }
+}
+
+function listenFirebase(){
+  db.collection('Aditivos').onSnapshot(snap=>{
+    inv=snap.docs.map(d=>({id:d.id,...d.data()}));
+    inv.sort((a,b)=>a.desc.localeCompare(b.desc));
+    renderAll();
+  });
+  db.collection('Aditivos_mov').orderBy('ts','desc').limit(100).onSnapshot(snap=>{
+    logs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderLog();
+  });
+}
+
+async function fbSetQty(id,newQty,desc,lote,oldQty){
+  const now=new Date().toISOString();
+  await db.collection('Aditivos').doc(id).update({qty:newQty,updatedAt:now,updatedBy:usuario,lastMovAt:now});
+  const tipo=newQty>oldQty?'entrada':'salida';
+  await db.collection('Aditivos_mov').add({
+    tipo,desc,lote,qty:Math.abs(newQty-oldQty),quien:usuario,
+    nota:`Ajuste rápido (${oldQty}&rarr;${newQty})`,ts:Date.now(),fecha:fmt(new Date())
+  });
+}
+
+// ── LOCAL FALLBACK ──
+function loadLocal(){
+  const si=localStorage.getItem('dimsa-Aditivos-inv');
+  const sl=localStorage.getItem('dimsa-Aditivos-log');
+  if(si)inv=JSON.parse(si);else{inv=SEED.map((s,i)=>({...s,id:'loc'+i}));}
+  if(sl)logs=JSON.parse(sl);
+  renderAll();
+}
+function saveLocal(){localStorage.setItem('dimsa-Aditivos-inv',JSON.stringify(inv))}
+function addLogLocal(tipo,desc,lote,qty,nota){
+  logs.unshift({tipo,desc,lote,qty,nota,quien:usuario||'&mdash;',fecha:fmt(new Date()),ts:Date.now()});
+  if(logs.length>200)logs=logs.slice(0,200);
+  localStorage.setItem('dimsa-Aditivos-log',JSON.stringify(logs));
+}
+
+// ── CRUD ──
+async function cambiarQty(id,delta){
+  const idx=inv.findIndex(r=>r.id===id);if(idx<0)return;
+  const old=inv[idx].qty;const nv=Math.max(0,old+delta);
+  if(useFirebase){await fbSetQty(id,nv,inv[idx].desc,inv[idx].lote,old);}
+  else{inv[idx].qty=nv;addLogLocal(delta>0?'entrada':'salida',inv[idx].desc,inv[idx].lote,Math.abs(delta),`Ajuste rápido`);saveLocal();renderAll();}
+  toast(`${inv[idx]?.desc||''}: ${nv} ${inv[idx]?.unidad||'kg'}`);
+}
+
+async function setQtyDirecto(id,input){
+  const nv=Math.max(0,parseFloat(input.value)||0);input.value=nv;
+  const idx=inv.findIndex(r=>r.id===id);if(idx<0)return;
+  const old=inv[idx].qty||0;if(nv===old)return;
+  if(useFirebase){await fbSetQty(id,nv,inv[idx].desc,inv[idx].lote,old);}
+  else{inv[idx].qty=nv;addLogLocal(nv>old?'entrada':'salida',inv[idx].desc,inv[idx].lote,Math.abs(nv-old),`Cambio directo (${old}&rarr;${nv})`);saveLocal();renderAll();}
+  toast(`Guardado: ${nv} ${inv[idx]?.unidad||'kg'}`);
+}
+
+async function guardarCampo(id,campo,valor){
+  const idx=inv.findIndex(r=>r.id===id);if(idx<0)return;
+  const valorAnterior=inv[idx][campo]||'';
+  const valorNuevo=valor.trim();
+  if(valorAnterior===valorNuevo)return;
+  inv[idx][campo]=valorNuevo;
+  if(useFirebase){
+    const u={updatedAt:new Date().toISOString(),updatedBy:usuario};u[campo]=inv[idx][campo];
+    await db.collection('Aditivos').doc(id).update(u);
+    if(campo==='obs'){
+      const desc=inv[idx].desc||inv[idx].clave;
+      const qty=inv[idx].qty||0;
+      const nota=valorAnterior?`Observación modificada: "${valorAnterior}" &rarr; "${valorNuevo}"`:`Observación agregada: "${valorNuevo}"`;
+      await db.collection('movimientos-Aditivos').add({tipo:'edicion-obs',producto:desc,qty,quien:usuario,nota,ts:Date.now(),fecha:fmt(new Date())});
+    }
+  }else{
+    if(campo==='obs'){
+      const desc=inv[idx].desc||inv[idx].clave;
+      const qty=inv[idx].qty||0;
+      const nota=valorAnterior?`Observación modificada: "${valorAnterior}" &rarr; "${valorNuevo}"`:`Observación agregada: "${valorNuevo}"`;
+      addLogLocal('edicion-obs',desc,qty,nota);
+    }
+    saveLocal();
+  }
+  toast('Guardado.');
+}
+
+async function agregarRegistro(){
+  const clave=document.getElementById('a-clave').value.trim()||'S/C';
+  const desc=document.getElementById('a-desc').value.trim();
+  const lote=document.getElementById('a-lote').value.trim();
+  const qty=parseFloat(document.getElementById('a-qty').value)||0;
+  const unidad=document.getElementById('a-unidad').value;
+  const ubic=document.getElementById('a-ubic').value.trim();
+  const cat=document.getElementById('a-cat').value.trim();
+  const sheet=document.getElementById('a-sheet').value;
+  if(!desc||!lote){alert('Descripción y lote son obligatorios.');return;}
+  const now=new Date().toISOString();
+  const item={clave,desc,lote,qty,unidad,ubic,cat,sheet,updatedAt:now,updatedBy:usuario,lastMovAt:now};
+  if(useFirebase){
+    await db.collection('Aditivos').add(item);
+    await db.collection('Aditivos_mov').add({tipo:'nuevo-registro',desc,lote,qty,quien:usuario,nota:'Nuevo registro agregado',ts:Date.now(),fecha:fmt(new Date())});
+  }else{
+    const id='loc'+Date.now();inv.push({...item,id});inv.sort((a,b)=>a.desc.localeCompare(b.desc));
+    addLogLocal('nuevo-registro',desc,lote,qty,'Nuevo registro');saveLocal();renderAll();
+  }
+  document.getElementById('add-form').style.display='none';
+  ['a-clave','a-desc','a-lote','a-ubic','a-cat'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('a-qty').value='0';
+  toast('Registro agregado.');
+}
+
+async function eliminar(id){
+  if(!confirm('¿Eliminar este registro?'))return;
+  if(useFirebase){await db.collection('Aditivos').doc(id).delete();}
+  else{inv=inv.filter(r=>r.id!==id);saveLocal();renderAll();}
+  toast('Eliminado.');
+}
+
+function checkTintaNueva(){
+  const val=(document.getElementById('m-desc').value||'').trim().toLowerCase();
+  const aviso=document.getElementById('nueva-tinta-aviso');
+  if(!val){aviso.style.display='none';return;}
+  const existe=inv.some(r=>(r.desc||'').toLowerCase()===val);
+  aviso.style.display=existe?'none':'block';
+}
+
+async function registrarMovimiento(){
+  const tipo=document.getElementById('m-tipo').value;
+  const desc=document.getElementById('m-desc').value.trim();
+  const loteId=document.getElementById('m-lote').value;
+  const qty=parseFloat(document.getElementById('m-qty').value)||0;
+  const unidad=document.getElementById('m-unidad').value;
+  const turno=document.getElementById('m-turno').value;
+  const maq=document.getElementById('m-maq').value.trim();
+  const op=document.getElementById('m-op').value.trim();
+  const subop=document.getElementById('m-subop').value.trim();
+  const nota=document.getElementById('m-nota').value.trim();
+  if(!desc||qty<=0){alert('Ingresa descripción y cantidad.');return;}
+
+  // Validate desc matches exactly or user must pick from dropdown
+  const matchExact=inv.some(r=>(r.desc||'').toLowerCase()===desc.toLowerCase());
+  const matchPartial=inv.some(r=>(r.desc||'').toLowerCase().includes(desc.toLowerCase()));
+  if(!matchExact && matchPartial){
+    toast('Selecciona una tinta específica del menú desplegable.');
+    showDescDropdown();
+    return;
+  }
+
+  // Check if it's a new tinta
+  const esNueva=!inv.some(r=>(r.desc||'').toLowerCase()===desc.toLowerCase());
+  if(esNueva){
+    const aviso=document.getElementById('nueva-tinta-aviso');
+    if(aviso.style.display==='none'){aviso.style.display='block';toast('Es una tinta nueva — completa los datos y da clic en Registrar movimiento otra vez.');return;}
+    // Register as new tinta
+    const clave=document.getElementById('mnew-clave').value.trim()||'S/C';
+    const loteNuevo=document.getElementById('mnew-lote').value.trim();
+    const ubic=document.getElementById('mnew-ubic').value.trim();
+    const cat=document.getElementById('mnew-cat').value.trim();
+    const sheet=document.getElementById('mnew-sheet').value;
+    if(!loteNuevo){toast('Ingresa el número de lote.');return;}
+    const now=new Date().toISOString();
+    const item={clave,desc,lote:loteNuevo,qty,unidad,ubic,cat,sheet,updatedAt:now,updatedBy:usuario,lastMovAt:now};
+    if(useFirebase){
+      await db.collection('Aditivos').add(item);
+      await db.collection('Aditivos_mov').add({tipo:'nuevo-registro',desc,lote:loteNuevo,qty,unidad,quien:usuario,nota:nota||'Nueva tinta registrada',ts:Date.now(),fecha:fmt(new Date())});
+    }else{
+      inv.push({...item,id:'loc'+Date.now()});
+      inv.sort((a,b)=>a.desc.localeCompare(b.desc));
+      addLogLocal('nuevo-registro',desc,loteNuevo,qty,'Nueva tinta registrada');
+      saveLocal();renderAll();
+    }
+    document.getElementById('nueva-tinta-aviso').style.display='none';
+    ['mnew-clave','mnew-lote','mnew-ubic','mnew-cat'].forEach(id=>document.getElementById(id).value='');
+    limpiarMov();
+    toast(`Tinta "${desc}" registrada con ${qty} ${unidad}.`);
+    return;
+  }
+
+  const now=new Date().toISOString();
+  const nota2=`T${turno}${maq?' &middot; '+maq:''}${op?' &middot; OP:'+op:''}${subop?' &middot; Sub:'+subop:''}${nota?' &middot; '+nota:''}`;
+  if(loteId){
+    const idx=inv.findIndex(r=>r.id===loteId);
+    if(idx>=0){
+      const isEntrada=tipo==='entrada'||tipo==='devolucion';
+      const old=inv[idx].qty;
+      const nv=Math.max(0,old+(isEntrada?qty:-qty));
+      if(useFirebase){
+        await db.collection('Aditivos').doc(loteId).update({qty:nv,updatedAt:now,updatedBy:usuario,lastMovAt:now});
+      }else{inv[idx].qty=nv;inv[idx].lastMovAt=now;saveLocal();}
+    }
+  }
+  const mov={tipo,desc,lote:loteId?inv.find(r=>r.id===loteId)?.lote||'&mdash;':'&mdash;',qty,unidad,turno,maq,op,subop,nota:nota2,quien:usuario,ts:Date.now(),fecha:fmt(new Date())};
+  if(useFirebase){await db.collection('Aditivos_mov').add(mov);}
+  else{addLogLocal(tipo,desc,mov.lote,qty,nota2);renderAll();}
+  toast('Movimiento registrado.');
+  limpiarMov();
+}
+
+// ── RENDER ──
+function renderAll(){
+  const total=inv.length;
+  const kg=inv.filter(r=>r.unidad!=='ml').reduce((s,r)=>s+(r.qty||0),0);
+  const zeros=inv.filter(r=>(r.qty||0)===0);
+  const hoy=logs.filter(l=>l.fecha&&l.fecha.startsWith(todayStr())).length;
+  document.getElementById('s-total').textContent=total;
+  document.getElementById('s-kg').textContent=kg.toFixed(1);
+  document.getElementById('s-zero').textContent=zeros.length;
+  document.getElementById('s-hoy').textContent=hoy;
+  renderTable();
+  renderLog();
+  updateDescList();
+}
+
+// Tracks which groups are expanded
+const expandedGroups = new Set();
+
+function toggleGroup(key) {
+  if (expandedGroups.has(key)) expandedGroups.delete(key);
+  else expandedGroups.add(key);
+  renderTable();
+}
+
+function renderTable(){
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  let rows=inv.filter(r=>{
+    if(sheetFilter!=='todos'&&r.sheet!==sheetFilter)return false;
+    if(q&&!r.desc.toLowerCase().includes(q)&&!(r.clave||'').toLowerCase().includes(q)&&!(r.lote||'').toLowerCase().includes(q)&&!(r.ubic||'').toLowerCase().includes(q)&&!(r.cat||'').toLowerCase().includes(q))return false;
+    return true;
+  });
+  const body=document.getElementById('tbl-body');
+  if(!rows.length){body.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:2rem;color:#888">Sin resultados.</td></tr>`;return;}
+
+  // Group by description
+  const groups = new Map();
+  rows.forEach(r => {
+    const key = r.desc;
+    if(!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  });
+
+  let html = '';
+  groups.forEach((lotes, desc) => {
+    const totalQty = lotes.reduce((s,r)=>s+(r.qty||0),0);
+    const unidad = lotes[0].unidad||'kg';
+    const clave = lotes[0].clave||'S/C';
+    const cat = lotes[0].cat||'';
+    const zeroCount = lotes.filter(r=>(r.qty||0)===0).length;
+    const allZero = zeroCount === lotes.length;
+    const someZero = zeroCount > 0 && !allZero;
+    const groupCls = allZero?'stock-zero':someZero?'stock-low':'stock-ok';
+    const isExpanded = expandedGroups.has(desc) || q; // auto-expand on search
+    const arrow = isExpanded ? '&#9660;' : '&#9654;';
+    const unidTag = unidad==='ml'?'<span class="tag tag-ml">ml</span>':'<span class="tag tag-kg">kg</span>';
+    const catTag = cat?`<span class="tag tag-cat">${cat}</span>`:'';
+    const loteBadge = `<span style="font-size:10px;background:var(--bg);color:var(--muted);padding:1px 7px;border-radius:10px;font-weight:600">${lotes.length} lote${lotes.length>1?'s':''}</span>`;
+    const safeKey = desc.replace(/'/g,"\\'");
+    const audit = getAuditLine(lotes[0].updatedBy, lotes[0].updatedAt);
+    // Group header row
+    html += `<tr class="group-row" onclick="toggleGroup('${safeKey}')" style="cursor:pointer;background:#FAFAFA">
+      <td style="padding:9px 12px">
+        <span style="font-size:13px;margin-right:6px;color:var(--muted)">${arrow}</span>
+        <span class="medida-cell" style="font-size:12px">${desc}</span>
+        <span class="lote-cell" style="margin-left:6px">${clave}</span>
+        <div class="mobile-meta">${lotes.length} lote${lotes.length>1?'s':''} · ${totalQty.toFixed(1)} ${unidad} · ${zeroCount>0?zeroCount+' en cero':'sin faltantes'}</div>
+        ${audit}
+      </td>
+      <td>${loteBadge} ${catTag}</td>
+      <td>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:${allZero?'#DC2626':someZero?'#CA8A04':'var(--green)'}">${totalQty.toFixed(1)}</span>
+        ${unidTag}
+        ${zeroCount>0?`<span style="font-size:10px;color:var(--danger);margin-left:4px">${zeroCount} en cero</span>`:''}
+      </td>
+      <td colspan="2" style="color:var(--muted);font-size:11px">${isExpanded?'Clic para colapsar':'Clic para ver lotes'}</td>
+    </tr>`;
+
+    // Individual lot rows (shown when expanded)
+    if(isExpanded){
+      lotes.forEach(r => {
+        const qty=r.qty||0;
+        const stockCls=qty===0?'stock-zero':qty<=2?'stock-low':'stock-ok';
+        const ubicVal=(r.ubic||'').replace(/"/g,'&quot;');
+        const lastMov=r.lastMovAt?fmtRelative(r.lastMovAt):'&mdash;';
+        html += `<tr class="lote-row" style="background:#F8F6F4">
+          <td style="padding:6px 12px 6px 36px">
+            <span style="color:var(--muted);font-size:11px;margin-right:4px">└</span>
+            <span class="lote-cell" style="font-size:11px">${r.lote||'&mdash;'}</span>
+            <div class="mobile-meta">${r.ubic||'Sin ubicación'} · ${lastMov} · ${r.updatedBy||'Sin usuario'}</div>
+          </td>
+          <td></td>
+          <td>
+            ${modoMaestro
+              ? `<div class="qty-ctrl"><button class="qty-btn" onclick="event.stopPropagation();cambiarQty('${r.id}',-1)" style="width:24px;height:24px;font-size:14px">−</button><input class="qty-input ${stockCls}" type="number" value="${qty}" min="0" step="0.01" style="width:62px" onchange="setQtyDirecto('${r.id}',this)" onkeydown="if(event.key==='Enter')this.blur()" onclick="event.stopPropagation()"><button class="qty-btn" onclick="event.stopPropagation();cambiarQty('${r.id}',1)" style="width:24px;height:24px;font-size:14px">+</button></div>`
+              : `<span class="qty-input ${stockCls}" style="display:inline-block;padding:3px 7px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;border:1px solid">${qty}</span>`
+            }
+          </td>
+          <td><input class="obs-input" type="text" value="${ubicVal}" placeholder="Ubicación"
+            onchange="guardarCampo('${r.id}','ubic',this.value)" onkeydown="if(event.key==='Enter')this.blur()"
+            onclick="event.stopPropagation()" style="font-size:11px"></td>
+          <td><button class="del-btn" onclick="event.stopPropagation();eliminar('${r.id}')">×</button></td>
+        </tr>`;
+      });
+    }
+  });
+
+  body.innerHTML = html;
+}
+
+function renderLog(){
+  const list=document.getElementById('log-list');
+  if(!list)return;
+  if(!logs.length){list.innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>Sin movimientos.</p></div>';return;}
+  const labels={'entrada':'Entrada','salida':'Salida','devolucion':'Devolución','ajuste':'Ajuste','nuevo-registro':'Nuevo'};
+  const clsMap={'entrada':'lb-entrada','salida':'lb-salida','devolucion':'lb-dev','ajuste':'lb-ajuste','nuevo-registro':'lb-new'};
+  list.innerHTML=logs.slice(0,10).map(l=>{
+    const cls=clsMap[l.tipo]||'lb-ajuste';
+    const isPos=l.tipo==='entrada'||l.tipo==='devolucion'||l.tipo==='nuevo-registro';
+    const isNeg=l.tipo==='salida';
+    const sign=isPos?'+':isNeg?'-':'&plusmn;';
+    const qcls=isPos?'pos':isNeg?'neg':'neu';
+    return `<div class="log-item">
+      <span class="log-badge ${cls}">${labels[l.tipo]||l.tipo}</span>
+      <div>
+        <div class="log-desc">${l.desc}${l.lote&&l.lote!=='&mdash;'?' &middot; <span class="lote-cell">'+l.lote+'</span>':''}</div>
+        <div class="log-meta">${l.nota||''} &middot; ${l.quien||'&mdash;'} &middot; ${l.fecha||''}</div>
+      </div>
+      <span class="log-qty ${qcls}">${sign}${l.qty} ${l.unidad||'kg'}</span>
+    </div>`;
+  }).join('');
+}
+
+function updateDescList(){
+  // no-op &mdash; dropdown uses showDescDropdown
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#desc-dropdown')&&e.target.id!=='m-desc'){
+    hideDescDropdown();
+  }
+});
+
+function showDescDropdown(){
+  const input=document.getElementById('m-desc');
+  const q=(input.value||'').trim().toLowerCase();
+  const dd=document.getElementById('desc-dropdown');
+  if(!q){dd.classList.remove('show');return;}
+  const matches=[...new Set(
+    inv.filter(r=>(r.desc||'').toLowerCase().includes(q)).map(r=>r.desc)
+  )].slice(0,12);
+  if(!matches.length){dd.classList.remove('show');return;}
+  const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const htmlEnc=s=>s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  dd.innerHTML=matches.map(d=>`
+    <div class="combo-item" onclick="selectDesc(this.dataset.desc)" data-desc="${htmlEnc(d)}">
+      <div class="combo-title">${d.replace(new RegExp(esc(q),'gi'),m=>`<strong style="color:var(--accent)">${m}</strong>`)}</div>
+    </div>`).join('');
+  dd.classList.add('show');
+}
+
+function hideDescDropdown(){
+  document.getElementById('desc-dropdown').classList.remove('show');
+}
+
+function selectDesc(desc){
+  document.getElementById('m-desc').value=desc;
+  hideDescDropdown();
+  filtrarLotes();
+  checkTintaNueva();
+}
+
+function filtrarLotes(){
+  const desc=document.getElementById('m-desc').value.trim().toLowerCase();
+  const lotes=inv.filter(r=>r.desc.toLowerCase().includes(desc));
+  const sel=document.getElementById('m-lote');
+  if(lotes.length){
+    sel.innerHTML=`<option value="">&mdash; elige lote &mdash;</option>`+lotes.map(r=>`<option value="${r.id}">${r.lote} (${r.qty} ${r.unidad||'kg'}) ${r.ubic?'&middot; '+r.ubic:''}</option>`).join('');
+    // Auto-set unidad
+    if(lotes[0].unidad==='ml')document.getElementById('m-unidad').value='ml';
+    else document.getElementById('m-unidad').value='kg';
+  }else{
+    sel.innerHTML='<option value="">&mdash; selecciona primero la tinta &mdash;</option>';
+  }
+}
+
+// ── HELPERS ──
+function fmt(d){return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`}
+function todayStr(){const n=new Date();return`${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`}
+function fmtRelative(iso){
+  if(!iso)return'&mdash;';
+  const diff=Date.now()-new Date(iso).getTime();
+  const mins=Math.floor(diff/60000);
+  if(mins<1)return'Hace un momento';
+  if(mins<60)return`Hace ${mins} min`;
+  const hrs=Math.floor(mins/60);
+  if(hrs<24)return`Hace ${hrs}h`;
+  const days=Math.floor(hrs/24);
+  if(days===1)return'Ayer';
+  if(days<7)return`Hace ${days} días`;
+  return fmt(new Date(iso));
+}
+
+function setTab(btn,tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn&&btn.classList)btn.classList.add('active');
+  const inv=document.getElementById('tab-inventario');
+  const mov=document.getElementById('tab-movimientos');
+  if(tab==='movimientos'){
+    inv.style.display='';
+    mov.classList.add('show');
+    document.body.classList.add('movement-open');
+  }else{
+    inv.style.display='';
+    mov.classList.remove('show');
+    document.body.classList.remove('movement-open');
+  }
+}
+function setSheet(btn,sheet){
+  sheetFilter=sheet;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');renderTable();
+}
+function showAddForm(){
+  const f=document.getElementById('add-form');
+  f.style.display=f.style.display==='none'?'':'none';
+}
+function toggleHistorial(){
+  if(!logs.length){toast('No hay movimientos para exportar.');return;}
+  const rows=[['Fecha','Tipo','Descripción','Lote','Cantidad','Unidad','Turno','Máquina','OP','Sub OP','Nota','Registrado por']];
+  logs.forEach(l=>{
+    const tipo={'entrada':'Entrada','salida':'Salida','devolucion':'Devolución','ajuste':'Ajuste','nuevo-registro':'Nuevo registro'}[l.tipo]||l.tipo;
+    rows.push([l.fecha||'',tipo,l.desc||'',l.lote||'',l.qty||'',l.unidad||'kg',l.turno||'',l.maq||'',l.op||'',l.subop||'',l.nota||'',l.quien||'']);
+  });
+  const bom='\uFEFF';
+  const csv=bom+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;
+  const f=new Date();
+  const mes=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][f.getMonth()];
+  a.download=`historial-Aditivos-${mes}-${f.getFullYear()}.csv`;
+  a.click();URL.revokeObjectURL(url);
+  toast('Historial exportado.');
+}
+function limpiarMov(){
+  ['m-desc','m-maq','m-op','m-subop','m-nota'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('m-qty').value='1';
+  document.getElementById('m-tipo').value='entrada';
+  document.getElementById('m-lote').innerHTML='<option value="">&mdash; selecciona primero la tinta &mdash;</option>';
+  document.getElementById('nueva-tinta-aviso').style.display='none';
+  ['mnew-clave','mnew-lote','mnew-ubic','mnew-cat'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mnew-sheet').value='RACK';
+}
+function setQuickQty(id,value){
+  const input=document.getElementById(id);
+  if(input)input.value=String(value);
+}
+function adjustQty(id,delta){
+  const input=document.getElementById(id);
+  if(!input)return;
+  const current=parseFloat(input.value)||0;
+  input.value=String(Math.max(0,Math.round((current+delta)*100)/100));
+}
+function getAuditLine(user,iso){
+  const userTxt=user||'Sin usuario';
+  const when=iso?fmtRelative(iso):'Sin fecha';
+  return `<div class="audit-line"><span class="audit-pill"><strong>${userTxt}</strong></span><span>${when}</span></div>`;
+}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+// ── EXCEL IMPORT ──
+let excelRows=[];
+
+function abrirModalExcel(){
+  if(!modoMaestro){
+    if(modoEdicion){toast('⚠ Solo el administrador puede subir archivos Excel.');return;}
+    abrirPin(()=>{if(modoMaestro){document.getElementById('excel-modal').classList.add('show');resetExcelModal();}else toast('⚠ Acceso denegado. Solo el administrador puede subir Excel.');});
+    return;
+  }
+  document.getElementById('excel-modal').classList.add('show');
+  resetExcelModal();
+}
+function cerrarModalExcel(){
+  document.getElementById('excel-modal').classList.remove('show');
+  excelRows=[];
+}
+function resetExcelModal(){
+  document.getElementById('excel-drop').style.display='';
+  document.getElementById('excel-preview').style.display='none';
+  document.getElementById('excel-actions').style.display='none';
+  excelRows=[];
+  const inp=document.getElementById('excel-file-input');
+  if(inp)inp.value='';
+}
+function handleExcelDrop(e){
+  const f=e.dataTransfer.files[0];
+  if(f)handleExcelFile(f);
+}
+async function handleExcelFile(file){
+  if(!file)return;
+  toast('Leyendo archivo…');
+  try{
+    if(!window.XLSX){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+        s.onload=res;s.onerror=()=>rej(new Error('No se pudo cargar el lector de Excel. Verifica tu conexión.'));
+        document.head.appendChild(s);
+      });
+    }
+    const data=await file.arrayBuffer();
+    const wb=XLSX.read(new Uint8Array(data),{type:'array'});
+    parseExcelWorkbook(wb,file.name);
+  }catch(err){toast('Error: '+err.message);}
+}
+function parseExcelWorkbook(wb,filename){
+  const targetSheets=['Aditivos 1','Aditivos 2','Aditivos 3','RACK','SHEET1','HOJA1'];
+  excelRows=[];
+  let sheetCount=0;
+  const norm=s=>String(s).trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  for(const sheetName of wb.SheetNames){
+    const normalName=norm(sheetName);
+    let matchedSheet=null;
+    for(const t of targetSheets){if(normalName.includes(t)){matchedSheet=t;break;}}
+    if(!matchedSheet)continue;
+    const ws=wb.Sheets[sheetName];
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    if(!rows.length)continue;
+    // Find header row (must have LOTE and EXISTENCIA columns)
+    let headerIdx=-1,colMap={};
+    for(let i=0;i<Math.min(rows.length,6);i++){
+      const row=rows[i].map(c=>norm(String(c)));
+      const loteIdx=row.findIndex(c=>c.includes('LOTE')||c.includes('SERIE')||c.includes('PEDIMENTO')||c.includes('ROLLO'));
+      const qtyIdx=row.findIndex(c=>c.includes('EXISTENCIA')||c==='QTY'||c==='CANTIDAD'||c==='STOCK'||c==='KILOS'||c==='KG'||c==='PESO');
+      if(loteIdx>=0&&qtyIdx>=0){
+        headerIdx=i;
+        colMap.clave=row.findIndex(c=>c==='CLAVE'||c==='CODIGO');
+        colMap.desc=row.findIndex(c=>c.includes('DESCRIPCION')||c.includes('NOMBRE')||c.includes('TINTA'));
+        colMap.lote=loteIdx;
+        colMap.qty=qtyIdx;
+        colMap.ubic=row.findIndex(c=>c.includes('UBICAC')||c.includes('UBIC'));
+        colMap.obs=row.findIndex(c=>c.includes('OBSERVA'));
+        break;
+      }
+    }
+    if(headerIdx<0)continue;
+    sheetCount++;
+    for(let i=headerIdx+1;i<rows.length;i++){
+      const row=rows[i];
+      const rawLote=String(row[colMap.lote]??'').trim();
+      const rawDesc=colMap.desc>=0?String(row[colMap.desc]??'').trim():'';
+      const rawQty=parseFloat(row[colMap.qty])??0;
+      const rawClave=colMap.clave>=0?String(row[colMap.clave]??'').trim():'S/C';
+      const rawUbic=colMap.ubic>=0?String(row[colMap.ubic]??'').trim():'';
+      // Skip empty / section-title / duplicate-header rows
+      if(!rawLote)continue;
+      const lN=norm(rawLote);
+      if(lN==='LOTE'||lN.includes('SERIE')||lN.includes('PEDIMENTO'))continue;
+      excelRows.push({clave:rawClave||'S/C',desc:rawDesc,lote:rawLote,qty:rawQty||0,unidad:'kg',ubic:rawUbic,cat:'',sheet:matchedSheet});
+    }
+  }
+  showExcelPreview(sheetCount,filename);
+}
+function showExcelPreview(sheetCount,filename){
+  if(!excelRows.length){
+    toast('No se encontraron hojas Aditivos 1/2/3 con datos válidos en el Excel.');
+    return;
+  }
+  const matched=excelRows.filter(r=>inv.some(i=>i.lote===r.lote)).length;
+  const nuevos=excelRows.length-matched;
+  document.getElementById('excel-drop').style.display='none';
+  document.getElementById('excel-preview').style.display='';
+  document.getElementById('excel-actions').style.display='';
+  document.getElementById('excel-summary').innerHTML=`
+    <strong>📊 ${filename}</strong> &mdash;
+    ${sheetCount} hoja${sheetCount>1?'s':''} detectada${sheetCount>1?'s':''} &middot;
+    <strong>${excelRows.length}</strong> registros leídos &middot;
+    <strong style="color:var(--green)">${matched}</strong> coinciden con inventario actual
+    ${nuevos>0?`&middot; <strong style="color:var(--amber)">${nuevos}</strong> lotes nuevos (solo se agregan en modo Reemplazar)`:''}
+  `;
+  const prev=excelRows.slice(0,8);
+  document.getElementById('excel-preview-table').innerHTML=`
+    <thead><tr>
+      <th>Clave</th><th>Descripción</th><th>Lote</th><th>Existencia</th><th>Ubicación</th><th>Hoja</th>
+    </tr></thead>
+    <tbody>
+      ${prev.map(r=>`<tr>
+        <td>${r.clave||'—'}</td>
+        <td title="${r.desc}">${r.desc.length>30?r.desc.slice(0,28)+'…':r.desc||'—'}</td>
+        <td><span class="lote-cell">${r.lote||'—'}</span></td>
+        <td><strong>${r.qty}</strong> kg</td>
+        <td>${r.ubic||'—'}</td>
+        <td><span class="tag tag-kg">${r.sheet}</span></td>
+      </tr>`).join('')}
+      ${excelRows.length>8?`<tr><td colspan="6" style="text-align:center;color:var(--muted);font-style:italic;padding:8px">… y ${excelRows.length-8} registros más</td></tr>`:''}
+    </tbody>
+  `;
+}
+function toggleReemplazarCheck() {
+  const modo = document.querySelector('input[name="excel-mode"]:checked').value;
+  const container = document.getElementById('reemplazar-check-container');
+  if (modo === 'reemplazar') {
+    container.style.display = 'block';
+    document.getElementById('reemplazar-confirm').value = '';
+  } else {
+    container.style.display = 'none';
+  }
+}
+
+function checkReemplazarBtn() {
+  // Validamos al hacer click para dar feedback visual
+}
+async function aplicarExcel(){
+  if(!excelRows.length)return;
+  const modo=document.querySelector('input[name="excel-mode"]:checked').value;
+  if(modo==='reemplazar'){
+    const val = document.getElementById('reemplazar-confirm').value.trim().toUpperCase();
+    if(val !== 'REEMPLAZAR') {
+      const inp = document.getElementById('reemplazar-confirm');
+      inp.classList.remove('shake', 'error');
+      void inp.offsetWidth;
+      inp.classList.add('error', 'shake');
+      toast('⚠ Debes escribir la palabra REEMPLAZAR en el recuadro rojo para continuar.');
+      return;
+    }
+  }
+  toast('Procesando actualización...');
+  const now=new Date().toISOString();
+  let actualizados=0,noEncontrados=0;
+  if(modo==='actualizar'){
+    if(useFirebase){
+      let b = db.batch();
+      let operations = 0;
+      for(const row of excelRows){
+        const idx = inv.findIndex(r => r.lote === row.lote);
+        if(idx >= 0){
+          const old = inv[idx].qty;
+          inv[idx].qty = row.qty;
+          inv[idx].updatedAt = now;
+          inv[idx].updatedBy = usuario + ' (Excel)';
+          b.update(db.collection('Aditivos').doc(inv[idx].id), { qty: row.qty, updatedAt: now, updatedBy: usuario + ' (Excel)' });
+          b.set(db.collection('Aditivos_mov').doc(), { tipo: 'ajuste', desc: inv[idx].desc, lote: row.lote, qty: Math.abs(row.qty - old), unidad: 'kg', quien: usuario, nota: `Actualiz. masiva Excel (${old}→${row.qty})`, ts: Date.now(), fecha: fmt(new Date()) });
+          actualizados++;
+          operations += 2;
+          if (operations >= 400) { await b.commit(); b = db.batch(); operations = 0; }
+        } else noEncontrados++;
+      }
+      if (operations > 0) await b.commit();
+    }else{
+      for(const row of excelRows){
+        const idx = inv.findIndex(r => r.lote === row.lote);
+        if(idx >= 0) {
+          inv[idx].qty = row.qty;
+          inv[idx].updatedAt = now;
+          inv[idx].updatedBy = usuario + ' (Excel)';
+          actualizados++;
+        } else noEncontrados++;
+      }
+      saveLocal();renderAll();
+    }
+    toast(`✓ ${actualizados} existencias actualizadas. ${noEncontrados} lotes no encontrados en inventario.`);
+  }else{
+    if(useFirebase){
+      const snap=await db.collection('Aditivos').get();
+      for(let i=0;i<snap.docs.length;i+=400){
+        const b=db.batch();
+        snap.docs.slice(i,i+400).forEach(d=>b.delete(d.ref));
+        await b.commit();
+      }
+      for(let i=0;i<excelRows.length;i+=400){
+        const b=db.batch();
+        excelRows.slice(i,i+400).forEach(item=>{
+          const ref=db.collection('Aditivos').doc();
+          b.set(ref,{...item,updatedAt:now,updatedBy:usuario+' (Excel)'});
+        });
+        await b.commit();
+      }
+      await db.collection('Aditivos_mov').add({tipo:'ajuste',desc:'Reemplazo masivo desde Excel',lote:'—',qty:excelRows.length,unidad:'',quien:usuario,nota:`Inventario reemplazado (${excelRows.length} registros)`,ts:Date.now(),fecha:fmt(new Date())});
+    }else{
+      inv=excelRows.map((r,i)=>({...r,id:'loc'+Date.now()+i,updatedAt:now,updatedBy:usuario+' (Excel)'}));
+      inv.sort((a,b)=>a.desc.localeCompare(b.desc));
+      addLogLocal('ajuste','Reemplazo masivo Excel','—',excelRows.length,`Inventario reemplazado (${excelRows.length} registros)`);
+      saveLocal();renderAll();
+    }
+    toast(`✓ Inventario reemplazado con ${excelRows.length} registros del Excel.`);
+  }
+  cerrarModalExcel();
+}
+
+init();
+
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

@@ -61,7 +61,7 @@ body.page-home .main{max-width:1280px}
 }
 .module-grid{
   display:grid;
-  grid-template-columns:repeat(3, minmax(0,1fr));
+  grid-template-columns:repeat(2, minmax(0,1fr));
   gap:16px;
   margin-bottom:1rem;
 }
@@ -106,6 +106,7 @@ body.page-home .main{max-width:1280px}
 .module-badge.tarimas{background:#e6f2e9;color:var(--green)}
 .module-badge.tintas{background:var(--accent-light);color:var(--accent-hover)}
 .module-badge.indirectos{background:#f5e8bc;color:#82590b}
+.module-badge.aditivos{background:#e3f2fd;color:#1d4ed8}
 .module-stats{
   display:grid;
   gap:10px;
@@ -313,6 +314,25 @@ body.page-home .main{max-width:1280px}
         <span class="unit-inline">captura y control de reposición</span>
       </div>
     </a>
+
+    <a class="card module-card" href="aditivos.html">
+      <div class="module-head">
+        <div>
+          <div class="module-title">Aditivos</div>
+          <div class="module-sub">Inventario de aditivos por rollo o lote.</div>
+        </div>
+        <span class="module-badge aditivos" id="ic-adi-alert"><span class="skeleton" style="width:30px">&nbsp;</span></span>
+      </div>
+      <div class="module-stats">
+        <div class="module-row"><span>Total registros</span><strong id="ic-adi-total"><span class="skeleton" style="width:20px">&nbsp;</span></strong></div>
+        <div class="module-row"><span>Total kg</span><strong id="ic-adi-kg"><span class="skeleton" style="width:20px">&nbsp;</span></strong></div>
+        <div class="module-row"><span>Lotes en cero</span><strong id="ic-adi-zero"><span class="skeleton" style="width:20px">&nbsp;</span></strong></div>
+      </div>
+      <div class="module-footer">
+        <span class="module-link">Abrir inventario</span>
+        <span class="unit-inline">entradas, salidas y ajustes</span>
+      </div>
+    </a>
   </section>
 
   <section class="stats">
@@ -363,6 +383,7 @@ body.page-home .main{max-width:1280px}
         <a class="quick-link" href="tarimas.html"><strong>Registrar movimiento de tarimas</strong><span>&rarr;</span></a>
         <a class="quick-link" href="tintas.html"><strong>Registrar salida de tinta</strong><span>&rarr;</span></a>
         <a class="quick-link" href="indirectos.html"><strong>Revisar materiales indirectos</strong><span>&rarr;</span></a>
+        <a class="quick-link" href="aditivos.html"><strong>Revisar inventario de aditivos</strong><span>&rarr;</span></a>
       </div>
     </div>
   </section>
@@ -540,6 +561,33 @@ async function loadData(){
           level:(row.qty||0)===0?'red':'amber',
           link:'indirectos.html',
           inventario:'Indirectos'
+        }))
+      );
+      renderAlerts();
+    });
+
+    db.collection('Aditivos').onSnapshot(snap=>{
+      const inv=snap.docs.map(d=>({id:d.id,...d.data()}));
+      const kg=inv.filter(row=>row.unidad!=='ml').reduce((sum,row)=>sum+(row.qty||0),0);
+      const zeros=inv.filter(row=>(row.qty||0)===0);
+      
+      const elTotal = document.getElementById('ic-adi-total');
+      const elKg = document.getElementById('ic-adi-kg');
+      const elZero = document.getElementById('ic-adi-zero');
+      const elAlert = document.getElementById('ic-adi-alert');
+
+      if(elTotal) elTotal.textContent=`${inv.length} lotes`;
+      if(elKg) elKg.textContent=`${kg.toFixed(1)} kg`;
+      if(elZero) elZero.textContent=String(zeros.length);
+      if(elAlert) elAlert.textContent=zeros.length?`${zeros.length} en cero`:'OK';
+      inv.forEach(row=>updateLastUpdated(row.updatedAt||row.lastMovAt, row.updatedBy));
+      allAlerts=allAlerts.filter(item=>item.link!=='aditivos.html').concat(
+        zeros.map(row=>({
+          nombre:row.desc||row.clave||'Aditivo sin nombre',
+          detalle:`Lote ${row.lote||'sin lote'} en cero`,
+          level:'amber',
+          link:'aditivos.html',
+          inventario:'Aditivos'
         }))
       );
       renderAlerts();

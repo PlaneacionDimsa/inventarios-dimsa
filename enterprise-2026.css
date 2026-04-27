@@ -82,7 +82,7 @@ footer{
   border-bottom:1px solid rgba(196,176,144,.65);
   box-shadow:0 4px 14px rgba(44,31,15,.05);
 }
-.header-left{display:flex;align-items:center;gap:16px;min-width:0}
+.header-left{display:flex;align-items:center;gap:16px;min-width:0;flex:1}
 .header-divider{
   width:1px;
   height:30px;
@@ -128,7 +128,7 @@ footer{
   color:#fff;
   box-shadow:0 10px 22px rgba(158,42,43,.24);
 }
-.header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+.header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end;flex:1}
 .live-badge{
   display:flex;
   align-items:center;
