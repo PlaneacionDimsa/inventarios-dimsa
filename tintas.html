@@ -1521,6 +1521,8 @@ function listenFirebase(){
   });
   db.collection('tintas_mov').orderBy('ts','desc').limit(100).onSnapshot(snap=>{
     logs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const elHoy=document.getElementById('s-hoy');
+    if(elHoy) elHoy.textContent=logs.filter(l=>l.fecha&&l.fecha.startsWith(todayStr())).length;
     renderLog();
   });
 }
