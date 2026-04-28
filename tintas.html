@@ -90,6 +90,7 @@
         <button class="filter-btn" data-f="TINTAS 2" onclick="setSheet(this,'TINTAS 2')">Tintas 2</button>
         <button class="filter-btn" data-f="TINTAS 3" onclick="setSheet(this,'TINTAS 3')">Tintas 3</button>
         <div class="spacer"></div>
+        <button class="filter-btn" onclick="descargarInventario()" title="Descargar inventario como CSV">⬇ Descargar</button>
         <button class="filter-btn" id="btn-excel" onclick="abrirModalExcel()" title="Importar desde Excel" style="display:none">📤 Subir Excel</button>
 
       </div>
@@ -130,9 +131,6 @@
 
     <!-- HISTORIAL COLAPSABLE -->
     <div class="inline-action">
-      <button class="action-link-btn" onclick="descargarInventario()">
-        ⬇ Descargar inventario (CSV)
-      </button>
       <button class="action-link-btn" onclick="toggleHistorial()">
         ⬇ Exportar historial de movimientos (Excel)
       </button>

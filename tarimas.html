@@ -108,6 +108,7 @@
         <button class="filter-btn" data-f="BODEGA 7" onclick="setLoc(this,'BODEGA 7')">Bodega 7</button>
         <button class="filter-btn" data-f="EN TAPANCO" onclick="setLoc(this,'EN TAPANCO')">Tapanco</button>
         <div class="spacer"></div>
+        <button class="filter-btn" onclick="descargarInventario()" title="Descargar inventario como CSV">⬇ Descargar</button>
         <button class="filter-btn" id="btn-excel" onclick="abrirModalExcel()" title="Importar desde Excel" style="display:none">📤 Subir Excel</button>
         <div id="maestro-add-btn" style="display:none">
           <button class="add-btn" onclick="showAddFormPrincipal()">+ Nueva medida</button>
@@ -134,9 +135,6 @@
 
   <!-- EXPORTAR HISTORIAL -->
   <div class="inline-action">
-    <button class="action-link-btn" onclick="descargarInventario()">
-      ⬇ Descargar inventario (CSV)
-    </button>
     <button class="action-link-btn" onclick="exportarHistorial()">
       ⬇ Exportar historial de movimientos (Excel)
     </button>

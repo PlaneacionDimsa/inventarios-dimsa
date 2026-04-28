@@ -87,6 +87,7 @@
         <button class="filter-btn" data-f="ALMACEN" onclick="setFilter(this,'ALMACEN')">Almacén</button>
         <button class="filter-btn" data-f="alertas" onclick="setFilter(this,'alertas')">⚠ Alertas</button>
         <div class="spacer"></div>
+        <button class="filter-btn" onclick="descargarInventario()" title="Descargar inventario como CSV">⬇ Descargar</button>
         <button class="filter-btn" id="btn-excel" onclick="abrirModalExcel()" title="Importar desde Excel" style="display:none">📤 Subir Excel</button>
         <button class="add-btn" onclick="showAddForm()">+ Agregar</button>
       </div>
@@ -126,9 +127,6 @@
 
     <!-- HISTORIAL COLAPSABLE -->
     <div class="inline-action">
-      <button class="action-link-btn" onclick="descargarInventario()">
-        ⬇ Descargar inventario (CSV)
-      </button>
       <button class="action-link-btn" onclick="toggleHistorial()">
         ⬇ Exportar historial de movimientos (Excel)
       </button>
