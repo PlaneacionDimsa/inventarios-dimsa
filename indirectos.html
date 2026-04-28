@@ -126,6 +126,9 @@
 
     <!-- HISTORIAL COLAPSABLE -->
     <div class="inline-action">
+      <button class="action-link-btn" onclick="descargarInventario()">
+        ⬇ Descargar inventario (CSV)
+      </button>
       <button class="action-link-btn" onclick="toggleHistorial()">
         ⬇ Exportar historial de movimientos (Excel)
       </button>
@@ -774,6 +777,25 @@ function setFilter(btn,f){
   btn.classList.add('on');renderTable();
 }
 function showAddForm(){const f=document.getElementById('add-form');f.style.display=f.style.display==='none'?'':'none';}
+function descargarInventario(){
+  let rows;
+  if(filtro==='PLANEACION')rows=inv.filter(r=>r.quien==='PLANEACION');
+  else if(filtro==='ALMACEN')rows=inv.filter(r=>r.quien==='ALMACEN');
+  else if(filtro==='alertas')rows=inv.filter(r=>(r.min||0)>0&&(r.qty||0)<(r.min||0));
+  else rows=inv;
+  if(!rows.length){toast('No hay registros para descargar.');return;}
+  const data=[['Producto','Área','Existencia','Unidad','Mínimo','Observaciones']];
+  rows.forEach(r=>data.push([r.nombre||'',r.quien||'',r.qty||0,r.unidad||'PZ',r.min||0,r.obs||'']));
+  const d=new Date(),ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const label=filtro==='todos'?'todos':filtro.toLowerCase();
+  const bom='﻿';
+  const csv=bom+data.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`inventario-indirectos-${label}-${ds}.csv`;a.click();
+  URL.revokeObjectURL(url);
+}
 function toggleHistorial(){
   if(!logs.length){toast('No hay movimientos para exportar.');return;}
   const rows=[['Fecha','Tipo','Producto','Cantidad','Nota','Registrado por']];

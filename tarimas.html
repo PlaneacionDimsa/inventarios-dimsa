@@ -134,6 +134,9 @@
 
   <!-- EXPORTAR HISTORIAL -->
   <div class="inline-action">
+    <button class="action-link-btn" onclick="descargarInventario()">
+      ⬇ Descargar inventario (CSV)
+    </button>
     <button class="action-link-btn" onclick="exportarHistorial()">
       ⬇ Exportar historial de movimientos (Excel)
     </button>
@@ -581,7 +584,14 @@ function listenFirebase() {
   db.collection('movimientos').orderBy('ts','desc').limit(80).onSnapshot(snap => {
     logs = snap.docs.map(d => ({id: d.id, ...d.data()}));
     const elHoy = document.getElementById('s-hoy');
-    if (elHoy) elHoy.textContent = logs.filter(l => l.fecha && l.fecha.startsWith(todayStr())).length;
+    if (elHoy) {
+      if(locFilter==='todos'){
+        elHoy.textContent = logs.filter(l => l.fecha && l.fecha.startsWith(todayStr())).length;
+      } else {
+        const medidaSet = new Set((locFilter==='todos'?inv:inv.filter(r=>r.loc===locFilter)).map(r=>r.medida));
+        elHoy.textContent = logs.filter(l => l.fecha && l.fecha.startsWith(todayStr()) && medidaSet.has(l.medida)).length;
+      }
+    }
     renderLog();
   });
 }
@@ -897,11 +907,18 @@ async function agregarTarimaPrincipal() {
 }
 
 function renderAll() {
-  const total = inv.reduce((s,r) => s + (r.qty||0), 0);
-  const b7 = inv.filter(r=>r.loc==='BODEGA 7').reduce((s,r) => s + (r.qty||0), 0);
-  const tp = inv.filter(r=>r.loc==='EN TAPANCO').reduce((s,r) => s + (r.qty||0), 0);
+  const filtered = locFilter==='todos' ? inv : inv.filter(r=>r.loc===locFilter);
+  const total = filtered.reduce((s,r) => s + (r.qty||0), 0);
+  const b7 = filtered.filter(r=>r.loc==='BODEGA 7').reduce((s,r) => s + (r.qty||0), 0);
+  const tp = filtered.filter(r=>r.loc==='EN TAPANCO').reduce((s,r) => s + (r.qty||0), 0);
   const otros = total - b7 - tp;
-  const hoy = logs.filter(l => l.fecha && l.fecha.startsWith(todayStr())).length;
+  let hoy;
+  if(locFilter==='todos'){
+    hoy = logs.filter(l => l.fecha && l.fecha.startsWith(todayStr())).length;
+  } else {
+    const medidaSet = new Set(filtered.map(r=>r.medida));
+    hoy = logs.filter(l => l.fecha && l.fecha.startsWith(todayStr()) && medidaSet.has(l.medida)).length;
+  }
   document.getElementById('s-total').textContent = total;
   document.getElementById('s-b7').textContent = b7;
   document.getElementById('s-tp').textContent = tp;
@@ -1076,6 +1093,21 @@ function setTab(btn, tab) {
   }
 }
 
+function descargarInventario(){
+  const filtered=locFilter==='todos'?inv:inv.filter(r=>r.loc===locFilter);
+  if(!filtered.length){toast('No hay registros para descargar.');return;}
+  const rows=[['Medida','Piezas','Ubicación','OP','Observaciones']];
+  filtered.forEach(r=>rows.push([r.medida||'',r.qty||0,r.loc||'',r.op||'',r.obs||'']));
+  const d=new Date(),ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const label=locFilter==='todos'?'todos':locFilter.replace(/\s+/g,'-').toLowerCase();
+  const bom='﻿';
+  const csv=bom+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`inventario-tarimas-${label}-${ds}.csv`;a.click();
+  URL.revokeObjectURL(url);
+}
 function exportarHistorial() {
   if (!logs.length) { toast('No hay movimientos para exportar.'); return; }
   const rows = [['Fecha','Tipo','Medida','Cantidad','Nota','Registrado por']];
@@ -1105,7 +1137,7 @@ function setLoc(btn, loc) {
   locFilter = loc;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
-  renderTable();
+  renderAll();
 }
 
 function normalizeMedida(s) {

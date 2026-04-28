@@ -126,6 +126,9 @@
 
     <!-- HISTORIAL COLAPSABLE -->
     <div class="inline-action">
+      <button class="action-link-btn" onclick="descargarInventario()">
+        ⬇ Descargar inventario (CSV)
+      </button>
       <button class="action-link-btn" onclick="toggleHistorial()">
         ⬇ Exportar historial de movimientos (Excel)
       </button>
@@ -875,6 +878,21 @@ function setSheet(btn,sheet){
 function showAddForm(){
   const f=document.getElementById('add-form');
   f.style.display=f.style.display==='none'?'':'none';
+}
+function descargarInventario(){
+  const filtered=sheetFilter==='todos'?inv:inv.filter(r=>r.sheet===sheetFilter);
+  if(!filtered.length){toast('No hay registros para descargar.');return;}
+  const rows=[['Descripción','Clave','Lote','Existencia','Unidad','Ubicación','Categoría','Cuarto']];
+  filtered.forEach(r=>rows.push([r.desc||'',r.clave||'',r.lote||'',r.qty||0,r.unidad||'kg',r.ubic||'',r.cat||'',r.sheet||'']));
+  const d=new Date(),ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const label=sheetFilter==='todos'?'todos':sheetFilter.replace(/\s+/g,'-').toLowerCase();
+  const bom='﻿';
+  const csv=bom+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`inventario-aditivos-${label}-${ds}.csv`;a.click();
+  URL.revokeObjectURL(url);
 }
 function toggleHistorial(){
   if(!logs.length){toast('No hay movimientos para exportar.');return;}
