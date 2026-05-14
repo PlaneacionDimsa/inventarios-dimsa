@@ -565,8 +565,16 @@ async function agregarRegistro(){
 
 async function eliminar(id){
   if(!confirm('¿Eliminar este registro?'))return;
-  if(useFirebase){await db.collection('Aditivos').doc(id).delete();}
-  else{inv=inv.filter(r=>r.id!==id);saveLocal();renderAll();}
+  const r=inv.find(x=>x.id===id);if(!r)return;
+  const desc=r.desc, lote=r.lote;
+  if(useFirebase){
+    await db.collection('Aditivos').doc(id).delete();
+    await db.collection('Aditivos_mov').add({tipo:'eliminado',desc,lote,qty:0,quien:usuario,nota:'Registro eliminado',ts:Date.now(),fecha:fmt(new Date())});
+  }else{
+    inv=inv.filter(x=>x.id!==id);
+    addLogLocal('eliminado',desc,lote,0,'Registro eliminado');
+    saveLocal();renderAll();
+  }
   toast('Eliminado.');
 }
 

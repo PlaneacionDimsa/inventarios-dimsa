@@ -563,8 +563,16 @@ async function agregarProducto(){
 
 async function eliminar(id){
   if(!confirm('¿Eliminar este producto?'))return;
-  if(useFirebase)await db.collection('indirectos').doc(id).delete();
-  else{inv=inv.filter(r=>r.id!==id);saveLocal();renderAll();}
+  const r=inv.find(x=>x.id===id);if(!r)return;
+  const nombre=r.nombre;
+  if(useFirebase){
+    await db.collection('indirectos').doc(id).delete();
+    await db.collection('indirectos_mov').add({tipo:'eliminado',nombre,qty:0,quien:usuario,nota:'Registro eliminado',ts:Date.now(),fecha:fmt(new Date())});
+  }else{
+    inv=inv.filter(x=>x.id!==id);
+    addLogLocal('eliminado',nombre,0,'Registro eliminado');
+    saveLocal();renderAll();
+  }
   toast('Eliminado.');
 }
 
