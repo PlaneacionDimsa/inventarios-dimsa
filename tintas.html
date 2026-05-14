@@ -1966,10 +1966,18 @@ function descargarInventario(){
   a.href=url;a.download=`inventario-tintas-${label}-${ds}.csv`;a.click();
   URL.revokeObjectURL(url);
 }
-function toggleHistorial(){
-  if(!logs.length){toast('No hay movimientos para exportar.');return;}
+async function toggleHistorial(){
+  let exportLogs = logs;
+  if(useFirebase){
+    try{
+      toast('Descargando historial completo...');
+      const snap = await db.collection('tintas_mov').orderBy('ts','desc').get();
+      exportLogs = snap.docs.map(d=>d.data());
+    }catch(e){console.error(e);toast('Error al descargar, usando historial local.');}
+  }
+  if(!exportLogs.length){toast('No hay movimientos para exportar.');return;}
   const rows=[['Fecha','Tipo','Descripción','Lote','Cantidad','Unidad','Turno','Máquina','OP','Sub OP','Nota','Registrado por']];
-  logs.forEach(l=>{
+  exportLogs.forEach(l=>{
     const tipo={'entrada':'Entrada','salida':'Salida','devolucion':'Devolución','ajuste':'Ajuste','nuevo-registro':'Nuevo registro'}[l.tipo]||l.tipo;
     rows.push([l.fecha||'',tipo,l.desc||'',l.lote||'',l.qty||'',l.unidad||'kg',l.turno||'',l.maq||'',l.op||'',l.subop||'',l.nota||'',l.quien||'']);
   });

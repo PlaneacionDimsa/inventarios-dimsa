@@ -794,10 +794,18 @@ function descargarInventario(){
   a.href=url;a.download=`inventario-indirectos-${label}-${ds}.csv`;a.click();
   URL.revokeObjectURL(url);
 }
-function toggleHistorial(){
-  if(!logs.length){toast('No hay movimientos para exportar.');return;}
+async function toggleHistorial(){
+  let exportLogs = logs;
+  if(useFirebase){
+    try{
+      toast('Descargando historial completo...');
+      const snap = await db.collection('indirectos_mov').orderBy('ts','desc').get();
+      exportLogs = snap.docs.map(d=>d.data());
+    }catch(e){console.error(e);toast('Error al descargar, usando historial local.');}
+  }
+  if(!exportLogs.length){toast('No hay movimientos para exportar.');return;}
   const rows=[['Fecha','Tipo','Producto','Cantidad','Nota','Registrado por']];
-  logs.forEach(l=>{
+  exportLogs.forEach(l=>{
     const tipo={'entrada':'Entrada','salida':'Salida','ajuste':'Ajuste','nuevo-registro':'Nuevo registro'}[l.tipo]||l.tipo;
     rows.push([l.fecha||'',tipo,l.nombre||'',l.qty||'',l.nota||'',l.quien||'']);
   });
