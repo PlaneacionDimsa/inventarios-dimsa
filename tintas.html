@@ -159,7 +159,7 @@
         <div class="form-col">
           <label>Tipo de movimiento</label>
           <div class="select-wrap">
-            <select id="m-tipo">
+            <select id="m-tipo" onchange="filtrarLotes()">
               <option value="entrada">Entrada &mdash; llegó tinta</option>
               <option value="salida">Salida &mdash; a producción</option>
               <option value="devolucion">Devolución &mdash; regresó sobrante</option>
@@ -175,7 +175,15 @@
         </div>
         <div class="form-col">
           <label>Lote específico</label>
-          <div class="select-wrap"><select id="m-lote"><option value="">&mdash; selecciona primero la tinta &mdash;</option></select></div>
+          <div class="select-wrap"><select id="m-lote" onchange="checkNuevoLote()"><option value="">&mdash; selecciona primero la tinta &mdash;</option></select></div>
+        </div>
+        <div class="form-col" id="col-nlote" style="display:none">
+          <label>Nuevo Lote / Pedimento</label>
+          <input id="m-nlote-str" placeholder="ej. T-1-16339" type="text" autocomplete="off">
+        </div>
+        <div class="form-col" id="col-nubic" style="display:none">
+          <label>Ubicación</label>
+          <input id="m-nlote-ubic" placeholder="ej. TIN-1-2" type="text" autocomplete="off">
         </div>
       </div>
 
@@ -1707,6 +1715,47 @@ async function registrarMovimiento(){
 
   const now=new Date().toISOString();
   const nota2=`T${turno}${maq?' &middot; '+maq:''}${op?' &middot; OP:'+op:''}${subop?' &middot; Sub:'+subop:''}${nota?' &middot; '+nota:''}`;
+
+  if(loteId === 'NUEVO') {
+    const nlote = document.getElementById('m-nlote-str').value.trim();
+    const nubic = document.getElementById('m-nlote-ubic').value.trim();
+    if(!nlote) {
+      toast('Ingresa el número del nuevo lote.');
+      return;
+    }
+    const refLot = inv.find(r=>(r.desc||'').toLowerCase()===desc.toLowerCase());
+    if(!refLot) { toast('Error: No se encontró la tinta base.'); return; }
+    
+    const item={
+      clave: refLot.clave,
+      desc: refLot.desc,
+      lote: nlote,
+      qty: qty,
+      unidad: unidad,
+      ubic: nubic || refLot.ubic,
+      cat: refLot.cat,
+      sheet: refLot.sheet,
+      updatedAt: now,
+      updatedBy: usuario,
+      lastMovAt: now
+    };
+    
+    if(useFirebase){
+      await db.collection('tintas').add(item);
+      await db.collection('tintas_mov').add({
+        tipo, desc:refLot.desc, lote:nlote, qty, unidad, turno, maq, op, subop, nota:nota2||'Nuevo lote registrado', quien:usuario, ts:Date.now(), fecha:fmt(new Date())
+      });
+    }else{
+      inv.push({...item,id:'loc'+Date.now()});
+      inv.sort((a,b)=>a.desc.localeCompare(b.desc));
+      addLogLocal(tipo,refLot.desc,nlote,qty,nota2||'Nuevo lote registrado');
+      saveLocal();renderAll();
+    }
+    toast(`Lote ${nlote} registrado con ${qty} ${unidad}.`);
+    limpiarMov();
+    return;
+  }
+
   if(loteId){
     const idx=inv.findIndex(r=>r.id===loteId);
     if(idx>=0){
@@ -1904,18 +1953,30 @@ function selectDesc(desc){
   checkTintaNueva();
 }
 
+function checkNuevoLote(){
+  const loteId=document.getElementById('m-lote').value;
+  const isNuevo=(loteId==='NUEVO');
+  document.getElementById('col-nlote').style.display=isNuevo?'block':'none';
+  document.getElementById('col-nubic').style.display=isNuevo?'block':'none';
+}
+
 function filtrarLotes(){
   const desc=document.getElementById('m-desc').value.trim().toLowerCase();
   const lotes=inv.filter(r=>r.desc.toLowerCase().includes(desc));
   const sel=document.getElementById('m-lote');
+  const tipo=document.getElementById('m-tipo').value;
   if(lotes.length){
-    sel.innerHTML=`<option value="">&mdash; elige lote &mdash;</option>`+lotes.map(r=>`<option value="${r.id}">${r.lote} (${r.qty} ${r.unidad||'kg'}) ${r.ubic?'&middot; '+r.ubic:''}</option>`).join('');
+    let html=`<option value="">&mdash; elige lote &mdash;</option>`;
+    if(tipo!=='salida') html+=`<option value="NUEVO">➕ Registrar nuevo lote...</option>`;
+    html+=lotes.map(r=>`<option value="${r.id}">${r.lote} (${r.qty} ${r.unidad||'kg'}) ${r.ubic?'&middot; '+r.ubic:''}</option>`).join('');
+    sel.innerHTML=html;
     // Auto-set unidad
     if(lotes[0].unidad==='ml')document.getElementById('m-unidad').value='ml';
     else document.getElementById('m-unidad').value='kg';
   }else{
     sel.innerHTML='<option value="">&mdash; selecciona primero la tinta &mdash;</option>';
   }
+  checkNuevoLote();
 }
 
 // ── HELPERS ──
@@ -2008,6 +2069,10 @@ function limpiarMov(){
   document.getElementById('nueva-tinta-aviso').style.display='none';
   ['mnew-clave','mnew-lote','mnew-ubic','mnew-cat'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('mnew-sheet').value='TINTAS 1';
+  document.getElementById('m-nlote-str').value='';
+  document.getElementById('m-nlote-ubic').value='';
+  document.getElementById('col-nlote').style.display='none';
+  document.getElementById('col-nubic').style.display='none';
 }
 function setQuickQty(id,value){
   const input=document.getElementById(id);
